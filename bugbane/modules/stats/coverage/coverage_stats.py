@@ -73,8 +73,7 @@ class CoverageStats(Stats):
             return 0.0
 
         percent = 100.0 * (cover / total)
-        if percent > 100.0:
-            percent = 100.0
+        percent = min(percent, 100.0)
 
         return round(percent, 2)
 

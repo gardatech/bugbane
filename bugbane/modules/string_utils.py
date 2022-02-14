@@ -68,8 +68,7 @@ def replace_part_in_str_list(
     if end >= len(cmds):
         end = len(cmds) - 1
 
-    if end < start:
-        end = start
+    end = max(end, start)
 
     log.trace("               corrected indexes: cmds[ %d .. %d ]", start, end)
 

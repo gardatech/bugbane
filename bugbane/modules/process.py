@@ -106,13 +106,9 @@ def run_shell_cmd(
         log.error("Wasn't able to start process with command '%s'", cmd)
         return (None, False, None)
 
-    if exit_code == 124 or exit_code == 137:  # timeout utility return codes
+    if exit_code in (124, 137):  # timeout utility return codes
         log.verbose3("timeout utility returned exit code %d", exit_code)
-        return (
-            None,
-            True,
-            None,
-        )
+        return (None, True, None)
 
     return (exit_code, exit_code is None, output)
 

@@ -55,12 +55,10 @@ class LibFuzzerFuzzStats(FuzzStats):
             self.hangs += hangs
 
             start_time = fuzz_stats.get("start_time", 0)
-            if self.start_timestamp >= start_time:
-                self.start_timestamp = start_time
+            self.start_timestamp = min(self.start_timestamp, start_time)
 
             last_path = fuzz_stats.get("last_path", 0)
-            if self.last_path_timestamp < last_path:
-                self.last_path_timestamp = last_path
+            self.last_path_timestamp = max(self.last_path_timestamp, last_path)
 
             log.verbose3(
                 "Loaded %d execs, %d crashes and %d hangs from subdir %s",
