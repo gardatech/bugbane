@@ -77,7 +77,8 @@ class AFLplusplusFuzzStats(FuzzStats):
         log.debug("loading fuzzer stats from file '%s'", file_path)
 
         try:
-            data = open(file_path, "rt").readlines()
+            with open(file_path, "rt") as f:
+                data = f.readlines()
         except OSError as e:
             raise AFLplusplusFuzzStatsError(
                 f"error while reading fuzzer stats file '{file_path}': {e}"

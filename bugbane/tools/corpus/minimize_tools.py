@@ -70,7 +70,7 @@ def sync_files_by_names(src_dir: str, dst_dir: str) -> int:
 
     if not src_dir or not os.path.exists(src_dir) or os.path.isfile(src_dir):
         log.debug("Bad source directory %s", src_dir)
-        return
+        return 0
 
     src_files = os.listdir(src_dir)
 

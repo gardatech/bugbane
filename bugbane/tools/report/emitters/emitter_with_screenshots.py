@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, List
 
 import os
 import glob
@@ -32,7 +32,7 @@ class EmitterWithScreenshots(Emitter):
         super().__init__()
         self.ansi_screenshot_maker: Optional[ScreenshotMaker] = None
         self.html_screenshot_maker: Optional[ScreenshotMaker] = None
-        self.screehsnot_paths: dict[str, str] = {}
+        self.screenshot_paths: dict[str, str] = {}
 
     def set_ansi_screenshot_maker(self, screener: ScreenshotMaker):
         """
@@ -68,19 +68,24 @@ class EmitterWithScreenshots(Emitter):
 
         dumps = self.make_ansi_screenshots(output_directory)
 
-        if fuzzer_has_stats:
-            self.screehsnot_paths = {
+        if not dumps:
+            self.screenshot_paths = {
+                "screen_stats": None,
+                "screen_fuzzers": None,
+            }
+        elif fuzzer_has_stats:
+            self.screenshot_paths = {
                 "screen_stats": dumps[0],
                 "screen_fuzzers": dumps[1:],
             }
         else:
-            self.screehsnot_paths = {
+            self.screenshot_paths = {
                 "screen_stats": None,
                 "screen_fuzzers": dumps,
             }
 
         coverage = self.make_html_screenshots(output_directory)
-        self.screehsnot_paths.update({"screen_coverage": coverage})
+        self.screenshot_paths.update({"screen_coverage": coverage})
 
     def delete_existing_screenshots(self, output_directory: str):
         pngs = glob.glob(os.path.join(output_directory, "*.png"))
@@ -88,9 +93,9 @@ class EmitterWithScreenshots(Emitter):
         for png in pngs:
             os.remove(png)
 
-    def make_ansi_screenshots(self, output_directory: str):
+    def make_ansi_screenshots(self, output_directory: str) -> List[str]:
         if self.suite.screen_dumps_dir is None:
-            return
+            return []
 
         if self.ansi_screenshot_maker is None:
             raise TemplateRenderError("ansi screenshot maker not set")

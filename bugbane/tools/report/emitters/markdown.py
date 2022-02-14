@@ -67,6 +67,6 @@ class MarkdownEmitter(EmitterWithScreenshots):
     def _prepare_data_for_render(self) -> dict:
         data = self.suite.to_data_dict()
 
-        if self.screehsnot_paths:
-            data.update(self.screehsnot_paths)
+        if self.screenshot_paths:
+            data.update(self.screenshot_paths)
         return data
