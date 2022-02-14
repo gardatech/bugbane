@@ -10,7 +10,8 @@
 ```
 {{ data.build_cmds }}
 ```
-<br>{% endif %}{% if data.fuzz_cmds %}
+<br>{% endif %}
+{% if data.fuzz_cmds %}
 Команды запуска фаззера:
 ```
 {{ data.fuzz_cmds }}
