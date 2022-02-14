@@ -32,8 +32,13 @@ from .factory import FuzzerCmdFactory
 
 @FuzzerCmdFactory.register("AFL++")
 class AFLplusplusCmd(FuzzerCmd):
+    """AFL++ commands generator"""
+
     def generate_one(self, input_corpus: str, output_corpus: str) -> str:
-        return f"afl-fuzz -i {input_corpus} -o {output_corpus} -m none -S $name -- $appname $run_args"
+        return (
+            f"afl-fuzz -i {input_corpus} -o {output_corpus}"
+            + " -m none -S $name -- $appname $run_args"
+        )
 
     def stats_cmd(self, sync_dir: str) -> Optional[str]:
         return f"watch -t -n 5 afl-whatsup -s {sync_dir}"
@@ -50,12 +55,6 @@ class AFLplusplusCmd(FuzzerCmd):
 
         count = len(cmds)
 
-        # calculate P% out of all cmds (cpu cores)
-        p10 = ceil(count * 0.1)
-        p20 = ceil(count * 0.2)
-        p40 = ceil(count * 0.4)
-        p40_60 = ceil(p40 * 0.6)  # for cmplog: 60% -l2, 40% -l3
-
         first = 0
         if count == 1:
             main_offset = 0
@@ -68,7 +67,47 @@ class AFLplusplusCmd(FuzzerCmd):
         ]
         sanitizer_count = len(sanitizer_builds)
 
-        default_bt_priority = [
+        default_bt = self._select_default_build_type(list(builds))
+        log.verbose3("Using build type %s as default", default_bt.name.upper())
+
+        specs = [builds[default_bt]] * count
+
+        # 1 deterministic main
+        replace_part_in_str_list(cmds, " -S $name ", " -D -M $name ", 1, first)
+
+        num_basic_builds = count - sanitizer_count
+        if num_basic_builds < 0:
+            raise ArithmeticError("not enough cores for all sanitizer builds")
+
+        # last cores are used for fuzzing sanitizer builds
+        for i, san_build in enumerate(sanitizer_builds, start=1):
+            num, start = (1, last - sanitizer_count + i)
+            replace_part_in_str_list(cmds, "$appname", san_build, num, start)
+            replace_part_in_str_list(specs, builds[default_bt], san_build, num, start)
+
+        self._add_laf_build(builds, cmds, specs, default_bt)
+        self._add_cmplog_build(builds, cmds, main_offset)
+
+        # replace builds in all the remaining commands to basic build:
+        replace_part_in_str_list(cmds, "$appname", builds[default_bt], 1, first, last)
+
+        if count > 1:
+            self._add_mmopt_args(cmds, main_offset)
+            self._add_old_queue_processing_args(cmds, main_offset)
+
+        spec_separator = ";"
+        specs = ["$name" + spec_separator + spec for spec in specs]
+
+        # this should be final step when editing cmds:
+        base_inst_name = os.path.basename(builds[default_bt])
+        self._add_fuzzer_instance_names(cmds, specs, base_inst_name)
+
+        return {"AFL++": self._specs_to_dict(specs, spec_separator)}
+
+    def _select_default_build_type(self, builds: List[BuildType]) -> BuildType:
+        """Select build type to be used in commands by default."""
+
+        build_type_priority = [
             BuildType.BASIC,
             BuildType.ASAN,
             BuildType.UBSAN,
@@ -80,113 +119,143 @@ class AFLplusplusCmd(FuzzerCmd):
             BuildType.COVERAGE,
         ]
 
-        default_bt = None
-        for bt in default_bt_priority:
+        default_bt = builds[0]
+        for bt in build_type_priority:
             if bt in builds:
-                default_bt = bt
-                break
+                return bt
 
-        log.verbose3("Using build type %s as default", default_bt.name.upper())
+        return default_bt
 
-        specs = [builds[default_bt]] * count
+    def _add_laf_build(
+        self,
+        builds: Dict[BuildType, str],
+        cmds: List[str],
+        specs: List[str],
+        default_bt: BuildType,
+    ) -> None:
+        """Make 10% of cmds use LAF build, skipping first 40% of cmds."""
 
-        # 1 deterministic main
-        replace_part_in_str_list(cmds, " -S $name ", " -D -M $name ", 1, first)
+        if BuildType.LAF not in builds:
+            return
 
-        num_basic_builds = count - sanitizer_count
-        if num_basic_builds < 0:
-            raise ArithmeticError("not enough cores for all types of builds")
+        count = len(cmds)
+        first = 0
+        p10 = ceil(count * 0.1)
+        p40 = ceil(count * 0.4)
 
-        # last cores are used for fuzzing sanitizer builds
-        for i, san_build in enumerate(sanitizer_builds, start=1):
-            num, start = (1, last - sanitizer_count + i)
-            replace_part_in_str_list(cmds, "$appname", san_build, num, start)
-            replace_part_in_str_list(specs, builds[default_bt], san_build, num, start)
+        num, start, end = (1, first + p40, first + p40 + p10)
+        replace_part_in_str_list(
+            cmds, "$appname", builds[BuildType.LAF], num, start, end
+        )
+        replace_part_in_str_list(
+            specs, builds[default_bt], builds[BuildType.LAF], num, start, end
+        )
 
-        # 10% of cores use LAF build, skipping first 40% of cores
-        if BuildType.LAF in builds:
-            num, start, end = (1, first + p40, first + p40 + p10)
-            replace_part_in_str_list(
-                cmds, "$appname", builds[BuildType.LAF], num, start, end
-            )
-            replace_part_in_str_list(
-                specs, builds[default_bt], builds[BuildType.LAF], num, start, end
-            )
+    def _add_cmplog_build(
+        self,
+        builds: Dict[BuildType, str],
+        cmds: List[str],
+        main_offset: int,
+    ) -> None:
+        """If cmplog present in builds, add it to 40% of cmds."""
 
-        # add cmplog to first 40% of cores:
-        if BuildType.CMPLOG in builds:
-            replace_part_in_str_list(
-                cmds,
-                " -- ",
-                f" -c {builds[BuildType.CMPLOG]} -- ",
-                1,
-                first + main_offset,
-                first + p40,
-            )
-            # 60% of cmplog use -l 2
-            replace_part_in_str_list(
-                cmds, " -- ", " -l 2 -- ", 1, first + main_offset, first + p40_60
-            )
+        if BuildType.CMPLOG not in builds:
+            return
 
-            if count > 1:
-                # rest (40%) of cmplog use -l 3
-                replace_part_in_str_list(
-                    cmds, " -- ", " -l 3 -- ", 1, first + p40_60 + 1, first + p40
-                )
-                # solve overlap in favor of -l 2
-                replace_part_in_str_list(
-                    cmds, " -l 2 -l 3 -- ", " -l 2 -- ", 1, first, last
-                )
-                # TODO: also remove useless -l when no -c were passed
+        count = len(cmds)
+        first = 0
+        last = count - 1
+        p40 = ceil(count * 0.4)
+        p40_60 = ceil(p40 * 0.6)  # out of 40%: 60% -l2, 40% -l3
 
-        # replace builds in all the remaining commands to basic build:
-        replace_part_in_str_list(cmds, "$appname", builds[default_bt], 1, first, last)
-
-        if count > 1:
-            # add mmopt -L 0 to 40% of all cores, skipping first 20% of cores:
-            replace_part_in_str_list(
-                cmds,
-                " -- ",
-                " -L 0 -- ",
-                1,
-                first + main_offset + p20,
-                first + main_offset + p20 + p40,
-            )
-
-            # 20% of cores use old queue processing -Z, skipping first 40% of cores
-            replace_part_in_str_list(
-                cmds,
-                " -- ",
-                " -Z -- ",
-                1,
-                first + main_offset + p40,
-                first + main_offset + p40 + p20,
-            )
-
-        specs = ["$name;" + spec for spec in specs]
-        # replace fuzzer instance names (should be final step):
+        # first 40% of cores use cmplog build
         replace_part_in_str_list(
             cmds,
-            "$name",
-            os.path.basename(builds[default_bt]) + "$i",
+            " -- ",
+            f" -c {builds[BuildType.CMPLOG]} -- ",
             1,
-            first,
-            last,
+            first + main_offset,
+            first + p40,
         )
+        # 60% of cmplog use -l 2
         replace_part_in_str_list(
-            specs,
-            "$name",
-            os.path.basename(builds[default_bt]) + "$i",
-            1,
-            first,
-            last,
+            cmds, " -- ", " -l 2 -- ", 1, first + main_offset, first + p40_60
         )
+
+        if count < 2:
+            return
+
+        # rest of cmplog use -l 3
+        replace_part_in_str_list(
+            cmds, " -- ", " -l 3 -- ", 1, first + p40_60 + 1, first + p40
+        )
+
+        # TODO: remove useless -l when no -c was passed
+        # solve overlap in favor of -l 2
+        replace_part_in_str_list(cmds, " -l 2 -l 3 -- ", " -l 2 -- ", 1, first, last)
+
+    def _add_mmopt_args(self, cmds: List[str], main_offset: int) -> None:
+        """Add mmopt -L 0 to 40% of cmds, skipping first 20% of cmds."""
+
+        first = 0
+        count = len(cmds)
+        p20 = ceil(count * 0.2)
+        p40 = ceil(count * 0.4)
+
+        replace_part_in_str_list(
+            cmds,
+            " -- ",
+            " -L 0 -- ",
+            1,
+            first + main_offset + p20,
+            first + main_offset + p20 + p40,
+        )
+
+    def _add_old_queue_processing_args(self, cmds: List[str], main_offset: int) -> None:
+        """Make 20% of cmds use old queue processing -Z, skipping first 40% of cmds."""
+
+        first = 0
+        count = len(cmds)
+        p20 = ceil(count * 0.2)
+        p40 = ceil(count * 0.4)
+
+        replace_part_in_str_list(
+            cmds,
+            " -- ",
+            " -Z -- ",
+            1,
+            first + main_offset + p40,
+            first + main_offset + p40 + p20,
+        )
+
+    def _add_fuzzer_instance_names(
+        self, cmds: List[str], specs: List[str], base_inst_name: str
+    ):
+        """Replace $name in both cmds and specs with base_inst_name + index"""
+
+        first = 0
+        last = len(cmds) - 1
+
+        for str_list in (cmds, specs):
+            replace_part_in_str_list(
+                str_list,
+                "$name",
+                base_inst_name + "$i",
+                1,
+                first,
+                last,
+            )
+
+    def _specs_to_dict(self, specs: List[str], spec_separator: str) -> Dict[str, str]:
+        """
+        Convert list of strings like '/fuzz/basic/fuzzer;sync_dir' to
+        dictionary, where '/fuzz/basic/fuzzer' becomes key and 'sync_dir' - value
+        """
         result = {}
         for spec in specs:
-            samples_subdir, app_path = spec.split(";", 1)
+            samples_subdir, app_path = spec.split(spec_separator, 1)
             result[app_path] = samples_subdir
-
-        return {"AFL++": result}
+        return result
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int
