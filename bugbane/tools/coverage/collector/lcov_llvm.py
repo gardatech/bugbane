@@ -23,10 +23,12 @@ class LCOV_LLVM_CoverageCollector(LCOVCoverageCollector):
     """
     Class suitable for collecting coverage using lcov (uses gcov) and genhtml.
 
-    ONLY for targets built with LLVM/clang and GCC-compatible coverage flags (--coverage, -lgcov).
+    ONLY for targets built with LLVM/clang and GCC-compatible coverage flags
+        --coverage, -lgcov.
 
     NOTE: will generate 0% coverage reports for targets built with GCC.
-    NOTE: will NOT work for targets built with LLVM source-based coverage (-fprofile-instr-generate -fcoverage-mapping).
+    NOTE: will NOT work for targets built with LLVM source-based coverage
+            flags -fprofile-instr-generate -fcoverage-mapping.
     """
 
     def _make_lcov_capture_cmd(self):

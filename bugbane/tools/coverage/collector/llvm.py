@@ -18,14 +18,14 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from bugbane.modules.process import checked_run_shell_cmd
-
 from .collector import CoverageCollector, CoverageCollectorError
 from .factory import CoverageCollectorFactory
 
 
-@CoverageCollectorFactory.register("llvm")
+# @CoverageCollectorFactory.register("llvm")
 class LLVMCoverageCollector(CoverageCollector):
+    """NOT IMPLEMENTED. Coverage collector for LLVM targets."""
+
     # TODO: implement as in prepare-code-coverage-artifact
     def cleanup_coverage_info(self):
         raise NotImplementedError()

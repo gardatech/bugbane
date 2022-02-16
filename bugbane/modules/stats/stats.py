@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict, Any
 from abc import ABC, abstractmethod
 
 import os
@@ -114,7 +114,7 @@ class Stats(ABC):
         """
 
     @abstractmethod
-    def _load_multidict(self, data: dict):
+    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
         """
         Walk over keys & values in data dictionary, where each key is subdir name
         and each value represents stats loaded from one stats file in corresponding subdir.

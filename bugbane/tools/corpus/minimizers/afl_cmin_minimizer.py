@@ -29,6 +29,8 @@ from .minimizer import MinimizerUsingProgram, MinimizerError
 
 @MinimizerFactory.register("afl-cmin")
 class AFL_cmin_Minimizer(MinimizerUsingProgram):
+    """Tool-based corpus minimizer using afl-cmin."""
+
     def run_one(
         self,
         mask: str,

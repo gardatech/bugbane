@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import logging
 
@@ -37,7 +37,7 @@ class AFLplusplusFuzzStats(FuzzStats):
     def fuzzer_type(self) -> str:
         return "AFL++"
 
-    def _load_multidict(self, data: dict):
+    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
         for subdir, fuzz_stats in data.items():
             self.num_instances += 1
 

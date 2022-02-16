@@ -16,10 +16,11 @@
 
 from typing import Optional, Union
 
-from jinja2 import Environment, FileSystemLoader
 import logging
 
 log = logging.getLogger(__name__)
+
+from jinja2 import Environment, FileSystemLoader
 
 from .emitter import EmitterError, TemplateRenderError
 from .emitter_with_screenshots import EmitterWithScreenshots
@@ -57,7 +58,6 @@ class MarkdownEmitter(EmitterWithScreenshots):
         """
         For markdown format there's nothing to be done here
         """
-        pass
 
     def render(self) -> Union[str, bytes]:
         log.trace("rendering self.template_name=%s", self.template_name)

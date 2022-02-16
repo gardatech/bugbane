@@ -49,7 +49,7 @@ def main(argv=None):
 
     if args.run_mode == "suite":
         try:
-            suite, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
+            _, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
             src_path = bane_vars.get("src_root")
             if not src_path:
                 raise FuzzDataError("no src_root in configuration file")

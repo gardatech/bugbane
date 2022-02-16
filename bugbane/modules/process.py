@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Dict, Optional
 
 import os
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired, SubprocessError
@@ -24,7 +24,9 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def checked_run_shell_cmd(cmd, extra_env=None, timeout_sec=120) -> bool:
+def checked_run_shell_cmd(
+    cmd: str, extra_env: Dict[str, str] = None, timeout_sec: int = 120
+) -> bool:
     """
     Return True if run was successfull
     """
@@ -50,7 +52,7 @@ def checked_run_shell_cmd(cmd, extra_env=None, timeout_sec=120) -> bool:
 
 
 def run_shell_cmd(
-    cmd, extra_env=None, timeout_sec=120
+    cmd: str, extra_env: Dict[str, str] = None, timeout_sec: int = 120
 ) -> Tuple[Optional[int], bool, Optional[bytes]]:
     """
     Executes shell command with possible pipe and redirect symbols "|><".
@@ -113,7 +115,9 @@ def run_shell_cmd(
     return (exit_code, exit_code is None, output)
 
 
-def run_interactive_shell_cmd(cmd, extra_env=None) -> Tuple[Optional[int], bytes]:
+def run_interactive_shell_cmd(
+    cmd: str, extra_env: Dict[str, str] = None
+) -> Tuple[Optional[int], bytes]:
     """
     Executes shell command with possible pipe and redirect symbols "|><".
     User has to ensure command exits (e.g. with timeout tool).
@@ -156,13 +160,13 @@ def run_interactive_shell_cmd(cmd, extra_env=None) -> Tuple[Optional[int], bytes
     return (exit_code, output.rstrip(b"\n"))
 
 
-def _get_exitcode_and_output(inst: Popen, timeout_sec):
+def _get_exitcode_and_output(inst: Popen, timeout_sec: int):
     output, _ = inst.communicate(timeout=timeout_sec)
     exit_code = inst.returncode
     return (exit_code, output)
 
 
-def make_env_shell_str(env: dict) -> str:
+def make_env_shell_str(env: Dict[str, str]) -> Optional[str]:
     """
     Transforms env dict to string suitable for use in shell
     Returns None for empty dict

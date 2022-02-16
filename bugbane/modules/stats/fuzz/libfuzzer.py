@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Dict, Optional, Any
 
 import os
 import re
@@ -38,7 +38,7 @@ class LibFuzzerFuzzStats(FuzzStats):
     def fuzzer_type(self) -> str:
         return "libFuzzer"
 
-    def _load_multidict(self, data: dict):
+    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
         for subdir, fuzz_stats in data.items():
             self.num_instances += fuzz_stats.get("num_forks", 0)
 

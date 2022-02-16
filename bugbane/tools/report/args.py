@@ -145,7 +145,8 @@ def exit_on_bad_args(args: Namespace):
     checked_path = none_on_bad_nonempty_file(template_path)
     if not checked_path:
         sys.exit(
-            f"ERROR in --templates/--template-name: file '{template_path}' doesn't exist, empty or not accessible"
+            f"ERROR in --templates/--template-name: file '{template_path}'"
+            + " is nonexistent, empty or not accessible"
         )
 
 

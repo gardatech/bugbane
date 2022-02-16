@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Callable
+from typing import Dict
 from bugbane.modules.factory import Factory
 from .fuzzer_info import FuzzerInfo
 

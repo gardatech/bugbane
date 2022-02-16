@@ -16,10 +16,11 @@
 
 from typing import Optional
 
-from bs4 import BeautifulSoup
 import logging
 
 log = logging.getLogger()
+
+from bs4 import BeautifulSoup
 
 from .coverage_stats import CoverageStats, CoverageStatsError
 from .factory import CoverageStatsFactory

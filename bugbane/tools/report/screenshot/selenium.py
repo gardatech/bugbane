@@ -15,12 +15,12 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 import os
-from selenium.webdriver import Firefox, FirefoxOptions
-from selenium.common.exceptions import TimeoutException, WebDriverException
-
 import logging
 
 log = logging.getLogger(__name__)
+
+from selenium.webdriver import Firefox, FirefoxOptions
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 from .screenshot import ScreenshotMaker, ScreenshotError
 from .factory import ScreenshotMakerFactory

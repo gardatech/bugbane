@@ -16,11 +16,11 @@
 
 from typing import Dict
 
-from bugbane.modules.build_type import BuildType
-
 import logging
 
 log = logging.getLogger(__name__)
+
+from bugbane.modules.build_type import BuildType
 
 from .base_builders import LLVMBuilder, UnsupportedBuildException
 from .factory import FuzzBuilderFactory

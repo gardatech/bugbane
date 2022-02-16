@@ -14,7 +14,6 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
 from dataclasses import dataclass
 
 

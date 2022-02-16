@@ -18,11 +18,10 @@ import os
 import sys
 import pprint
 
-from .args import parse_args
-
 from bugbane.modules.log import get_first_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 
+from .args import parse_args
 from .builders.factory import FuzzBuilderFactory
 from .builders.base_builders import Builder, BuildError
 

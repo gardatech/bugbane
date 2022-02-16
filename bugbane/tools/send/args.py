@@ -110,13 +110,13 @@ def parse_args(argv):
 def exit_on_bad_args(args):
 
     if args.user_id < 1:
-        sys.exit("ERROR in --user-id: bad user id '%d'" % args.user_id)
+        sys.exit(f"ERROR in --user-id: bad user id '{args.user_id}'")
 
     if args.engagement < 1:
-        sys.exit("ERROR in --engagement: bad engagement id '%d'" % args.engagement)
+        sys.exit(f"ERROR in --engagement: bad engagement id '{args.engagement}'")
 
     if not os.path.isfile(args.results_file):
-        sys.exit("ERROR in --results-file: file '%s' doesn't exist" % args.results_file)
+        sys.exit(f"ERROR in --results-file: file '{args.results_file}' doesn't exist")
 
     if os.path.getsize(args.results_file) == 0:
-        sys.exit("ERROR in --results-file: file '%s' is empty" % args.results_file)
+        sys.exit(f"ERROR in --results-file: file '{args.results_file}' is empty")

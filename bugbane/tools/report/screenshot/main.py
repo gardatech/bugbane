@@ -21,10 +21,9 @@ Screenshot tool
 import sys
 import shutil
 
-from .args import parse_args
-
 from bugbane.modules.log import get_first_logger
 
+from .args import parse_args
 from .factory import ScreenshotMakerFactory
 from .screenshot import ScreenshotError
 

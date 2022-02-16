@@ -44,6 +44,7 @@ class DefectDojoSender:
         self.cards_file_path = cards_file_path
 
         self.issue_cards = []
+        self.fuzz_stats = {}
 
         self.sample_path_translation_map = self.__make_sample_path_translation_map()
 

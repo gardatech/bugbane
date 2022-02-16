@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Dict, Optional, Any
 
 import re
 import time
@@ -41,7 +41,7 @@ class GoFuzzFuzzStats(FuzzStats):
     def fuzzer_type(self) -> str:
         return "go-fuzz"
 
-    def _load_multidict(self, data: dict):
+    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
         for subdir, fuzz_stats in data.items():
             self.num_instances += fuzz_stats.get("num_workers", 0)
 

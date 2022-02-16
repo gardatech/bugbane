@@ -24,7 +24,6 @@ import shlex
 
 from bugbane.modules.log import get_first_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataError, FuzzDataSuite
-from bugbane.modules.build_type import BuildType
 from bugbane.modules.builds import BuildDetectionError, detect_builds
 
 from bugbane.modules.stats.coverage.coverage_stats import (
@@ -50,7 +49,7 @@ def main(argv=None):
 
     if args.run_mode == "suite":
         try:
-            suite, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
+            _, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
             tested_binary_path = bane_vars.get("tested_binary_path") or None
 
             builds = detect_builds(args.suite, tested_binary_path)

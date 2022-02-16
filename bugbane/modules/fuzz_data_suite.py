@@ -23,10 +23,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats
-
-from bugbane.modules.stats.coverage.factory import CoverageStatsFactory
 from bugbane.modules.stats.coverage.coverage_stats import CoverageStats
 
 from bugbane.modules.fuzzer_info.factory import FuzzerInfoFactory
@@ -177,12 +174,12 @@ class FuzzDataSuite:
                 f"while trying to load json file '{self.vars_json_path}': {e}"
             ) from e
         try:
-            vars = data["fuzzing"]
+            vars_dict = data["fuzzing"]
         except KeyError:
             FuzzDataError(
                 f"while trying to load json file '{self.vars_json_path}': no 'fuzzing' dictionary in file"
             )
-        return vars
+        return vars_dict
 
     def save_vars(self, bane_vars: dict):
         """

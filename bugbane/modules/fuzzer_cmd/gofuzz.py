@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, List, Dict, Tuple
+from typing import List, Dict, Tuple
 
 import os
 import logging

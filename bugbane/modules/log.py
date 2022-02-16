@@ -33,7 +33,7 @@ LOGFILE_PATH = os.getenv("LOGFILE")
 TRACE_LOGFILE_PATH = os.getenv("TRACE_LOGFILE")
 
 
-def get_first_logger(loggername, verbosity_level) -> Logger:
+def get_first_logger(loggername: str, verbosity_level: int) -> Logger:
     """
     This method setups logging options like custom log levels
     and returns new instance of Logger.
@@ -122,6 +122,11 @@ def _add_log_level_method(level: int, levelname: str):
 
 
 class ConditionalFormatter(logging.Formatter):
+    """
+    Custom logging formatter with format settings for different log levels.
+    For example it doesn't use 'INFO:' prefix.
+    """
+
     def format(self, record: LogRecord):
         fmt = self._style._fmt
         try:

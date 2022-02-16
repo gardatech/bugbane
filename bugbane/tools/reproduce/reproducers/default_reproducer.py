@@ -22,17 +22,17 @@ log = logging.getLogger(__name__)
 
 import glob
 
-from ..issue_card import IssueCard
-from ..verdict import Verdict
-from .reproducer import Reproducer
-from .factory import ReproducerFactory
-
 from bugbane.modules.process import (
     make_env_shell_str,
     prepare_run_args_for_shell,
     run_interactive_shell_cmd,
     run_shell_cmd,
 )
+
+from ..issue_card import IssueCard
+from ..verdict import Verdict
+from .reproducer import Reproducer
+from .factory import ReproducerFactory
 
 
 @ReproducerFactory.register_default()

@@ -20,11 +20,11 @@ import os
 import re
 import shutil
 
-from bs4 import BeautifulSoup
-
 import logging
 
 log = logging.getLogger(__name__)
+
+from bs4 import BeautifulSoup
 
 from bugbane.modules.process import checked_run_shell_cmd
 from bugbane.modules.file_utils import none_on_bad_nonempty_file

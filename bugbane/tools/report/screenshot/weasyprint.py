@@ -58,5 +58,6 @@ class WeasyPrintScreenshotMaker(ScreenshotMaker):
         output = output.decode(errors="replace")
         if exit_code != 0:
             raise ScreenshotError(
-                f"got bad exit code {exit_code} while converting {input_file_path} to {output_file_path}: \n{output}"
+                f"got bad exit code {exit_code} while converting"
+                + f"{input_file_path} to {output_file_path}: \n{output}"
             )

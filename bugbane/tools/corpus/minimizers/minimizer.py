@@ -31,6 +31,8 @@ class MinimizerError(Exception):
 
 
 class MinimizerFileAction(Enum):
+    """Action applied to fuzzer samples during minimization."""
+
     COPY = auto()
     MOVE = auto()
 

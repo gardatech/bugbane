@@ -29,8 +29,12 @@ class TemplateRenderError(EmitterError):
 
 
 class Emitter(ABC):
+    """ABC for report generators."""
+
     def __init__(self):
         self.suite: Optional[FuzzDataSuite] = None
+        self.template_dir: Optional[str] = None
+        self.template_name: Optional[str] = None
 
     def assign_suite(self, suite: FuzzDataSuite):
         """
@@ -62,7 +66,8 @@ class Emitter(ABC):
     def render(self) -> Union[str, bytes]:
         """
         Renders data from FuzzDataSuite to bytes or str.
-        Fields with None value should't be in result (whole section for this field should be missing).
+        Fields with None value should't be in result (whole section
+        for this field should be missing).
         Raise TemplateRenderError in case of missing crucial data
         """
 

@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Callable
+from typing import Dict, Callable
 from abc import ABC
 
 import logging
@@ -23,8 +23,12 @@ log = logging.getLogger(__name__)
 
 
 class Factory(ABC):
+    """Factory/Registry ABC.
+    Registers classes (types) in internal dictionary using @register decorator.
+    Creates new instances of classes using create method.
+    """
 
-    registry = {}
+    registry: Dict[str, Callable] = {}
 
     @classmethod
     def register(cls, name: str) -> Callable:

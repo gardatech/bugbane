@@ -42,7 +42,7 @@ def test_generate_commands():
         BuildType.COVERAGE: "./coverage/app",
     }
 
-    cmds, specs = cmdgen.generate(
+    cmds, _ = cmdgen.generate(
         run_args="@@", input_corpus="in", output_corpus="out", count=17, builds=builds
     )
     assert len(cmds) == 17
@@ -277,7 +277,7 @@ def test_make_tmux_commands():
         BuildType.COVERAGE: "./coverage/app",
     }
 
-    cmds, specs = cmdgen.generate(
+    cmds, _ = cmdgen.generate(
         run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
     )
     stats_cmd = cmdgen.stats_cmd("out")

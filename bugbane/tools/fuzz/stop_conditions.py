@@ -112,9 +112,9 @@ def detect_required_stop_condition(
     """
 
     env = environ or os.environ
-    vars = bane_vars or {}
+    bane_vars = bane_vars or {}
 
-    log.trace("env size is %d, vars size is %d", len(env), len(vars))
+    log.trace("env size is %d, vars size is %d", len(env), len(bane_vars))
 
     cert_fuzz_duration = env.get("CERT_FUZZ_DURATION")
     cert_fuzz_level = env.get("CERT_FUZZ_LEVEL")

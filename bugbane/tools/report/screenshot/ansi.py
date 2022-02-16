@@ -23,10 +23,10 @@ import os
 import shutil
 import tempfile
 
+from bugbane.modules.process import run_shell_cmd
+
 from .screenshot import ScreenshotMaker, ScreenshotError
 from .factory import ScreenshotMakerFactory
-
-from bugbane.modules.process import run_shell_cmd
 
 
 @ScreenshotMakerFactory.register("pango")
@@ -58,7 +58,8 @@ class AnsiDumpScreenshotMaker(ScreenshotMaker):
 
         if shutil.which("ansifilter") is not None:
             pangoinput = os.path.join(self.temp_workdir, "screen.pango")
-            cmd += f"ansifilter -i {input_file_path} --map {self.color_map_path} -M -o {pangoinput} && "
+            cmd += f"ansifilter -i {input_file_path} --map {self.color_map_path}"
+            cmd += f" -M -o {pangoinput} && "
             cmd += "pango-view --markup "
         else:
             pangoinput = input_file_path
@@ -70,5 +71,6 @@ class AnsiDumpScreenshotMaker(ScreenshotMaker):
         output = output.decode(errors="replace")
         if exit_code != 0:
             raise ScreenshotError(
-                f"got bad exit code {exit_code} while converting {input_file_path} to {output_file_path}: \n{output}"
+                f"got bad exit code {exit_code} while converting"
+                + f" {input_file_path} to {output_file_path}: \n{output}"
             )

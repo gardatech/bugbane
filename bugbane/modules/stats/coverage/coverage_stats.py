@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any
 from abc import abstractmethod
 from dataclasses import dataclass
 
@@ -141,7 +141,7 @@ class CoverageStats(Stats):
             self.bb_cover = sum(bb_cov)
             self.bb_total = sum(bb_total)
 
-    def _load_multidict(self, data: dict):
+    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
         # TODO: convert dict to CoverageStats and use self.add_stats_from
         func_cov = [self.func_cover]
         func_total = [self.func_total]

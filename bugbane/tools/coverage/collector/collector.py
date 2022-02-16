@@ -14,15 +14,15 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 from abc import ABC, abstractmethod
-
-from bugbane.modules.process import prepare_run_args_for_shell, run_shell_cmd
 
 import glob
 import logging
 
 log = logging.getLogger(__name__)
+
+from bugbane.modules.process import prepare_run_args_for_shell, run_shell_cmd
 
 
 class CoverageCollectorError(Exception):
@@ -30,6 +30,11 @@ class CoverageCollectorError(Exception):
 
 
 class CoverageCollector(ABC):
+    """
+    ABC for coverage collector classes.
+    Subclasses should create HTML coverage reports.
+    """
+
     def __init__(self):
         self.cov_files_path: Optional[str] = None
         self.masks: List[str] = []

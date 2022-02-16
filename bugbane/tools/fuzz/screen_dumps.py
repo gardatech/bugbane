@@ -14,8 +14,6 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, List
-
 import os
 import logging
 

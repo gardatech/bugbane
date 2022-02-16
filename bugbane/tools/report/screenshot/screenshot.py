@@ -18,10 +18,12 @@ from abc import ABC, abstractmethod
 
 
 class ScreenshotError(RuntimeError):
-    """Exception class for errors that happen in ScreenshotMaker class"""
+    """Exception class for errors that happen in ScreenshotMaker subclasses."""
 
 
 class ScreenshotMaker(ABC):
+    """ABC for 'screenshot' generator classes."""
+
     @abstractmethod
     def convert(self, input_file_path: str, output_file_path: str, dpi: int):
         """

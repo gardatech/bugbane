@@ -28,6 +28,8 @@ from ..screenshot.screenshot import ScreenshotMaker
 
 
 class EmitterWithScreenshots(Emitter):
+    """Base class for report generators using screenshots."""
+
     def __init__(self):
         super().__init__()
         self.ansi_screenshot_maker: Optional[ScreenshotMaker] = None

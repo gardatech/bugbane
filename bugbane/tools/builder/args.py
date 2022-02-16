@@ -28,7 +28,6 @@ def parse_args(argv):
         sys.exit(0)
 
     args = parser.parse_args(argv)
-    post_process_args(args)
     exit_on_bad_args(args)
     return args
 
@@ -69,7 +68,3 @@ def exit_on_bad_args(args: Namespace):
 
     if not os.path.isdir(args.input):
         sys.exit(f"ERROR in --input: directory '{args.input}' doesn't exist")
-
-
-def post_process_args(args: Namespace):
-    ...
