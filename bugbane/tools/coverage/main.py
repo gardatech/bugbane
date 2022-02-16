@@ -55,13 +55,10 @@ def main(argv=None):
 
             builds = detect_builds(args.suite, tested_binary_path)
 
-            app = None
-            for bt, path in builds.items():
-                if bt.is_coverage():
-                    app = path
-                    break
-
-            if not app:
+            coverage_build_path = next(
+                (path for btype, path in builds.items() if btype.is_coverage()), None
+            )
+            if not coverage_build_path:
                 raise BuildDetectionError("coverage build not found")
 
             run_args = shlex.split(bane_vars.get("run_args") or "")
@@ -89,7 +86,7 @@ def main(argv=None):
             log.error("Wasn't able to load fuzz data suite %s: %s", args.suite, e)
             return 1
     else:
-        app = args.program[0]
+        coverage_build_path = args.program[0]
         run_args = args.program[1:]
         coverage_type = args.cov_type
         coverage_report_path = args.output
@@ -101,7 +98,7 @@ def main(argv=None):
     log.verbose1("Using %s", cov_collector.__class__.__name__)
 
     # TODO: respect run_env from bane_vars file
-    cov_collector.assign_application(app, run_args)
+    cov_collector.assign_application(binary=coverage_build_path, run_args=run_args)
     cov_collector.assign_src_root(src_root)
     cov_collector.assign_cov_files_path(cov_files_path)
     cov_collector.assign_sample_masks(sample_masks)

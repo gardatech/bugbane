@@ -106,24 +106,23 @@ def parse_args(argv):
 def exit_on_bad_args(args):
 
     if args.num_reruns <= 0:
-        if args.verbose:
-            print(
-                f"NOTE in --num-reruns: corrected value from {args.num_reruns} to 1",
-                file=sys.stderr,
-            )
+        print(
+            f"NOTE in --num-reruns: corrected value from {args.num_reruns} to 1",
+            file=sys.stderr,
+        )
         args.num_reruns = 1
 
     if args.hang_timeout <= 0:
-        if args.verbose:
-            print(
-                f"NOTE in --hang-timeout: corrected value from {args.hang_timeout} to 1",
-                file=sys.stderr,
-            )
+        print(
+            f"NOTE in --hang-timeout: corrected value from {args.hang_timeout} to 1",
+            file=sys.stderr,
+        )
         args.hang_timeout = 1
 
     if args.run_mode == "suite":
         return
 
+    # TODO: move specs checking to harvester class
     for fuzzer_dir_and_builds in args.spec:
 
         if len(fuzzer_dir_and_builds) < 2:
@@ -170,11 +169,11 @@ def exit_on_bad_args(args):
         if args.verbose:
             print()
 
+    if args.program[0] == "--":
+        del args.program[0]
+
     t_len = len(args.program)
-    if t_len < 1 or (args.program[0] == "--" and t_len < 2):
+    if t_len < 1:
         sys.exit(
             "ERROR in program run options: you didn't specify program you want to run"
         )
-
-    if args.program[0] == "--":
-        del args.program[0]
