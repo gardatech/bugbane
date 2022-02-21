@@ -59,5 +59,5 @@ class WeasyPrintScreenshotMaker(ScreenshotMaker):
         if exit_code != 0:
             raise ScreenshotError(
                 f"got bad exit code {exit_code} while converting"
-                + f"{input_file_path} to {output_file_path}: \n{output}"
+                + f" {input_file_path} to {output_file_path}: \n{output}"
             )

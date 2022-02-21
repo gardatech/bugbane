@@ -144,6 +144,7 @@ class Harvester:
             raise HarvesterError(
                 f"while trying to use fuzzer_type={fuzzer_type}: {e}"
             ) from e
+        reproducer.set_run_env(self.run_env)
 
         self.add_stats(self.load_stats(fuzzer_type, fuzzer_info.stats_dir(sync_dir)))
         for app_and_dir in build_specs:
