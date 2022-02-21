@@ -57,6 +57,20 @@ SUMMARY: UndefinedBehaviorSanitizer: undefined-behavior /src/src/fuzzable_app.cp
     assert card.title == "Undefined behavior at /src/src/fuzzable_app.cpp:29"
 
 
+def test_ubsan_no_summary():
+    output = """/src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540:22: runtime error: load of value 253, which is not a valid value for type 'bool'
+    #0 0x558cc6888c85 in ML_Data::operator=(ML_Data&&) /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540
+    #1 0x558cc6888c85 in ML_mylib::processMLGroup(ML_LibInterface*, int, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/dl_my.cpp:586
+    #2 0x558cc6b506b8 in ML_mylib::readMLGroups(std::istream&, ML_LibInterface*) /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/dl_my.cpp:210
+    #3 0x558cc6b5111f in ML_mylib::in(std::istream&, ML_LibInterface*) /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/dl_my.cpp:145
+    #4 0x558cc688f5f6 in main /src/app/somethng/src/worker/test/src/lib/mylib/myconverter.cpp:34
+    #5 0x7f24a3f7d564 in __libc_start_main (/build/fuzz/asan/artifacts/parsers/bin/../lib/libc.so.6+0x28564)
+    #6 0x558cc6890d6d in _start (/build/fuzz/asan/artifacts/parsers/bin/mylibparser+0x5e2d6d)
+"""
+    card = helper_make_card(output, exit_code=1, is_hang=False, src_path="/src")
+    assert card.title == "Undefined behavior at /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540"
+
+
 def test_cfisan():
     output = """/src/src/fuzzable_app.cpp:47:17: runtime error: control flow integrity check for type 'int ()' failed during indirect function call
 (/fuzz/cfisan+0xd545e5): note: _fini defined here

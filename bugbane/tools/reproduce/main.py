@@ -98,8 +98,8 @@ def main(argv=None):
     harvester.set_hang_timeout(args.hang_timeout)
 
     reproduce_run_env = {
-        "UBSAN_OPTIONS": "print_stacktrace=1:allocator_may_return_null=1:detect_stack_use_after_return=1",
-        "ASAN_OPTIONS": "allocator_may_return_null=1:detect_stack_use_after_return=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1:allocator_may_return_null=1",
+        "ASAN_OPTIONS": "allocator_may_return_null=1",
     }
 
     # run_env from file is more important than defaults

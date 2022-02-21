@@ -75,14 +75,14 @@ class Verdict(Enum):
         if "runtime error: control flow integrity " in output:
             return cls.CRASH_CFISAN
 
-        if "UndefinedBehaviorSanitizer:" in output:
-            return cls.CRASH_UBSAN
-
         if "AddressSanitizer:" in output:
             return cls.CRASH_ASAN
 
         if "panic: " in output:
             return cls.CRASH_PANIC
+
+        if "UndefinedBehaviorSanitizer:" in output or ": runtime error: " in output:
+            return cls.CRASH_UBSAN
 
         if exit_code is not None and exit_code > 128:
             return cls.CRASH_GENERIC

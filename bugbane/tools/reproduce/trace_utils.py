@@ -126,10 +126,12 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
 
     t = output
     result = get_golang_crash_or_hang_location(t, src_path)
+    log.trace("golang location result: %s", result)
     if result is not None:
         return result
 
     result = get_gdb_crash_location(t, src_path)
+    log.trace("gdb location result: %s", result)
     if result is not None:
         return result
 
@@ -137,6 +139,7 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
     log.debug("no gdb stacktrace found")
 
     result = get_sanitizer_crash_location(t)
+    log.trace("sanitizer location result: %s", result)
     if result is not None:
         return result
 
@@ -232,6 +235,14 @@ def get_sanitizer_crash_location(output: str) -> str:
         # 2 = issue type (undefined-behavior)
         # 3 = file, line, column (/src/src/fuzzable_app.cpp:29:31)
         return "at " + location.group(3)
+
+    re_sanitizer_location2 = re.compile(
+        r"^\s*(.*?:\d+:\d+):\s+runtime error:\s", re.MULTILINE | re.DOTALL
+    )
+    location = re.match(re_sanitizer_location2, t)
+    if location:
+        # 1 = file, line, column
+        return "at " + location.group(1)
 
     # asan
     re_asan_location = re.compile(
