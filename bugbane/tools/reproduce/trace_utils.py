@@ -223,13 +223,13 @@ def get_gdb_crash_location(output: str, src_path: Optional[str] = None) -> str:
 
 def get_sanitizer_crash_location(output: str) -> str:
     t = output
-
+    log.trace("Text to match (in square brackets): [%s]", t)
     # ubsan/cfisan
     re_sanitizer_location = re.compile(
-        r".*SUMMARY:\s+(\S+Sanitizer):\s+(\S+)\s+(.*?)\s+in\s*?$",
-        re.MULTILINE | re.DOTALL,
+        r"^\s*SUMMARY:\s+(\S+Sanitizer):\s+(\S+)\s+(.*?)\s+in\s*?$", re.MULTILINE
     )
-    location = re.match(re_sanitizer_location, t)
+    location = re.search(re_sanitizer_location, t)
+    log.trace("location1 = %s", location)
     if location:
         # 1 = sanitizer name (UndefinedBehaviorSanitizer)
         # 2 = issue type (undefined-behavior)
@@ -237,19 +237,20 @@ def get_sanitizer_crash_location(output: str) -> str:
         return "at " + location.group(3)
 
     re_sanitizer_location2 = re.compile(
-        r"^\s*(.*?:\d+:\d+):\s+runtime error:\s", re.MULTILINE | re.DOTALL
+        r"^\s*(.*?:\d+:\d+):\s+runtime error:\s", re.MULTILINE
     )
-    location = re.match(re_sanitizer_location2, t)
+    location = re.search(re_sanitizer_location2, t)
+    log.trace("location2 = %s", location)
     if location:
         # 1 = file, line, column
         return "at " + location.group(1)
 
     # asan
     re_asan_location = re.compile(
-        r".*SUMMARY:\s+AddressSanitizer:\s+(\S+)\s+(.*?)\s+in\s+(.*?)\s*$",
-        re.MULTILINE | re.DOTALL,
+        r"^\s*SUMMARY:\s+AddressSanitizer:\s+(\S+)\s+(.*?)\s+in\s+(.*?)\s*$",
+        re.MULTILINE,
     )
-    location = re.match(re_asan_location, t)
+    location = re.search(re_asan_location, t)
     if location:
         # 1 = issue type (global-buffer-overflow)
         # 2 = file, line, column (/src/src/fuzzable_app.cpp:38:22)
