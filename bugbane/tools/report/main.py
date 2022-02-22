@@ -43,6 +43,8 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_first_logger(__name__, args.verbose)
 
+    log.info("[*] BugBane report tool")
+
     if args.dump_screener == "pango":
         if shutil.which("pango-view") is None:
             log.error("pango-view wasn't found in PATH")
@@ -114,13 +116,17 @@ def main(argv=None):
     emitter.make_screenshots(screenshots_out_dir, fuzzer_has_stats)
 
     data = emitter.render()
+    message_file = sys.stdout
     if output_dir == "-":
         print(data)
+        message_file = sys.stderr
     else:
         output_file_path = os.path.join(
             output_dir, args.name + "." + emitter.get_report_file_extension()
         )
         with open(output_file_path, "wt", encoding="utf-8") as f:
             print(data, file=f)
+
+    print("[+] Report generation complete", file=message_file)
 
     return 0

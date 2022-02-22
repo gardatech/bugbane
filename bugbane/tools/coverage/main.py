@@ -47,6 +47,8 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_first_logger(__name__, args.verbose)
 
+    log.info("[*] BugBane coverage tool")
+
     if args.run_mode == "suite":
         try:
             _, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)

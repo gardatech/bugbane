@@ -63,6 +63,8 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_first_logger(__name__, args.verbose)
 
+    log.info("[*] BugBane fuzz tool")
+
     if shutil.which("tmux") is None:
         log.error("tmux not found in PATH")
         return 1

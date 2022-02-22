@@ -44,6 +44,8 @@ def main(argv=None):
     exit_on_bad_args(args)
     log = get_first_logger(__name__, verbosity_level=args.verbose)
 
+    log.info("[*] BugBane reproduce tool")
+
     if shutil.which("gdb") is None:
         sys.exit("ERROR: gdb not found in path")
 

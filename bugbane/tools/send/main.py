@@ -56,6 +56,8 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_first_logger(__name__, args.verbose)
 
+    log.info("[*] BugBane send tool")
+
     try:
         dd_api = create_dd_api_from_args(args)
     except (DefectDojoAPIError, TypeError) as e:

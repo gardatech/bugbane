@@ -68,7 +68,11 @@ def test_ubsan_no_summary():
     #6 0x558cc6890d6d in _start (/build/fuzz/asan/artifacts/parsers/bin/mylibparser+0x5e2d6d)
 """
     card = helper_make_card(output, exit_code=1, is_hang=False, src_path="/src")
-    assert card.title == "Undefined behavior at /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540"
+    assert (
+        card.title
+        == "Undefined behavior at /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540"
+    )
+
 
 def test_ubsan_no_summary_gdb():
     """UBSAN message inside GDB"""
@@ -87,7 +91,10 @@ Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
     #6 0x558cc6890d6d in _start (/build/fuzz/asan/artifacts/parsers/bin/mylibparser+0x5e2d6d)
 """
     card = helper_make_card(output, exit_code=1, is_hang=False, src_path="/src")
-    assert card.title == "Undefined behavior at /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540"
+    assert (
+        card.title
+        == "Undefined behavior at /src/app/somethng/src/worker/test/extern/mylib-1.2.3/src/my_entities.h:1540"
+    )
 
 
 def test_cfisan():

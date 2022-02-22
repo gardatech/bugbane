@@ -37,6 +37,8 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_first_logger(__name__, args.verbose)
 
+    log.info("[*] BugBane build tool")
+
     os.chdir(args.input)
 
     try:
