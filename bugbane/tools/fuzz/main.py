@@ -36,7 +36,7 @@ from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats, FuzzStatsError
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 from bugbane.modules.fuzzer_info.fuzzer_info import FuzzerInfo
 from bugbane.modules.fuzzer_info.factory import FuzzerInfoFactory
-from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd
+from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
 
 from .args import parse_args
@@ -151,7 +151,7 @@ def main(argv=None):
             count=fuzz_cores,
             builds=builds,
         )
-    except (ArithmeticError, IndexError) as e:
+    except (FuzzerCmdError, IndexError) as e:
         log.error("wasn't able to create fuzz commands: %s", e)
         return 1
     bane_vars["reproduce_specs"] = reproduce_specs

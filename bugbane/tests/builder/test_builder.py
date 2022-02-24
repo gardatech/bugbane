@@ -59,6 +59,27 @@ def test_build_type_bad():
         BuildType.from_str(" CFISAN ")
 
 
+def test_build_type_dirname():
+    assert BuildType.ASAN.dirname() == "asan"
+    assert BuildType.COVERAGE.dirname() == "coverage"
+
+
+def test_build_type_is_coverage():
+    assert not BuildType.ASAN.is_coverage()
+    assert not BuildType.BASIC.is_coverage()
+    assert BuildType.COVERAGE.is_coverage()
+    assert BuildType.GOFUZZ.is_coverage()
+
+
+def test_build_type_is_fuzz_target():
+    assert BuildType.ASAN.is_fuzz_target()
+    assert BuildType.BASIC.is_fuzz_target()
+    assert BuildType.GOFUZZ.is_fuzz_target()
+    assert BuildType.LAF.is_fuzz_target()
+    assert not BuildType.CMPLOG.is_fuzz_target()
+    assert not BuildType.COVERAGE.is_fuzz_target()
+
+
 def test_is_static_sanitizer():
     sanitizers = {
         BuildType.ASAN,

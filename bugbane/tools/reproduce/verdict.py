@@ -14,6 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Optional
 from enum import Enum
 
 
@@ -39,15 +40,13 @@ class Verdict(Enum):
         self._description = description
 
     @property
-    def id(self):
-        return self._id
-
-    @property
     def description(self):
         return self._description
 
     @classmethod
-    def from_run_results(cls, exit_code, is_hang, output: str):
+    def from_run_results(
+        cls, exit_code: Optional[int], is_hang: Optional[bool], output: Optional[str]
+    ):
         """Make Verdict object from application run results"""
 
         if is_hang:

@@ -16,11 +16,13 @@
 
 from typing import List, Dict
 
+import pytest
+
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list
 from bugbane.tools.fuzz.command_utils import make_tmux_commands
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
-from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd
+from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.aflplusplus import AFLplusplusCmd
 from bugbane.modules.fuzzer_cmd.libfuzzer import LibFuzzerCmd
 from bugbane.modules.fuzzer_cmd.gofuzz import GoFuzzCmd
@@ -142,6 +144,35 @@ def test_aflpp_generate():
     helper_check_cmds(cmds, builds)
 
 
+def test_aflpp_select_default_build_type():
+    """Build type not in priority list of AFL++ cmd generator."""
+    cmdgen = AFLplusplusCmd()
+
+    # no builds known to AFL++ cmd gen, select first one as default
+    builds = [
+        BuildType.GOFUZZ,
+    ]
+    assert cmdgen._select_default_build_type(builds) == BuildType.GOFUZZ
+
+
+def test_aflpp_generate_cmplog_for_one_core():
+    cmdgen = AFLplusplusCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.CMPLOG: "./cmplog/app",
+    }
+
+    cmds, specs = cmdgen.generate(
+        run_args="@@", input_corpus="in", output_corpus="out", count=1, builds=builds
+    )
+    print(cmds)
+    print(specs)
+    helper_check_cmds(cmds, builds)
+    assert "basic/app" in cmds[0]
+    assert "cmplog/app" in cmds[0]
+    assert " -l 2 " in cmds[0]
+
+
 def test_libfuzzer_generate_all_builds():
     cmdgen = LibFuzzerCmd()
     builds = {
@@ -224,6 +255,29 @@ def test_libfuzzer_generate_one_build():
     helper_check_cmds(cmds, builds_asan)
 
 
+def test_cmd_gen_not_enough_cores():
+    """More sanitizers than CPU cores."""
+
+    cmdgens = [AFLplusplusCmd(), LibFuzzerCmd()]
+    builds_basic = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.ASAN: "./asan/app",
+        BuildType.UBSAN: "./ubsan/app",
+        BuildType.CFISAN: "./cfisan/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    for cmdgen in cmdgens:
+        with pytest.raises(FuzzerCmdError):
+            _, _ = cmdgen.generate(
+                run_args="@@",
+                input_corpus="in",
+                output_corpus="out",
+                count=2,
+                builds=builds_basic,
+            )
+
+
 def test_gofuzz_generate_one_build():
     cmdgen = GoFuzzCmd()
     builds = {
@@ -243,11 +297,45 @@ def test_gofuzz_generate_one_build():
 
     assert len(cmds) == 1
     assert "-bin=./gofuzz/app.zip" in cmds[0]
+    assert "coverage/app" not in cmds[0]
     assert "-dumpcover" in cmds[0]
     assert "-procs=8" in cmds[0]
     assert "-workdir=testdata" in cmds[0]
     assert "-func=TestFuzzFunc" in cmds[0]
     helper_check_cmds(cmds, builds)
+
+
+def test_gofuzz_generate_bad():
+    cmdgen = GoFuzzCmd()
+
+    # only useless builds for go-fuzz
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    with pytest.raises(FuzzerCmdError):
+        _, _ = cmdgen.generate(
+            run_args="-func=TestFuzzFunc",
+            input_corpus="in",
+            output_corpus="testdata",
+            count=8,
+            builds=builds,
+        )
+
+
+def test_stats_cmds():
+    cmdgen = AFLplusplusCmd()
+
+    cmd = cmdgen.stats_cmd("out")
+    assert cmd is not None
+    assert "afl-whatsup" in cmd
+    assert "out" in cmd
+
+    cmdgen = LibFuzzerCmd()
+    assert cmdgen.stats_cmd("out") is None
+    cmdgen = GoFuzzCmd()
+    assert cmdgen.stats_cmd("out") is None
 
 
 def helper_check_cmds(cmds: List[str], builds: Dict[BuildType, str]):
@@ -287,6 +375,19 @@ def test_make_tmux_commands():
     assert len(tmux_cmds) == len(cmds) + 2
 
     assert all((cmd.startswith("tmux") for cmd in tmux_cmds))
+
+
+def test_make_one_tmux_capture_pane_cmds():
+    sess_name = "fuzz"
+    index = 3
+
+    for gen_name in FuzzerCmdFactory.registry:
+        cmdgen = FuzzerCmdFactory.create(gen_name)
+        cmd = cmdgen.make_one_tmux_capture_pane_cmd(sess_name, index)
+        assert cmd.startswith("tmux capture-pane ")
+        assert "fuzz:3" in cmd
+        assert "-e" in cmd
+        assert "-p" in cmd
 
 
 def test_generate_combos_c_cxx():

@@ -20,12 +20,18 @@ import re
 
 
 def metric_try_to_float(s: str) -> Union[float, str]:
+    """
+    Try to convert input string to float value.
+    Return float value on success or input value on failure.
+    """
+
+    v = s
     try:
-        if "%" in s:
-            s = s[:-1]
-        return float(s)
+        if "%" in v:
+            v = v[:-1]
+        return float(v)
     except ValueError:
-        return s
+        return str(s)
 
 
 def squeeze_spaces(s: str) -> str:

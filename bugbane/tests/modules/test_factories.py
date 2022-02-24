@@ -14,7 +14,11 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Dict, Callable
+
 import pytest
+
+from bugbane.modules.factory import Factory
 
 from bugbane.modules.stats.coverage.factory import CoverageStatsFactory
 from bugbane.modules.stats.coverage.llvm_summary import LLVMSummaryCoverageStats
@@ -63,3 +67,22 @@ def test_factories_are_consistent():
     print("FuzzStatsFactory  : ", fuzz_stats)
     assert cmds == paths
     assert cmds == fuzz_stats
+
+
+def test_factory_overwrite_class():
+    class SomeFactory(Factory):
+        registry: Dict[str, Callable] = {}
+
+    @SomeFactory.register("same_name")
+    class SomeClass1:
+        pass
+
+    assert len(SomeFactory.registry) == 1
+
+    @SomeFactory.register("same_name")
+    class SomeClass2:
+        pass
+
+    assert len(SomeFactory.registry) == 1
+    assert SomeClass1 not in SomeFactory.registry.values()
+    assert SomeFactory.create("same_name").__class__ is SomeClass2

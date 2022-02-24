@@ -14,6 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Optional
 from enum import Enum, auto
 
 
@@ -31,7 +32,7 @@ class BuildType(Enum):
     COVERAGE = auto()  # coverage build should be the last
 
     @classmethod
-    def from_str(cls, s: str):
+    def from_str(cls, s: Optional[str]):
         if not s:
             return cls.BASIC
 
@@ -51,6 +52,7 @@ class BuildType(Enum):
         return self.name.lower()
 
     def is_static_sanitizer(self):
+        """This build is statically instrumented with sanitizers."""
         return self in (
             BuildType.ASAN,
             BuildType.UBSAN,
@@ -62,7 +64,7 @@ class BuildType(Enum):
 
     def is_coverage(self):
         """
-        This build allows to collect coverage information
+        This build allows to collect coverage information.
         """
         return self in (BuildType.GOFUZZ, BuildType.COVERAGE)
 

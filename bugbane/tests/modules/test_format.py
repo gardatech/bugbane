@@ -45,6 +45,8 @@ def test_metric_try_to_float():
         ("51%", 51.0),
         ("66.6%", 66.6),
         ("1000000000", 1000000000.0),
+        ("unknown value", "unknown value"),
+        ("%", "%"),
     ]
 
     for inp, exp in in_out:

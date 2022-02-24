@@ -33,6 +33,7 @@ TOTAL                              36                 8    77.78%           6   
     cov_stats = LLVMSummaryCoverageStats()
     cov_info = cov_stats.read_from_str(stats)
 
+    assert cov_info is not None
     assert cov_info["bb_cover"] == 20
     assert cov_info["bb_total"] == 26
 
@@ -275,6 +276,7 @@ def test_coverage_parse_lcov():
     cov_stats = LCOVCoverageStats()
     cov_info = cov_stats.read_from_str(stats)
 
+    assert cov_info is not None
     assert cov_info["bb_cover"] == 941
     assert cov_info["bb_total"] == 7260
 
@@ -300,6 +302,7 @@ total:                  (statements)    70.3%
     # go tool cover provides no counts,
     # value 10000 was arbitrarily chosen in parsing code
 
+    assert cov_info is not None
     assert cov_info["line_total"] == 10000
     assert cov_info["line_cover"] == 7030
 
@@ -348,3 +351,9 @@ def test_coverage_sum_different():
     assert totals.line_total == 88
     assert totals.func_cover == 1010
     assert totals.func_total == 2020
+
+
+def test_get_tool_name():
+    assert LCOVCoverageStats().get_tool_name() == "lcov, genhtml"
+    assert LLVMSummaryCoverageStats().get_tool_name() == "LLVM"
+    assert GoCoverageStats().get_tool_name() == "go tool cover"

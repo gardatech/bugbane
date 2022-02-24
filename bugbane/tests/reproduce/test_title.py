@@ -29,7 +29,10 @@ get_first_logger(__name__, 3)
 
 
 def helper_make_card(
-    output: str, exit_code: int, is_hang: bool, src_path: Optional[str] = None
+    output: Optional[str],
+    exit_code: Optional[int],
+    is_hang: Optional[bool],
+    src_path: Optional[str] = None,
 ) -> IssueCard:
     card = IssueCard()
     card.output = output
@@ -157,6 +160,14 @@ Quit anyway? (y or n) [answered Y; input not from terminal]
     # python gets exit code of gdb itself, which is 0
     card = helper_make_card(output, exit_code=0, is_hang=False)
     assert card.title == "Crash in just_abort at /src/src/../include/funcs.h:12"
+
+
+def test_failed_assert():
+    output = """test: test.c:4: main: Assertion `0' failed.
+Aborted (core dumped)
+"""
+    card = helper_make_card(output=output, exit_code=134, is_hang=None, src_path="/src")
+    assert card.title == "Crash"
 
 
 def test_gdb_failed_assert():
@@ -372,3 +383,21 @@ main.main()
 exit status 2"""
     card = helper_make_card(output, exit_code=2, is_hang=None, src_path="/src")
     assert card.title == "Crash in go.Parse at /src/go/fuzzable.go:9"
+
+
+def test_no_errors():
+    output = """Bad input data entered!
+Leaving...
+"""
+    card = helper_make_card(output, exit_code=2, is_hang=False, src_path="/src")
+    assert card.title == "No error occurred"
+
+
+def test_hang():
+    card = helper_make_card(output=None, exit_code=None, is_hang=True, src_path="/src")
+    assert card.title == "Hang"
+
+
+def test_unknown():
+    card = helper_make_card(output=None, exit_code=None, is_hang=None, src_path="/src")
+    assert card.title == "Wasn't able to determine verdict"

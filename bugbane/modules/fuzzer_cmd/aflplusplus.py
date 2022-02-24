@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list
 
-from .fuzzer_cmd import FuzzerCmd
+from .fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from .factory import FuzzerCmdFactory
 
 
@@ -77,7 +77,7 @@ class AFLplusplusCmd(FuzzerCmd):
 
         num_basic_builds = count - sanitizer_count
         if num_basic_builds < 0:
-            raise ArithmeticError("not enough cores for all sanitizer builds")
+            raise FuzzerCmdError("not enough cores for all sanitizer builds")
 
         # last cores are used for fuzzing sanitizer builds
         for i, san_build in enumerate(sanitizer_builds, start=1):

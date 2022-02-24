@@ -48,6 +48,7 @@ def test_afl():
 
     assert paths.stats_dir("/fuzz/out") == "/fuzz/out"
     assert paths.stats_dir("out/") == "out/"
+    assert paths.coverage_dir("out/") is None
 
 
 def test_libfuzzer():
@@ -70,6 +71,7 @@ def test_libfuzzer():
 
     assert paths.stats_dir("/fuzz/out") == "/fuzz"
     assert paths.stats_dir("out/") == "out/.."
+    assert paths.coverage_dir("out/") is None
 
 
 def test_gofuzz():
@@ -88,3 +90,4 @@ def test_gofuzz():
 
     assert paths.stats_dir("/fuzz/out") == "/fuzz"
     assert paths.stats_dir("out/") == "out/.."
+    assert paths.coverage_dir("out/") == "out/"

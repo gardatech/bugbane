@@ -148,13 +148,16 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
 
 
 def get_golang_crash_or_hang_location(
-    output: str, src_path: Optional[str] = None
+    output: Optional[str], src_path: Optional[str] = None
 ) -> Optional[str]:
     """
     Find first user code in golang stack trace.
     If user code can't be found, return first location in stack trace.
     If it can't be found, return None
     """
+    if not output:
+        return None
+
     src_path = src_path or ""
     re_go_stacktrace = re.compile(
         r"^(?:.*/)?(.*?)\(.*?\)$\s+(.*?\.go:\d+)\s+.*?$", re.MULTILINE
@@ -180,11 +183,17 @@ def get_golang_crash_or_hang_location(
     return location
 
 
-def get_gdb_crash_location(output: str, src_path: Optional[str] = None) -> str:
+def get_gdb_crash_location(
+    output: Optional[str], src_path: Optional[str] = None
+) -> Optional[str]:
     """
     output: application run output
     src_path: path to sources when the application was built; directory may not exist
+    return None if crash location can not be extracted.
     """
+
+    if not output:
+        return None
 
     t = output
 
@@ -221,7 +230,14 @@ def get_gdb_crash_location(output: str, src_path: Optional[str] = None) -> str:
     return locations[0]
 
 
-def get_sanitizer_crash_location(output: str) -> str:
+def get_sanitizer_crash_location(output: Optional[str]) -> Optional[str]:
+    """
+    Return file:line:column string containing location of sanitizer error (crash).
+    Return None if such string can not be extracted.
+    """
+    if not output:
+        return None
+
     t = output
     log.trace("Text to match (in square brackets): [%s]", t)
     # ubsan/cfisan
