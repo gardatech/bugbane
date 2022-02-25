@@ -14,6 +14,8 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Dict, Optional
+
 import pytest
 from pytest_mock import MockerFixture
 
@@ -27,3 +29,30 @@ def test_factory():
     assert ReproducerFactory.create("AFL++").__class__ is DefaultReproducer
     assert ReproducerFactory.create("libFuzzer").__class__ is DefaultReproducer
     assert ReproducerFactory.create("go-fuzz").__class__ is GoFuzzReproducer
+
+
+def test_factory_bad(mocker: MockerFixture):
+    mocker.patch.dict(ReproducerFactory.registry, {}, clear=True)
+    mocker.patch.object(ReproducerFactory, "default", None)
+    with pytest.raises(TypeError):
+        ReproducerFactory.create("!! unknown !!")
+
+
+def test_factory_overwrite():
+    class ReproducerFactoryChild(ReproducerFactory):
+        registry: Dict[str, Reproducer] = {}
+        default: Optional[Reproducer] = None
+
+    @ReproducerFactoryChild.register_default()
+    class SomeClass1:
+        pass
+
+    assert len(ReproducerFactoryChild.registry) == 0
+    assert ReproducerFactoryChild.default is SomeClass1
+
+    @ReproducerFactoryChild.register_default()
+    class SomeClass2:
+        pass
+
+    assert len(ReproducerFactoryChild.registry) == 0
+    assert ReproducerFactoryChild.default is SomeClass2

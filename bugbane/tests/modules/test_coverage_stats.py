@@ -14,9 +14,13 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+import pytest
+
 from bugbane.modules.stats.coverage.llvm_summary import LLVMSummaryCoverageStats
 from bugbane.modules.stats.coverage.lcov import LCOVCoverageStats
 from bugbane.modules.stats.coverage.go import GoCoverageStats
+
+from bugbane.modules.stats.coverage.coverage_stats import CoverageStatsError
 
 
 def test_coverage_parse_llvm():
@@ -42,6 +46,32 @@ TOTAL                              36                 8    77.78%           6   
 
     assert cov_info["func_cover"] == 4
     assert cov_info["func_total"] == 6
+
+
+def test_coverage_parse_llvm_truncated():
+
+    stats = """
+Filename                      Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+include/funcs.h                     3                 2    33.33%           3                 2    33.33%           9                 6    33.33%           0                 0         -
+src/fuzzable_app.cpp               33                 6    81.82%           3                 0   100.00%          71                14    80.28%          26                 6    76.92%
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+"""
+
+    cov_stats = LLVMSummaryCoverageStats()
+    with pytest.raises(CoverageStatsError):
+        _ = cov_stats.read_from_str(stats)
+
+
+def test_coverage_parse_llvm_bad_file():
+
+    stats = """Some unknown file
+with some unknown data
+"""
+
+    cov_stats = LLVMSummaryCoverageStats()
+    with pytest.raises(CoverageStatsError):
+        _ = cov_stats.read_from_str(stats)
 
 
 def test_llvm_coverage_init():
@@ -287,7 +317,7 @@ def test_coverage_parse_lcov():
     assert cov_info["func_total"] == 809
 
 
-def test_coverage_parse_go():
+def test_go():
     stats = """/src/go/fuzz.go:5:      Fuzz            100.0%
 /src/go/fuzzable.go:7:  check_index     50.0%
 /src/go/fuzzable.go:13: recursive_sum   62.5%
@@ -305,6 +335,41 @@ total:                  (statements)    70.3%
     assert cov_info is not None
     assert cov_info["line_total"] == 10000
     assert cov_info["line_cover"] == 7030
+
+
+def test_go_empty():
+    cov_stats = GoCoverageStats()
+    contents = """
+"""
+    with pytest.raises(CoverageStatsError):
+        cov_stats.read_from_str(contents)
+
+
+def test_go_truncated():
+    contents = """/src/go/fuzz.go:5:      Fuzz            100.0%
+/src/go/fuzzable.go:7:  check_index     50.0%
+/src/go/fuzzable.go:13: recursive_sum   62.5%
+    """
+
+    cov_stats = GoCoverageStats()
+    with pytest.raises(CoverageStatsError):
+        cov_stats.read_from_str(contents)
+
+
+def test_go_malformed():
+    """Bad total coverage percent."""
+
+    contents = """/src/go/fuzz.go:5:      Fuzz            100.0%
+/src/go/fuzzable.go:7:  check_index     50.0%
+/src/go/fuzzable.go:13: recursive_sum   62.5%
+/src/go/fuzzable.go:27: busy_loop       68.8%
+/src/go/fuzzable.go:52: Parse           80.0%
+total:                  (statements)    170.3%
+    """
+
+    cov_stats = GoCoverageStats()
+    with pytest.raises(CoverageStatsError):
+        cov_stats.read_from_str(contents)
 
 
 def test_coverage_sum_different():

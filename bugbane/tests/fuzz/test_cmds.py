@@ -354,7 +354,6 @@ def helper_check_cmds(cmds: List[str], builds: Dict[BuildType, str]):
 
 
 def test_make_tmux_commands():
-    cmdgen = AFLplusplusCmd()
     builds = {
         BuildType.BASIC: "./basic/app",
         BuildType.LAF: "./laf/app",
@@ -363,18 +362,30 @@ def test_make_tmux_commands():
         BuildType.UBSAN: "./ubsan/app",
         BuildType.CFISAN: "./cfisan/app",
         BuildType.COVERAGE: "./coverage/app",
+        BuildType.GOFUZZ: "./gofuzz/app.zip",
     }
 
-    cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
-    )
-    stats_cmd = cmdgen.stats_cmd("out")
-    tmux_cmds = make_tmux_commands([stats_cmd] + cmds, "test")
+    cmdgen_with_extra_cmds = [
+        (AFLplusplusCmd(), 2),
+        (LibFuzzerCmd(), 1),
+        (GoFuzzCmd(), 1),
+    ]
 
-    # fuzz cmds + stats cmd + tmux new-session cmd
-    assert len(tmux_cmds) == len(cmds) + 2
+    for cmdgen, extra_cmds in cmdgen_with_extra_cmds:
+        cmds, _ = cmdgen.generate(
+            run_args="@@",
+            input_corpus="in",
+            output_corpus="out",
+            count=8,
+            builds=builds,
+        )
+        stats_cmd = cmdgen.stats_cmd("out")
+        tmux_cmds = make_tmux_commands([stats_cmd] + cmds, "test")
 
-    assert all((cmd.startswith("tmux") for cmd in tmux_cmds))
+        # fuzz cmds + (stats cmd + tmux new-session cmd)
+        assert len(tmux_cmds) == len(cmds) + extra_cmds
+
+        assert all((cmd.startswith("tmux") for cmd in tmux_cmds))
 
 
 def test_make_one_tmux_capture_pane_cmds():

@@ -26,7 +26,7 @@ from .reproducer import Reproducer
 
 
 class ReproducerFactory(Factory):
-    """Factory for Reproducer subclasses"""
+    """Factory/Registry for Reproducer subclasses"""
 
     registry: Dict[str, Reproducer] = {}
     default: Optional[Reproducer] = None
@@ -35,7 +35,7 @@ class ReproducerFactory(Factory):
     def register_default(cls) -> Callable:
         """Register default class in internal registry"""
 
-        def wrapper(wrapped: Callable) -> Callable:
+        def wrapper(wrapped: Reproducer) -> Reproducer:
             if cls.default is not None:
                 log.warning("replacing default class in %s", cls.__name__)
             cls.default = wrapped

@@ -94,8 +94,8 @@ class DefaultReproducer(Reproducer):
         or until a bug is detected.
         Return partially filled IssueCard (without title and bug location)
         """
-
-        for try_num in range(1, self.num_tries + 1):
+        num_tries = min(1, self.num_tries)
+        for try_num in range(1, num_tries + 1):
             log.verbose3("%s run: %s (try #%d)", self.__class__.__name__, cmd, try_num)
             verdict, output = run_method(cmd, self.run_env)
 

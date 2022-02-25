@@ -26,6 +26,12 @@ log = logging.getLogger(__name__)
 
 
 def remove_column_from_location(location: Optional[str]) -> Optional[str]:
+    """
+    Remove column number from source location string.
+    For strings like "path/to/file.cpp:20:56".
+    Return str line "path/to/file.cpp:20" or
+    input location if column info can not be removed."
+    """
     if not location:
         return location
 
@@ -33,7 +39,7 @@ def remove_column_from_location(location: Optional[str]) -> Optional[str]:
     return re.sub(re_line_column, r"\1:\2", location)
 
 
-def anonymize_run_string(t: str) -> str:
+def anonymize_run_string(t: Optional[str]) -> Optional[str]:
     """
     Generalizes hex addresses, some sanitizer error numbers, values in "()" brackets.
     Use with output, location or issue title
@@ -93,16 +99,17 @@ def get_hang_location(output: str, src_path: Optional[str]) -> Optional[str]:
         return None
 
     re_minimal_hang_location = re.compile(
-        r".*^Line\s+(\d+)\s+of\s+\"?(.*)\"\s+starts", re.MULTILINE | re.DOTALL
+        r"^Line\s+(\d+)\s+of\s+\"?(.*)\"\s+starts", re.MULTILINE
     )  # groups: 1=line, 2=file
     re_hang_locatin_with_func = re.compile(
         r"^Line\s+(\d+)\s+of\s+\"?(.*?)\"?\s+starts.*?\<(.*?)(?:\>|\()",
-        re.MULTILINE | re.DOTALL,
+        re.MULTILINE,
     )  # groups: 1=line, 2=file, 3=func
 
     locations = re.findall(re_hang_locatin_with_func, output)
     if not locations:
         locations = re.findall(re_minimal_hang_location, output)
+
     log.trace("locations: %s", locations)
     if not locations:
         log.debug("wasn't able to determine hang location")
@@ -187,6 +194,7 @@ def get_gdb_crash_location(
     output: Optional[str], src_path: Optional[str] = None
 ) -> Optional[str]:
     """
+    Extract crash location (source file, line, column) from given application output.
     output: application run output
     src_path: path to sources when the application was built; directory may not exist
     return None if crash location can not be extracted.
@@ -203,7 +211,7 @@ def get_gdb_crash_location(
         return None
 
     re_gdb_location = re.compile(
-        r"^#\d+\s+0[xX][\S]{1,}\s+(in\s+.*\s+(?:at|from).*?$)", re.MULTILINE
+        r"^#\d+\s+(?:0[xX][\S]{1,}\s+)?((?:in\s+)?.*\s+(?:at|from).*?$)", re.MULTILINE
     )
     locations = re.findall(re_gdb_location, t)
 
@@ -214,20 +222,28 @@ def get_gdb_crash_location(
         "GDB STACKTRACE FOUND, location candidates:\n\t" + "\n\t".join(locations)
     )
 
+    gdb_check_src_location = r"(?:in\s+)?(.*?)\s+at\s+("
+    if src_path:
+        gdb_check_src_location += src_path
+    gdb_check_src_location += r".*?)$"
+    log.debug("gdb_check_src_location: %s", gdb_check_src_location)
+    re_gdb_check_src_location = re.compile(gdb_check_src_location)
+
+    result = None
     # return first src location
     for location in locations:
-        gdb_check_src_location = r"in\s+(.*?)\s+at\s+("
-        if src_path:
-            gdb_check_src_location += src_path
-        gdb_check_src_location += r".*?)$"
-        log.debug("gdb_check_src_location: %s", gdb_check_src_location)
-        re_gdb_check_src_location = re.compile(gdb_check_src_location)
-
         if re.match(re_gdb_check_src_location, location):
-            return location
+            result = location
+            break
 
     # no src locations, return topmost location of the stack trace
-    return locations[0]
+    if result is None:
+        result = locations[0]
+
+    if not result[0:3] in ("in ", "at "):
+        result = "in " + result
+
+    return result
 
 
 def get_sanitizer_crash_location(output: Optional[str]) -> Optional[str]:

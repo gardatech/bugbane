@@ -30,7 +30,7 @@ def make_tmux_commands(
 
     cmds.append(f"tmux new-session -d -x 90 -y 35 -s {tmux_session_name}")
     for i, cmd in enumerate(all_cmds, start=1):
-        if cmd is None:
+        if cmd is None:  # stats command missing
             continue
 
         cmds.append(f"tmux new-window -dn {tmux_session_name}:{i} '{cmd}'")

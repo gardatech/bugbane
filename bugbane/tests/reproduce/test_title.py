@@ -198,41 +198,6 @@ Quit anyway? (y or n) [answered Y; input not from terminal]
     assert card.title == "Crash in failed_assert at /src/src/../include/funcs.h:17"
 
 
-def test_gdb_get_hang_location():
-    output = """Reading symbols from ./cfisan/fuzzable_app...
-Starting program: /fuzz/cfisan/fuzzable_app < "/mnt/out/s6/hangs/id:000003,src:000000+000003,time:6921,op:splice,rep:4"
-[Thread debugging using libthread_db enabled]
-Using host libthread_db library "/lib64/libthread_db.so.1".
-
-Program received signal SIGINT, Interrupt.
-0x000000000023d3c1 in fuzz (buf=<optimized out>, len=<optimized out>) at /src/src/fuzzable_app.cpp:66
-66              for (unsigned short i = 0; i < n; i++)
-<HANG_START>
-68                  sum += i;
-Line 68 of "/src/src/fuzzable_app.cpp" starts at address 0x23d30d <fuzz(char*, long)+557> and ends at 0x23d319 <fuzz(char*, long)+569>.
-66              for (unsigned short i = 0; i < n; i++)
-Line 66 of "/src/src/fuzzable_app.cpp" starts at address 0x23d20d <fuzz(char*, long)+301> and ends at 0x23d233 <fuzz(char*, long)+339>.
-68                  sum += i;
-Line 68 of "/src/src/fuzzable_app.cpp" starts at address 0x23d30d <fuzz(char*, long)+557> and ends at 0x23d319 <fuzz(char*, long)+569>.
-66              for (unsigned short i = 0; i < n; i++)
-Line 66 of "/src/src/fuzzable_app.cpp" starts at address 0x23d20d <fuzz(char*, long)+301> and ends at 0x23d233 <fuzz(char*, long)+339>.
-68                  sum += i;
-Line 68 of "/src/src/fuzzable_app.cpp" starts at address 0x23d30d <fuzz(char*, long)+557> and ends at 0x23d319 <fuzz(char*, long)+569>.
-<HANG_END>
-A debugging session is active.
-
-        Inferior 1 [process 407] will be killed.
-
-Quit anyway? (y or n) [answered Y; input not from terminal]
-"""
-    card = helper_make_card(output, exit_code=None, is_hang=None)
-    assert (
-        get_hang_location(output, src_path="/src")
-        == "in fuzz at /src/src/fuzzable_app.cpp:68"
-    )
-    assert card.title == "Hang in fuzz at /src/src/fuzzable_app.cpp:68"
-
-
 def test_location_is_in_user_code():
     output = """warning: Error disabling address space randomization: Operation not permitted
 [Thread debugging using libthread_db enabled]
