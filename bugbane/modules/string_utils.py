@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List
+from typing import List, Optional
 
 import logging
 
@@ -37,7 +37,7 @@ def replace_part_in_str_list(
     with_what: str,
     num_repl: int,
     start: int,
-    end: int = None,
+    end: Optional[int] = None,
 ) -> None:
     """
     cmds: list of commands to be modified

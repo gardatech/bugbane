@@ -317,6 +317,92 @@ def test_coverage_parse_lcov():
     assert cov_info["func_total"] == 809
 
 
+def test_lcov_wrong_html():
+    stats = """<html>
+<body>
+Not a coverage report
+</body>
+</html>
+"""
+    cov_stats = LCOVCoverageStats()
+    with pytest.raises(CoverageStatsError):
+        cov_stats.read_from_str(stats)
+
+
+def test_lcov_missing_branches():
+    """Coverage report was generated without branches."""
+
+    stats = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - cov.info</title>
+  <link rel="stylesheet" type="text/css" href="gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue">top level</td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">cov.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1942</td>
+            <td class="headerCovTableEntry">7073</td>
+            <td class="headerCovTableEntryLo">27.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2021-12-08 15:17:02</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">387</td>
+            <td class="headerCovTableEntry">809</td>
+            <td class="headerCovTableEntryLo">47.8 %</td>
+          </tr>
+          <tr><td><img src="glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+</body>
+</html>
+"""
+
+    cov_stats = LCOVCoverageStats()
+    cov_info = cov_stats.read_from_str(stats)
+
+    assert cov_info is not None
+    assert cov_info["bb_cover"] is None
+    assert cov_info["bb_total"] is None
+
+    assert cov_info["line_cover"] == 1942
+    assert cov_info["line_total"] == 7073
+
+    assert cov_info["func_cover"] == 387
+    assert cov_info["func_total"] == 809
+
+
 def test_go():
     stats = """/src/go/fuzz.go:5:      Fuzz            100.0%
 /src/go/fuzzable.go:7:  check_index     50.0%
