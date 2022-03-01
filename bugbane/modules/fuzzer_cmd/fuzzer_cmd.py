@@ -34,6 +34,7 @@ class FuzzerCmd(ABC):
         output_corpus: str,
         count: int,
         builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
         """
         Generate commands to run fuzzer on `count` cores.
@@ -41,7 +42,7 @@ class FuzzerCmd(ABC):
         """
         cmds = [self.generate_one(input_corpus, output_corpus) for _ in range(count)]
         replace_part_in_str_list(cmds, "$run_args", run_args, -1, 0, count - 1)
-        specs = self.make_replacements(cmds, builds)
+        specs = self.make_replacements(cmds, builds, dict_path)
         return cmds, specs
 
     @abstractmethod
@@ -57,7 +58,10 @@ class FuzzerCmd(ABC):
 
     @abstractmethod
     def make_replacements(
-        self, cmds: List[str], builds: Dict[BuildType, str]
+        self,
+        cmds: List[str],
+        builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Dict[str, Dict[str, str]]:
         """
         Assign builds and different cmdline arguments for fuzzer commands.

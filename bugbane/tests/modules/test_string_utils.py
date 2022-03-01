@@ -29,6 +29,7 @@ def test_is_glob_mask():
     assert not string_utils.is_glob_mask("out/m1/fuzzer_stats")
     assert not string_utils.is_glob_mask("")
 
+
 def test_replace_part_in_str_list():
     tested_func = string_utils.replace_part_in_str_list
 
@@ -47,4 +48,3 @@ def test_replace_part_in_str_list():
     tested_func(cmds_copy, "$arg", "runtime", -1, 0, last)
     print(cmds_copy)
     assert cmds_copy == expected
-

@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 import os
 import logging
@@ -45,12 +45,13 @@ class GoFuzzCmd(LibFuzzerCmd):
         output_corpus: str,
         count: int,
         builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
         self.count = count
         self.output_corpus = output_corpus
 
         cmds = [self.generate_one(input_corpus, output_corpus) + " " + run_args]
-        specs = self.make_replacements(cmds, builds)
+        specs = self.make_replacements(cmds, builds, dict_path)
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
             cmds,
@@ -72,7 +73,10 @@ class GoFuzzCmd(LibFuzzerCmd):
         return cmd
 
     def make_replacements(
-        self, cmds: List[str], builds: Dict[BuildType, str]
+        self,
+        cmds: List[str],
+        builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Dict[str, Dict[str, str]]:
         specs = {}
 

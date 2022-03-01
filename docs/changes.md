@@ -1,6 +1,9 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.4.0
+- added support for fuzzing dictionaries
+
 ## Version 0.3.0
 - made public under Apache-2.0 license
 - new README

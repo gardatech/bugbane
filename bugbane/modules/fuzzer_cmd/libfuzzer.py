@@ -44,6 +44,7 @@ class LibFuzzerCmd(FuzzerCmd):
         output_corpus: str,
         count: int,
         builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
         """
         Generate commands to run fuzzer on `count` cores:
@@ -56,7 +57,7 @@ class LibFuzzerCmd(FuzzerCmd):
         self.output_corpus = output_corpus
 
         cmds = [self.generate_one(input_corpus, output_corpus)]
-        specs = self.make_replacements(cmds, builds)
+        specs = self.make_replacements(cmds, builds, dict_path)
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
             cmds,
@@ -86,12 +87,17 @@ class LibFuzzerCmd(FuzzerCmd):
         return None
 
     def make_replacements(
-        self, cmds: List[str], builds: Dict[BuildType, str]
+        self,
+        cmds: List[str],
+        builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Dict[str, Dict[str, str]]:
         specs = {}
 
         base_cmd = cmds[0]
         del cmds[0]
+        if dict_path:
+            base_cmd = base_cmd.replace(" ", f" -dict={dict_path} ", 1)
 
         sanitizer_counts = {bt: 0 for bt in builds if bt.is_static_sanitizer()}
         if BuildType.BASIC in builds:

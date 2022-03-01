@@ -109,7 +109,7 @@ class FuzzDataSuite:
                     cmdline
                     fuzz_stats
                 ...
-            dicts/
+            dictionaries/
                 <dictname>.dict
                 ...
             coverage_report/
@@ -132,7 +132,7 @@ class FuzzDataSuite:
         coverage_report_path = none_on_bad_nonempty_dir(path, "coverage_report")
         in_dir = none_on_bad_nonempty_dir(path, "in")
         out_dir = none_on_bad_nonempty_dir(path, "out")
-        dicts_dir = none_on_bad_nonempty_dir(path, "dicts")
+        dicts_dir = none_on_bad_nonempty_dir(path, "dictionaries")
         screen_dumps_dir = none_on_bad_nonempty_dir(path, "screens")
         vars_json_path = none_on_bad_nonempty_file(path, "bugbane.json")
 
@@ -175,10 +175,10 @@ class FuzzDataSuite:
             ) from e
         try:
             vars_dict = data["fuzzing"]
-        except KeyError:
-            FuzzDataError(
+        except KeyError as e:
+            raise FuzzDataError(
                 f"while trying to load json file '{self.vars_json_path}': no 'fuzzing' dictionary in file"
-            )
+            ) from e
         return vars_dict
 
     def save_vars(self, bane_vars: dict):

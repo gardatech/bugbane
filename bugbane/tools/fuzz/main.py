@@ -46,6 +46,7 @@ from .stop_conditions import (
     detect_required_stop_condition,
 )
 
+from .dict_utils import merge_dictionaries_to_file, DictMergeError
 from .command_utils import make_tmux_commands
 from .screen_dumps import make_tmux_screen_dumps
 
@@ -79,6 +80,13 @@ def main(argv=None):
     tested_binary_path = bane_vars.get("tested_binary_path")
     if tested_binary_path is None:
         log.error("tested_binary_path field missing in vars file")
+        return 1
+
+    wanted_dict_path = os.path.join(args.suite, "merged.dict")
+    try:
+        dict_path = merge_dictionaries_to_file(suite.dicts_dir, wanted_dict_path)
+    except DictMergeError as e:
+        log.error(f"wasn't able to prepare dictionary file: {e}")
         return 1
 
     try:
@@ -150,6 +158,7 @@ def main(argv=None):
             output_corpus=out_dir,
             count=fuzz_cores,
             builds=builds,
+            dict_path=dict_path,
         )
     except (FuzzerCmdError, IndexError) as e:
         log.error("wasn't able to create fuzz commands: %s", e)

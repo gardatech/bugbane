@@ -44,7 +44,10 @@ class AFLplusplusCmd(FuzzerCmd):
         return f"watch -t -n 5 afl-whatsup -s {sync_dir}"
 
     def make_replacements(
-        self, cmds: List[str], builds: Dict[BuildType, str]
+        self,
+        cmds: List[str],
+        builds: Dict[BuildType, str],
+        dict_path: Optional[str] = None,
     ) -> Dict[str, Dict[str, str]]:
         """
         Try to copy recommended AFL++ CI Fuzzing setup:
@@ -72,8 +75,11 @@ class AFLplusplusCmd(FuzzerCmd):
 
         specs = [builds[default_bt]] * count
 
-        # 1 deterministic main
-        replace_part_in_str_list(cmds, " -S $name ", " -D -M $name ", 1, first)
+        # 1 deterministic main with dictionary
+        new_part = " -D -M $name "
+        if dict_path:
+            new_part += f"-x {dict_path} "
+        replace_part_in_str_list(cmds, " -S $name ", new_part, 1, first)
 
         num_basic_builds = count - sanitizer_count
         if num_basic_builds < 0:

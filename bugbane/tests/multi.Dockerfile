@@ -39,7 +39,7 @@ RUN pip3 install \
         beautifulsoup4 lxml Jinja2 requests selenium WeasyPrint==52.5 build wheel \
         pytest pytest-mock coverage
 
-FROM base AS fetch_targets
+FROM base AS common_prep
 
 # re2 is used as both AFL++ and libFuzzer targets
 ARG GIT_RE2_TAG="2021-11-01"
@@ -47,7 +47,7 @@ RUN git clone --depth 1 https://github.com/google/re2.git -b ${GIT_RE2_TAG} /src
 
 
 
-FROM fetch_targets AS bugbane_tools
+FROM common_prep AS bugbane_tools
 
 COPY . /bugbane
 
@@ -109,12 +109,21 @@ RUN echo -e '{\n\
     }\n\
 }' > /src/re2/bugbane.json
 
+
 FROM configure_aflpp_target AS test_aflpp
 RUN coverage run -a -m bugbane build -vv -i /src/re2 -o /fuzz/aflpp && \
     egrep '^\$ ' /fuzz/aflpp/build.log | cut -c 3- > /fuzz/aflpp/build.cmds && \
     jq '.fuzzing += {"build_cmd": "/fuzz/aflpp/build.cmds"}' /src/re2/bugbane.json \
         > /fuzz/aflpp/bugbane.json && \
     date
+
+RUN : \
+    && mkdir -p /fuzz/aflpp/dictionaries \
+    && cp -t /fuzz/aflpp/dictionaries \
+            /AFLplusplus/dictionaries/regexp.dict \
+            /AFLplusplus/dictionaries/xml*.dict \
+    && :
+
 RUN coverage run -a -m bugbane fuzz -vv --suite /fuzz/aflpp && date
 RUN coverage run -a -m bugbane coverage -vv suite /fuzz/aflpp && date
 RUN coverage run -a -m bugbane reproduce -vv suite /fuzz/aflpp && date
@@ -174,12 +183,21 @@ RUN echo -e '{\n\
     }\n\
 }' > /src/re2/bugbane.json
 
+
 FROM configure_libfuzzer_target AS test_libfuzzer
 RUN coverage run -a -m bugbane build -vv -i /src/re2 -o /fuzz/libfuzzer && \
     egrep '^\$ ' /fuzz/libfuzzer/build.log | cut -c 3- > /fuzz/libfuzzer/build.cmds && \
     jq '.fuzzing += {"build_cmd": "/fuzz/libfuzzer/build.cmds"}' /src/re2/bugbane.json \
         > /fuzz/libfuzzer/bugbane.json && \
     date
+
+RUN : \
+    && mkdir -p /fuzz/libfuzzer/dictionaries \
+    && cp -t /fuzz/libfuzzer/dictionaries \
+            /AFLplusplus/dictionaries/regexp.dict \
+            /AFLplusplus/dictionaries/xml*.dict \
+    && :
+
 RUN coverage run -a -m bugbane fuzz -vv --suite /fuzz/libfuzzer && date
 RUN coverage run -a -m bugbane coverage -vv suite /fuzz/libfuzzer && date
 RUN coverage run -a -m bugbane reproduce -vv suite /fuzz/libfuzzer && date
