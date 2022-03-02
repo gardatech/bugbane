@@ -64,7 +64,11 @@ def detect_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
     result = {}
     for bt in BuildType:
         subdir = bt.dirname()
-        app = tested_binary_path.replace("$BUILD_ROOT", subdir)
+
+        # TODO: remove in future versions or reconsider
+        tested_binary_path = tested_binary_path.replace("$BUILD_ROOT/", "")
+
+        app = os.path.join(subdir, tested_binary_path)
         app_path = os.path.join(suite_dir, app)
         log.trace("looking for binary %s...", app_path)
         app_path = none_on_bad_nonempty_file(app_path)

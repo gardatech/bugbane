@@ -124,17 +124,18 @@ def main(argv=None):
 
     try:
         cmdgen: FuzzerCmd = FuzzerCmdFactory.create(fuzzer_type)
-        log.verbose1("Using %s fuzz command generator", cmdgen.__class__.__name__)
         fuzz_stats: FuzzStats = FuzzStatsFactory.create(fuzzer_type)
-        log.verbose1("Using %s stats", fuzz_stats.__class__.__name__)
         fuzzer_info: FuzzerInfo = FuzzerInfoFactory.create(fuzzer_type)
-        log.verbose1("Using %s fuzzer paths", fuzzer_info.__class__.__name__)
     except TypeError:
         log.error(
             "Wasn't able to create command generator and/or fuzz stats of type '%s'",
             fuzzer_type,
         )
         return 1
+
+    log.verbose1("Using %s fuzz command generator", cmdgen.__class__.__name__)
+    log.verbose1("Using %s stats", fuzz_stats.__class__.__name__)
+    log.verbose1("Using %s fuzzer paths", fuzzer_info.__class__.__name__)
 
     out_dir = os.path.join(args.suite, "out")
     bane_vars["fuzz_sync_dir"] = out_dir

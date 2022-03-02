@@ -113,7 +113,7 @@ pip uninstall bugbane
 
         "build_cmd": "./build.sh",
         "build_root": "./build",
-        "tested_binary_path": "$BUILD_ROOT/re2_fuzzer",
+        "tested_binary_path": "re2_fuzzer",
         "sanitizers": [
             "ASAN", "UBSAN"
         ],

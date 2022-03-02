@@ -95,7 +95,7 @@ RUN echo -e '{\n\
         "tested_source_function": "TestOneInput",\n\
         "build_cmd": "./aflpp_build.sh",\n\
         "build_root": "./build",\n\
-        "tested_binary_path": "$BUILD_ROOT/re2_fuzzer",\n\
+        "tested_binary_path": "re2_fuzzer",\n\
         "builder_type": "AFL++LLVM",\n\
         "fuzzer_type": "AFL++",\n\
 \n\
@@ -169,7 +169,7 @@ RUN echo -e '{\n\
         "tested_source_function": "TestOneInput",\n\
         "build_cmd": "./fuzz_build.sh",\n\
         "build_root": "./build",\n\
-        "tested_binary_path": "$BUILD_ROOT/re2_fuzzer",\n\
+        "tested_binary_path": "re2_fuzzer",\n\
         "builder_type": "libFuzzer",\n\
         "fuzzer_type": "libFuzzer",\n\
 \n\
