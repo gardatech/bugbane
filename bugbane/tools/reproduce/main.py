@@ -36,6 +36,7 @@ from bugbane.modules.log import get_first_logger
 from .args import exit_on_bad_args, parse_args
 
 from .harvester import Harvester, HarvesterError
+from .bugsamplesaver import BugSampleSaver, BugSampleSaverError
 
 
 def main(argv=None):
@@ -114,16 +115,25 @@ def main(argv=None):
     log.debug("harvester init complete")
 
     try:
-        result = harvester.collect_fuzzing_results()
+        results = harvester.collect_fuzzing_results()
     except HarvesterError as e:
         log.error("during reproduce: %s", e)
         return 1
 
-    dump_dict_as_json(results_file_path, result)
+    bss = BugSampleSaver()
+    bug_samples_dir = os.path.join(args.suite, "bug_samples")
+
+    try:
+        bss.save_bug_samples(results, bug_samples_dir)
+    except BugSampleSaverError as e:
+        log.error("while saving bug samples: %s", e)
+        return 1
+
+    dump_dict_as_json(results_file_path, results)
 
     log.info(
         "Saved stats and %d issue cards to %s",
-        len(result["issue_cards"]),
+        len(results["issue_cards"]),
         results_file_path,
     )
     log.info("[+] Reproducing complete")
