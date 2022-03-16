@@ -54,7 +54,8 @@ class AFLplusplusFuzzStats(FuzzStats):
             self.hangs += hangs
 
             start_time = fuzz_stats.get("start_time", 0)
-            self.start_timestamp = min(self.start_timestamp, start_time)
+            if self.start_timestamp != 0 and start_time != 0:
+                self.start_timestamp = min(self.start_timestamp, start_time)
 
             last_path = fuzz_stats.get("last_path", 0)
             self.last_path_timestamp = max(self.last_path_timestamp, last_path)
