@@ -109,6 +109,13 @@ def main(argv=None):
 
     log.info("[*] Using %d cores for fuzzing", fuzz_cores)
 
+    timeout = bane_vars.get("timeout")
+    try:
+        timeout = timeout and int(timeout)
+    except ValueError:
+        log.error(f"timeout: value {timeout} is not convertible to integer")
+        return 1
+
     src_root = bane_vars.get("src_root")
     if not src_root:
         log.error(

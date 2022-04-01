@@ -46,12 +46,13 @@ class GoFuzzCmd(LibFuzzerCmd):
         count: int,
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
         self.count = count
         self.output_corpus = output_corpus
 
         cmds = [self.generate_one(input_corpus, output_corpus) + " " + run_args]
-        specs = self.make_replacements(cmds, builds, dict_path)
+        specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
             cmds,
@@ -76,7 +77,8 @@ class GoFuzzCmd(LibFuzzerCmd):
         self,
         cmds: List[str],
         builds: Dict[BuildType, str],
-        dict_path: Optional[str] = None,
+        dict_path: Optional[str] = None, # go-fuzz doesn't support dictionaries
+        timeout_ms: Optional[int] = None,
     ) -> Dict[str, Dict[str, str]]:
         specs = {}
 
@@ -87,6 +89,9 @@ class GoFuzzCmd(LibFuzzerCmd):
             raise FuzzerCmdError("no GOFUZZ build provided")
 
         cmd = base_cmd.replace(" ", f" -procs={self.count} ", 1)
+
+        cmd = self.add_timeout_to_cmd(cmd, timeout_ms)
+
         cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.GOFUZZ])
         cmds.append(cmd_with_basic_build)
         specs[builds[BuildType.GOFUZZ]] = self.output_corpus

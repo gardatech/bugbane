@@ -135,7 +135,6 @@ def test_aflpp_generate():
         BuildType.CFISAN: "./cfisan/app",
         BuildType.COVERAGE: "./coverage/app",
     }
-
     cmds, specs = cmdgen.generate(
         run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
     )
@@ -143,6 +142,39 @@ def test_aflpp_generate():
     print(specs)
     helper_check_cmds(cmds, builds)
 
+def test_aflpp_dict():
+    cmdgen = AFLplusplusCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.LAF: "./laf/app",
+        BuildType.CMPLOG: "./cmplog/app",
+        BuildType.ASAN: "./asan/app",
+    }
+    cmds, specs = cmdgen.generate(
+        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+    )
+    print(cmds)
+    print(specs)
+
+    for i, cmd in enumerate(cmds):
+        assert (i!=0) ^ (" -x ./test.dict " in cmd)
+
+def test_aflpp_timeout():
+    cmdgen = AFLplusplusCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.LAF: "./laf/app",
+        BuildType.CMPLOG: "./cmplog/app",
+        BuildType.ASAN: "./asan/app",
+    }
+    cmds, specs = cmdgen.generate(
+        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+    )
+    print(cmds)
+    print(specs)
+
+    for cmd in cmds:
+        assert " -t 1500 " in cmd
 
 def test_aflpp_select_default_build_type():
     """Build type not in priority list of AFL++ cmd generator."""
@@ -255,6 +287,41 @@ def test_libfuzzer_generate_one_build():
     helper_check_cmds(cmds, builds_asan)
 
 
+def test_libfuzzer_dict():
+    cmdgen = LibFuzzerCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.ASAN: "./asan/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    cmds, specs = cmdgen.generate(
+        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+    )
+    print(cmds)
+    print(specs)
+
+    for cmd in cmds:
+        assert " -dict=./test.dict " in cmd
+
+
+def test_libfuzzer_timeout():
+    cmdgen = LibFuzzerCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.ASAN: "./asan/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    cmds, specs = cmdgen.generate(
+        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+    )
+    print(cmds)
+    print(specs)
+
+    for cmd in cmds:
+        assert " -timeout=2 " in cmd
+
 def test_cmd_gen_not_enough_cores():
     """More sanitizers than CPU cores."""
 
@@ -304,6 +371,47 @@ def test_gofuzz_generate_one_build():
     assert "-func=TestFuzzFunc" in cmds[0]
     helper_check_cmds(cmds, builds)
 
+def test_gofuzz_dict():
+    cmdgen = GoFuzzCmd()
+    builds = {
+        BuildType.GOFUZZ: "./gofuzz/app.zip",
+        BuildType.COVERAGE: "./coverage/app",  # useless build for go-fuzz
+    }
+
+    cmds, specs = cmdgen.generate(
+        run_args="-func=TestFuzzFunc",
+        input_corpus="in",
+        output_corpus="testdata",
+        count=8,
+        builds=builds,
+        dict_path="./test.dict",
+    )
+    print(cmds)
+    print(specs)
+
+    for cmd in cmds:
+        assert "test.dict" not in cmd
+
+def test_gofuzz_timeout():
+    cmdgen = GoFuzzCmd()
+    builds = {
+        BuildType.GOFUZZ: "./gofuzz/app.zip",
+        BuildType.COVERAGE: "./coverage/app",  # useless build for go-fuzz
+    }
+
+    cmds, specs = cmdgen.generate(
+        run_args="-func=TestFuzzFunc",
+        input_corpus="in",
+        output_corpus="testdata",
+        count=8,
+        builds=builds,
+        timeout_ms=2500,
+    )
+    print(cmds)
+    print(specs)
+
+    for cmd in cmds:
+        assert " -timeout=3 " in cmd
 
 def test_gofuzz_generate_bad():
     cmdgen = GoFuzzCmd()

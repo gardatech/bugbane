@@ -35,6 +35,7 @@ class FuzzerCmd(ABC):
         count: int,
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
         """
         Generate commands to run fuzzer on `count` cores.
@@ -42,7 +43,7 @@ class FuzzerCmd(ABC):
         """
         cmds = [self.generate_one(input_corpus, output_corpus) for _ in range(count)]
         replace_part_in_str_list(cmds, "$run_args", run_args, -1, 0, count - 1)
-        specs = self.make_replacements(cmds, builds, dict_path)
+        specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
         return cmds, specs
 
     @abstractmethod
@@ -62,11 +63,19 @@ class FuzzerCmd(ABC):
         cmds: List[str],
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> Dict[str, Dict[str, str]]:
         """
         Assign builds and different cmdline arguments for fuzzer commands.
         Commands are replaced in place.
         Return reproduce spec: {"fuzzer_type": {"binary_path": "samples_root_dir", ...}}
+        """
+
+    @abstractmethod
+    def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
+        """
+        Add timeout option to fuzzer `cmd`.
+        Return new fuzzer cmd.
         """
 
     @abstractmethod

@@ -1,6 +1,9 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.4.1
+- added timeout option
+
 ## Version 0.4.0
 - added support for fuzzing dictionaries
 

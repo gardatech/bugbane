@@ -17,6 +17,7 @@
 from typing import Optional, List, Dict
 
 import os
+from copy import copy
 from math import ceil
 
 import logging
@@ -48,6 +49,7 @@ class AFLplusplusCmd(FuzzerCmd):
         cmds: List[str],
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
+        timeout_ms: Optional[int] = None,
     ) -> Dict[str, Dict[str, str]]:
         """
         Try to copy recommended AFL++ CI Fuzzing setup:
@@ -57,6 +59,10 @@ class AFLplusplusCmd(FuzzerCmd):
         """
 
         count = len(cmds)
+
+        with_timeout = self.add_timeout_to_cmd(cmds[0], timeout_ms)
+        for i in range(count):
+            cmds[i] = copy(with_timeout)
 
         first = 0
         if count == 1:
@@ -262,6 +268,14 @@ class AFLplusplusCmd(FuzzerCmd):
             samples_subdir, app_path = spec.split(spec_separator, 1)
             result[app_path] = samples_subdir
         return result
+   
+
+    def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
+        if timeout_ms is None:
+            return cmd
+
+        timeout_ms = max(1, timeout_ms)
+        return cmd.replace(" -- ", f" -t {timeout_ms} -- ")
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int
