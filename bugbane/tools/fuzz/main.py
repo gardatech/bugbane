@@ -14,6 +14,8 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Optional
+
 import os
 import sys
 import shutil
@@ -49,6 +51,20 @@ from .stop_conditions import (
 from .dict_utils import merge_dictionaries_to_file, DictMergeError
 from .command_utils import make_tmux_commands
 from .screen_dumps import make_tmux_screen_dumps
+
+
+def limit_cpu_cores(from_config: Optional[int], max_from_args: int) -> int:
+    """
+    Limit number of cpu cores used for fuzzing based on:
+    1. "fuzz_cores" value from config ("developer provided value")
+    2. --max-cpus value from script argument ("AppSec provided limit")
+    3. os.cpu_count value (hardware limit)
+    """
+    fuzz_cores = from_config or 8
+    max_cpus = min(max_from_args, os.cpu_count() or 1)
+    if fuzz_cores > max_cpus:
+        fuzz_cores = max_cpus
+    return fuzz_cores
 
 
 def main(argv=None):
@@ -100,11 +116,10 @@ def main(argv=None):
         bt.name for bt, _ in builds.items() if bt.is_static_sanitizer()
     ]
 
-    max_cpus = min(args.max_cpus, os.cpu_count())
-    fuzz_cores = bane_vars.get("fuzz_cores") or 8
-    if fuzz_cores > max_cpus:
-        log.warning("limiting number of CPU cores to %d", max_cpus)
-        fuzz_cores = max_cpus
+    cores_wanted = bane_vars.get("fuzz_cores")
+    fuzz_cores = limit_cpu_cores(from_config=cores_wanted, max_from_args=args.max_cpus)
+    if cores_wanted is not None and cores_wanted < fuzz_cores:
+        log.warning("limiting number of CPU cores to %d", fuzz_cores)
     bane_vars["fuzz_cores"] = fuzz_cores
 
     log.info("[*] Using %d cores for fuzzing", fuzz_cores)

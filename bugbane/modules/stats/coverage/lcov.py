@@ -92,14 +92,24 @@ class LCOVCoverageStats(CoverageStats):
 
         soup = BeautifulSoup(s, "lxml")
         for cov_stat_text, keys in mapping.items():
-            item = soup.find(class_="headerItem", text=cov_stat_text)
+            item = soup.find(class_="headerItem", string=cov_stat_text)
             if item is None:
                 totals[keys[0]] = None
                 totals[keys[1]] = None
                 continue
 
             hit = item.find_next_sibling()
+            if hit is None:
+                raise LCOVCoverageStatsError(
+                    "unknown HTML format (hit count not found)"
+                )
+
             total = hit.find_next_sibling()
+            if total is None:
+                raise LCOVCoverageStatsError(
+                    "unknown HTML format (total count not found)"
+                )
+
             totals[keys[0]] = int(hit.text.strip())
             totals[keys[1]] = int(total.text.strip())
 

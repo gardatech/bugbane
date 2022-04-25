@@ -17,15 +17,41 @@
 from typing import List, Dict
 
 import pytest
+from pytest_mock import MockerFixture
 
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list
 from bugbane.tools.fuzz.command_utils import make_tmux_commands
+from bugbane.tools.fuzz.main import limit_cpu_cores
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
 from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.aflplusplus import AFLplusplusCmd
 from bugbane.modules.fuzzer_cmd.libfuzzer import LibFuzzerCmd
 from bugbane.modules.fuzzer_cmd.gofuzz import GoFuzzCmd
+
+
+def test_limit_cpu_cores(mocker: MockerFixture):
+    default_for_empty = 8
+    in_out = [
+        # (config, max-cpus, cpu_count), expected result
+        ((None, 16, 4), 4),
+        ((None, 16, 9), default_for_empty),
+        ((1, 16, 4), 1),
+        ((1, 16, 32), 1),
+        ((1, 16, 1), 1),
+        ((1, 1, 16), 1),
+        ((2, 1, 16), 1),
+        ((2, 16, 1), 1),
+        ((2, 16, 16), 2),
+        ((17, 16, 16), 16),
+        ((100, 256, 512), 100),
+    ]
+
+    for (inp, expected) in in_out:
+        from_config, max_cpus, cpu_count = inp
+        mocker.patch("bugbane.tools.fuzz.main.os.cpu_count", return_value=cpu_count)
+        limited = limit_cpu_cores(from_config=from_config, max_from_args=max_cpus)
+        assert limited == expected
 
 
 def test_generate_commands():
@@ -142,6 +168,7 @@ def test_aflpp_generate():
     print(specs)
     helper_check_cmds(cmds, builds)
 
+
 def test_aflpp_dict():
     cmdgen = AFLplusplusCmd()
     builds = {
@@ -151,13 +178,19 @@ def test_aflpp_dict():
         BuildType.ASAN: "./asan/app",
     }
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        dict_path="./test.dict",
     )
     print(cmds)
     print(specs)
 
     for i, cmd in enumerate(cmds):
-        assert (i!=0) ^ (" -x ./test.dict " in cmd)
+        assert (i != 0) ^ (" -x ./test.dict " in cmd)
+
 
 def test_aflpp_timeout():
     cmdgen = AFLplusplusCmd()
@@ -168,13 +201,19 @@ def test_aflpp_timeout():
         BuildType.ASAN: "./asan/app",
     }
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        timeout_ms=1500,
     )
     print(cmds)
     print(specs)
 
     for cmd in cmds:
         assert " -t 1500 " in cmd
+
 
 def test_aflpp_select_default_build_type():
     """Build type not in priority list of AFL++ cmd generator."""
@@ -296,7 +335,12 @@ def test_libfuzzer_dict():
     }
 
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        dict_path="./test.dict",
     )
     print(cmds)
     print(specs)
@@ -314,13 +358,19 @@ def test_libfuzzer_timeout():
     }
 
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        timeout_ms=1500,
     )
     print(cmds)
     print(specs)
 
     for cmd in cmds:
         assert " -timeout=2 " in cmd
+
 
 def test_cmd_gen_not_enough_cores():
     """More sanitizers than CPU cores."""
@@ -371,6 +421,7 @@ def test_gofuzz_generate_one_build():
     assert "-func=TestFuzzFunc" in cmds[0]
     helper_check_cmds(cmds, builds)
 
+
 def test_gofuzz_dict():
     cmdgen = GoFuzzCmd()
     builds = {
@@ -392,6 +443,7 @@ def test_gofuzz_dict():
     for cmd in cmds:
         assert "test.dict" not in cmd
 
+
 def test_gofuzz_timeout():
     cmdgen = GoFuzzCmd()
     builds = {
@@ -412,6 +464,7 @@ def test_gofuzz_timeout():
 
     for cmd in cmds:
         assert " -timeout=3 " in cmd
+
 
 def test_gofuzz_generate_bad():
     cmdgen = GoFuzzCmd()
@@ -507,6 +560,14 @@ def test_make_one_tmux_capture_pane_cmds():
         assert "fuzz:3" in cmd
         assert "-e" in cmd
         assert "-p" in cmd
+
+
+def test_make_tmux_screen_capture_cmds():
+    cmdgen = AFLplusplusCmd()
+    cmds = cmdgen.make_tmux_screen_capture_cmds(
+        num_fuzz_instances=32, have_stat_instance=True
+    )
+    assert len(cmds) == 33
 
 
 def test_generate_combos_c_cxx():
