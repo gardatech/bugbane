@@ -47,17 +47,21 @@ class AFLplusplusFuzzStats(FuzzStats):
             execs_per_sec = fuzz_stats.get("execs_per_sec", 0.0)
             self.execs_per_sec_sum += execs_per_sec
 
-            crashes = fuzz_stats.get("unique_crashes", 0)
+            # afl++ < 4.00: unique_crashes/hangs
+            # afl++ >= 4.00: saved_crashes/hangs
+            crashes = fuzz_stats.get("saved_crashes") or fuzz_stats.get("unique_crashes") or 0
             self.crashes += crashes
 
-            hangs = fuzz_stats.get("unique_hangs", 0)
+            hangs = fuzz_stats.get("saved_hangs") or fuzz_stats.get("unique_hangs") or 0
             self.hangs += hangs
 
             start_time = fuzz_stats.get("start_time", 0)
             if self.start_timestamp != 0 and start_time != 0:
                 self.start_timestamp = min(self.start_timestamp, start_time)
 
-            last_path = fuzz_stats.get("last_path", 0)
+            # afl++ < 4.00: last_path
+            # afl++ >= 4.00: last_find
+            last_path = fuzz_stats.get("last_find") or fuzz_stats.get("last_path") or 0
             self.last_path_timestamp = max(self.last_path_timestamp, last_path)
 
             log.verbose3(
