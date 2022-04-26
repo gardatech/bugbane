@@ -3,6 +3,7 @@ List of significant changes in BugBane.
 
 ## Version 0.4.1
 - added timeout option
+- fixed fuzz stats for AFL++ > 3.14c
 
 ## Version 0.4.0
 - added support for fuzzing dictionaries
