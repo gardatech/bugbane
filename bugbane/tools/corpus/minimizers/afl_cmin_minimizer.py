@@ -42,11 +42,16 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
 
         newmask = self._sanitize_mask(mask)
         cmd = self._make_run_cmd(newmask, dest)
-        exit_code, is_timeout, output = run_shell_cmd(cmd, timeout_sec=self.timeout_sec)
+        exit_code, is_timeout, output = run_shell_cmd(
+            cmd, timeout_sec=self.tool_timeout_sec
+        )
         if is_timeout:
             raise MinimizerError(f"timeout during minimization of samples at {mask}")
 
-        log.verbose1(output.decode(errors="replace"))
+        if output:
+            log.verbose1(output.decode(errors="replace"))
+        else:
+            log.warning("afl-cmin generated no output")
         if exit_code != 0:
             raise MinimizerError(
                 f"bad exit code {exit_code} during minimization of samples at {mask}"
@@ -70,5 +75,8 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
 
     def _make_run_cmd(self, mask: str, dest: str):
         run_args = " ".join(self.run_args or [])
-        cmd = f"afl-cmin -i {mask} -o {dest} -m none -- {self.program} {run_args}"
-        return cmd
+        cmd = f"afl-cmin "
+        if self.prog_timeout_ms is not None:
+            cmd += f"-t {self.prog_timeout_ms} "
+        cmd += f"-i {mask} -o {dest} -m none -- {self.program} {run_args}"
+        return cmd.strip()

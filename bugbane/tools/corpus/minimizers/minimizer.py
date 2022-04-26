@@ -119,14 +119,16 @@ class MinimizerUsingProgram(Minimizer):
 
         self.program: Optional[str] = None
         self.run_args: Optional[List[str]] = None
-        self.timeout_sec = 60 * 60
+        self.tool_timeout_sec = 60 * 60
 
     def configure(
         self,
         program: str,
         run_args: Optional[List[str]] = None,
-        timeout_sec: int = 60 * 60,
+        prog_timeout_ms: Optional[int] = None,
+        tool_timeout_sec: int = 60 * 60,
     ):
         self.program = program
         self.run_args = run_args
-        self.timeout_sec = timeout_sec
+        self.prog_timeout_ms = prog_timeout_ms
+        self.tool_timeout_sec = tool_timeout_sec
