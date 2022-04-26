@@ -38,7 +38,7 @@ def parse_args(argv):
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(
-        description="%(prog)s - tool to collect code coverage information",
+        description="%(prog)s - import/export tool for sample storage",
     )
     parser.add_argument(
         "-v",
@@ -76,6 +76,13 @@ def create_argument_parser():
         help="fuzzer type (for 'minimize' action)",
         choices=FuzzerInfoFactory.registry,
         required=True,
+    )
+    parser_manual.add_argument(
+        "-t",
+        "--timeout",
+        help="timeout for each program run in milliseconds",
+        type=int,
+        default=None,
     )
 
     input_group = parser_manual.add_argument_group("input options")
@@ -117,6 +124,9 @@ def exit_on_bad_args(args: Namespace):
             )
 
         return
+
+    if args.timeout is not None and args.timeout < 0:
+        sys.exit("ERROR: negative timeout values are not allowed")
 
     if args.action != "minimize":
         return

@@ -45,7 +45,12 @@ def deduplicate_by_hashes(
 
 
 def deduplicate_by_tool(
-    masks: List[str], dest: str, tool_name: str, program: str, run_args: List[str]
+    masks: List[str],
+    dest: str,
+    tool_name: str,
+    program: str,
+    run_args: List[str],
+    prog_timeout_ms: int,
 ) -> Optional[int]:
     try:
         minimizer: MinimizerUsingProgram = MinimizerFactory.create(tool_name)
@@ -54,7 +59,9 @@ def deduplicate_by_tool(
 
     log.verbose1("Using tool minimizer %s", minimizer.__class__.__name__)
 
-    minimizer.configure(program, run_args)  # use default timeout
+    minimizer.configure(
+        program=program, run_args=run_args, prog_timeout_ms=prog_timeout_ms
+    )  # use default tool timeout
     count = minimizer.run(masks, dest)
     return count
 

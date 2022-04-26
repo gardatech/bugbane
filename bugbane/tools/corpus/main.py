@@ -75,6 +75,7 @@ def main(argv=None):
 
             run_args = shlex.split(bane_vars.get("run_args") or "")
             fuzzer_type = bane_vars.get("fuzzer_type")
+            prog_timeout = bane_vars.get("timeout")
 
             storage = os.path.join(
                 args.storage, "samples"
@@ -110,6 +111,7 @@ def main(argv=None):
             run_args = None
 
         fuzzer_type = args.fuzzer_type
+        prog_timeout = args.timeout
         dst = args.output
         src_masks = args.input
         action = args.action
@@ -146,8 +148,14 @@ def main(argv=None):
         log.info("[*] Build used for tool-based corpus minimization: %s", app)
         tmpdir_tool = tempfile.mkdtemp(dir=tmpdir_prefix, prefix="dedup_tool_")
         try:
+            masks = [os.path.join(tmpdir, "*")]
             count = deduplicate_by_tool(  # TODO: respect run_env from bane_vars file
-                [os.path.join(tmpdir, "*")], tmpdir_tool, minimizing_tool, app, run_args
+                masks=masks,
+                dest=tmpdir_tool,
+                tool_name=minimizing_tool,
+                program=app,
+                run_args=run_args,
+                prog_timeout_ms=prog_timeout,
             )
         except MinimizerError as e:
             log.error(
