@@ -77,7 +77,7 @@ class GoFuzzCmd(LibFuzzerCmd):
         self,
         cmds: List[str],
         builds: Dict[BuildType, str],
-        dict_path: Optional[str] = None, # go-fuzz doesn't support dictionaries
+        dict_path: Optional[str] = None,  # go-fuzz doesn't support dictionaries
         timeout_ms: Optional[int] = None,
     ) -> Dict[str, Dict[str, str]]:
         specs = {}

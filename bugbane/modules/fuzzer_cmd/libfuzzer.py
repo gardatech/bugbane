@@ -63,7 +63,10 @@ class LibFuzzerCmd(FuzzerCmd):
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
             cmds,
-            "$i", "$i", -1, 0,
+            "$i",
+            "$i",
+            -1,
+            0,
             len(cmds) - 1,
         )
 
@@ -137,14 +140,13 @@ class LibFuzzerCmd(FuzzerCmd):
             specs[builds[san]] = self.output_corpus
 
         return specs
-    
+
     def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
         if timeout_ms is None:
             return cmd
 
         timeout_seconds = max(1, math.ceil(timeout_ms / 1000.0))
         return cmd.replace(" ", f" -timeout={timeout_seconds} ")
-
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int

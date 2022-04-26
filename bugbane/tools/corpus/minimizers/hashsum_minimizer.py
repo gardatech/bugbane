@@ -54,7 +54,7 @@ class HashSumMinimizer(Minimizer):
         return len(self.hashes)
 
     def hash_one_sample(
-        self, sample_path: str, readsize: int = 2 ** 19
+        self, sample_path: str, readsize: int = 2**19
     ) -> str:  # 2**19 = 512 Kb
         """Return sha1 hashsum of sample file specified by sample_path."""
 

@@ -142,6 +142,7 @@ def test_aflpp_generate():
     print(specs)
     helper_check_cmds(cmds, builds)
 
+
 def test_aflpp_dict():
     cmdgen = AFLplusplusCmd()
     builds = {
@@ -151,13 +152,19 @@ def test_aflpp_dict():
         BuildType.ASAN: "./asan/app",
     }
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        dict_path="./test.dict",
     )
     print(cmds)
     print(specs)
 
     for i, cmd in enumerate(cmds):
-        assert (i!=0) ^ (" -x ./test.dict " in cmd)
+        assert (i != 0) ^ (" -x ./test.dict " in cmd)
+
 
 def test_aflpp_timeout():
     cmdgen = AFLplusplusCmd()
@@ -168,13 +175,19 @@ def test_aflpp_timeout():
         BuildType.ASAN: "./asan/app",
     }
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        timeout_ms=1500,
     )
     print(cmds)
     print(specs)
 
     for cmd in cmds:
         assert " -t 1500 " in cmd
+
 
 def test_aflpp_select_default_build_type():
     """Build type not in priority list of AFL++ cmd generator."""
@@ -296,7 +309,12 @@ def test_libfuzzer_dict():
     }
 
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, dict_path="./test.dict"
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        dict_path="./test.dict",
     )
     print(cmds)
     print(specs)
@@ -314,13 +332,19 @@ def test_libfuzzer_timeout():
     }
 
     cmds, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds, timeout_ms=1500
+        run_args="@@",
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+        timeout_ms=1500,
     )
     print(cmds)
     print(specs)
 
     for cmd in cmds:
         assert " -timeout=2 " in cmd
+
 
 def test_cmd_gen_not_enough_cores():
     """More sanitizers than CPU cores."""
@@ -371,6 +395,7 @@ def test_gofuzz_generate_one_build():
     assert "-func=TestFuzzFunc" in cmds[0]
     helper_check_cmds(cmds, builds)
 
+
 def test_gofuzz_dict():
     cmdgen = GoFuzzCmd()
     builds = {
@@ -392,6 +417,7 @@ def test_gofuzz_dict():
     for cmd in cmds:
         assert "test.dict" not in cmd
 
+
 def test_gofuzz_timeout():
     cmdgen = GoFuzzCmd()
     builds = {
@@ -412,6 +438,7 @@ def test_gofuzz_timeout():
 
     for cmd in cmds:
         assert " -timeout=3 " in cmd
+
 
 def test_gofuzz_generate_bad():
     cmdgen = GoFuzzCmd()

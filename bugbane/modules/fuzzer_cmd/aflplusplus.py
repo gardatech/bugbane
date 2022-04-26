@@ -268,7 +268,6 @@ class AFLplusplusCmd(FuzzerCmd):
             samples_subdir, app_path = spec.split(spec_separator, 1)
             result[app_path] = samples_subdir
         return result
-   
 
     def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
         if timeout_ms is None:
