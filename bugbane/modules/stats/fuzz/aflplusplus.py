@@ -49,7 +49,9 @@ class AFLplusplusFuzzStats(FuzzStats):
 
             # afl++ < 4.00: unique_crashes/hangs
             # afl++ >= 4.00: saved_crashes/hangs
-            crashes = fuzz_stats.get("saved_crashes") or fuzz_stats.get("unique_crashes") or 0
+            crashes = (
+                fuzz_stats.get("saved_crashes") or fuzz_stats.get("unique_crashes") or 0
+            )
             self.crashes += crashes
 
             hangs = fuzz_stats.get("saved_hangs") or fuzz_stats.get("unique_hangs") or 0
