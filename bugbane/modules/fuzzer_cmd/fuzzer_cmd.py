@@ -36,7 +36,7 @@ class FuzzerCmd(ABC):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
+    ) -> Tuple[List[str], Dict[str, Dict[str, List[str]]]]:
         """
         Generate commands to run fuzzer on `count` cores.
         Return tuple: (cmds, reproduce_specs)
@@ -64,7 +64,7 @@ class FuzzerCmd(ABC):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> Dict[str, Dict[str, List[str]]]:
         """
         Assign builds and different cmdline arguments for fuzzer commands.
         Commands are replaced in place.

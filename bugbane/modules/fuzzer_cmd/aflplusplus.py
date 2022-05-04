@@ -50,12 +50,12 @@ class AFLplusplusCmd(FuzzerCmd):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> Dict[str, Dict[str, List[str]]]:
         """
         Try to copy recommended AFL++ CI Fuzzing setup:
         https://github.com/AFLplusplus/AFLplusplus#ci-fuzzing
 
-        Return reproduce spec: {"AFL++": {"binary_path": "samples_root_dir" ...}}
+        Return reproduce spec: {"AFL++": {"binary_path": ["samples_root_dir", ...] ...}}
         """
 
         count = len(cmds)
@@ -258,15 +258,20 @@ class AFLplusplusCmd(FuzzerCmd):
                 last,
             )
 
-    def _specs_to_dict(self, specs: List[str], spec_separator: str) -> Dict[str, str]:
+    def _specs_to_dict(
+        self, specs: List[str], spec_separator: str
+    ) -> Dict[str, List[str]]:
         """
         Convert list of strings like '/fuzz/basic/fuzzer;sync_dir' to
         dictionary, where '/fuzz/basic/fuzzer' becomes key and 'sync_dir' - value
         """
-        result = {}
+        result: Dict[str, List[str]] = {}
         for spec in specs:
             samples_subdir, app_path = spec.split(spec_separator, 1)
-            result[app_path] = samples_subdir
+            if app_path in result:
+                result[app_path].append(samples_subdir)
+            else:
+                result[app_path] = [samples_subdir]
         return result
 
     def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:

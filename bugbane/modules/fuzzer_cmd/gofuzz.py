@@ -47,7 +47,7 @@ class GoFuzzCmd(LibFuzzerCmd):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
+    ) -> Tuple[List[str], Dict[str, Dict[str, List[str]]]]:
         self.count = count
         self.output_corpus = output_corpus
 
@@ -63,7 +63,6 @@ class GoFuzzCmd(LibFuzzerCmd):
             len(cmds) - 1,
         )
 
-        specs = {"go-fuzz": specs}
         return (cmds, specs)
 
     def generate_one(self, input_corpus: str, output_corpus: str) -> str:
@@ -79,7 +78,7 @@ class GoFuzzCmd(LibFuzzerCmd):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,  # go-fuzz doesn't support dictionaries
         timeout_ms: Optional[int] = None,
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> Dict[str, Dict[str, List[str]]]:
         specs = {}
 
         base_cmd = cmds[0]
@@ -94,6 +93,7 @@ class GoFuzzCmd(LibFuzzerCmd):
 
         cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.GOFUZZ])
         cmds.append(cmd_with_basic_build)
-        specs[builds[BuildType.GOFUZZ]] = self.output_corpus
 
+        specs[builds[BuildType.GOFUZZ]] = [self.output_corpus]
+        specs = {"go-fuzz": specs}
         return specs

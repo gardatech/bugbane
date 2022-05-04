@@ -47,7 +47,7 @@ class LibFuzzerCmd(FuzzerCmd):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Tuple[List[str], Dict[str, Dict[str, str]]]:
+    ) -> Tuple[List[str], Dict[str, Dict[str, List[str]]]]:
         """
         Generate commands to run fuzzer on `count` cores:
             - one cmd for each kind of sanitizer builds;
@@ -70,7 +70,6 @@ class LibFuzzerCmd(FuzzerCmd):
             len(cmds) - 1,
         )
 
-        specs = {"libFuzzer": specs}
         return (cmds, specs)
 
     def generate_one(self, input_corpus: str, output_corpus: str) -> str:
@@ -94,8 +93,11 @@ class LibFuzzerCmd(FuzzerCmd):
         builds: Dict[BuildType, str],
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
-    ) -> Dict[str, Dict[str, str]]:
+    ) -> Dict[str, Dict[str, List[str]]]:
         specs = {}
+
+        if self.count is None:
+            raise FuzzerCmdError(f"{self.__class__.__name__}.count is None")
 
         base_cmd = cmds[0]
         del cmds[0]
@@ -118,10 +120,10 @@ class LibFuzzerCmd(FuzzerCmd):
             cmd = base_cmd.replace(" ", f" -fork={basic_count} -ignore_crashes=1 ", 1)
             cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.BASIC])
             cmds.append(cmd_with_basic_build)
-            specs[builds[BuildType.BASIC]] = self.output_corpus
+            specs[builds[BuildType.BASIC]] = [self.output_corpus]
 
         if not sanitizer_counts:
-            return specs
+            return {"libFuzzer": specs}
 
         cmds_left = self.count - basic_count
 
@@ -137,9 +139,9 @@ class LibFuzzerCmd(FuzzerCmd):
             cmd = base_cmd.replace(" ", f" -fork={count} -ignore_crashes=1 ", 1)
             cmd_with_san_build = cmd.replace("$appname", builds[san])
             cmds.append(cmd_with_san_build)
-            specs[builds[san]] = self.output_corpus
+            specs[builds[san]] = [self.output_corpus]
 
-        return specs
+        return {"libFuzzer": specs}
 
     def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
         if timeout_ms is None:

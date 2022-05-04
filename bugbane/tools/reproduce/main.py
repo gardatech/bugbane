@@ -22,7 +22,7 @@
 5. Generate bb_results.json
 """
 
-from typing import Dict
+from typing import Dict, List, Optional
 
 import os
 import sys
@@ -37,6 +37,55 @@ from .args import exit_on_bad_args, parse_args
 
 from .harvester import Harvester, HarvesterError
 from .bugsamplesaver import BugSampleSaver, BugSampleSaverError
+
+
+def dict_to_reproduce_specs(
+    fuzz_sync_dir: Optional[str],
+    reproduce_specs: Optional[Dict[str, Dict[str, List[str]]]],
+) -> List[List[str]]:
+    """
+    Convert "reproduce specs" dictionary to list of lists of strings.
+    Output format is the same as used by ArgumentParser in manual run mode.
+    Raise FuzzDataError if required arguments are empty or None.
+
+    Expected input:
+    ```
+    fuzz_sync_dir="out",
+    reproduce_specs={
+        "AFL++": {
+            "./basic/app": ["app1", "app2", "app3"],
+            "./asan/app": ["app4"]
+        }
+    }
+    ```
+    For that input the output would be:
+    [
+        [
+            "AFL++:out",
+            "./basic/app:app1",
+            "./basic/app:app2",
+            "./basic/app:app3",
+            "./asan/app:app4"
+        ]
+    ]
+    """
+    if not fuzz_sync_dir:
+        raise FuzzDataError("no fuzz_sync_dir in configuration file")
+
+    if not reproduce_specs:
+        raise FuzzDataError("no reproduce_specs in configuration file")
+
+    result: List[str] = []
+
+    try:
+        for fuzzer_type, spec in reproduce_specs.items():
+            result.append(fuzzer_type + ":" + fuzz_sync_dir)
+            for binary, subdirs in spec.items():
+                result.extend(binary + ":" + subdir for subdir in subdirs)
+    except AttributeError as e:  # no method .items() -> bad input json
+        raise FuzzDataError("invalid reproduce specs") from e
+
+    return [result]
 
 
 def main(argv=None):
@@ -57,26 +106,17 @@ def main(argv=None):
             if not src_path:
                 raise FuzzDataError("no src_root in configuration file")
 
-            fuzz_sync_dir = bane_vars.get("fuzz_sync_dir")
-            if not src_path:
-                raise FuzzDataError("no fuzz_sync_dir in configuration file")
-
             fuzzer_type = bane_vars.get("fuzzer_type")
-            if not src_path:
+            if not fuzzer_type:
                 raise FuzzDataError("no fuzzer_type in configuration file")
 
-            reproduce_specs: Dict[str, Dict[str, str]] = bane_vars.get(
+            reproduce_specs_dict: Dict[str, Dict[str, List[str]]] = bane_vars.get(
                 "reproduce_specs"
             )
-            if not src_path:
-                raise FuzzDataError("no reproduce_specs in configuration file")
-
-            fuzz_type_dir = [fuzzer_type + ":" + fuzz_sync_dir]
-            builds = [
-                binary_path + ":" + subdir
-                for binary_path, subdir in reproduce_specs[fuzzer_type].items()
-            ]
-            reproduce_specs = [fuzz_type_dir + builds]
+            fuzz_sync_dir = bane_vars.get("fuzz_sync_dir")
+            reproduce_specs: List[List[str]] = dict_to_reproduce_specs(
+                fuzz_sync_dir, reproduce_specs_dict
+            )
 
             run_args = shlex.split(bane_vars.get("run_args") or "")
             run_env = bane_vars.get("run_env") or {}
