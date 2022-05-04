@@ -1,6 +1,9 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.4.2
+- fixed timeout option
+
 ## Version 0.4.1
 - added timeout option
 - fixed parsing of AFL++ fuzz stats in newer format which was introduced in AFL++ 4.00

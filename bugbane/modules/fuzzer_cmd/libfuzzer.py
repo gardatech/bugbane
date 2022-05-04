@@ -74,7 +74,7 @@ class LibFuzzerCmd(FuzzerCmd):
 
     def generate_one(self, input_corpus: str, output_corpus: str) -> str:
         cmd = "$appname -use_value_profile=1 -cross_over_uniform_dist=1 -max_len=500 "
-        cmd += "-rss_limit_mb=0 -timeout=10 -create_missing_dirs=1 "
+        cmd += "-rss_limit_mb=0 -create_missing_dirs=1 "
         run_dir = os.path.dirname(output_corpus)
         artifacts_dir = os.path.join(run_dir, "artifacts") + os.sep
         log_path = os.path.join(run_dir, "libfuzzer$i.log")
@@ -144,11 +144,12 @@ class LibFuzzerCmd(FuzzerCmd):
         return {"libFuzzer": specs}
 
     def add_timeout_to_cmd(self, cmd: str, timeout_ms: Optional[int]) -> str:
+        # keep old behavior: default timeout = 10 seconds
         if timeout_ms is None:
-            return cmd
+            timeout_ms = 10000
 
         timeout_seconds = max(1, math.ceil(timeout_ms / 1000.0))
-        return cmd.replace(" ", f" -timeout={timeout_seconds} ")
+        return cmd.replace(" ", f" -timeout={timeout_seconds} ", 1)
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int

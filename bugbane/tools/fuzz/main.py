@@ -182,6 +182,7 @@ def main(argv=None):
             count=fuzz_cores,
             builds=builds,
             dict_path=dict_path,
+            timeout_ms=timeout,
         )
     except (FuzzerCmdError, IndexError) as e:
         log.error("wasn't able to create fuzz commands: %s", e)
