@@ -3,7 +3,8 @@ List of significant changes in BugBane.
 
 ## Version 0.4.1
 - added timeout option
-- fixed fuzz stats for AFL++ > 3.14c
+- fixed parsing of AFL++ fuzz stats in newer format which was introduced in AFL++ 4.00
+- fixed reproduce specs being limited to just one fuzzer subdirectory per build for AFL++
 
 ## Version 0.4.0
 - added support for fuzzing dictionaries
