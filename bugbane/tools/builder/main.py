@@ -47,7 +47,7 @@ def main(argv=None):
         log.error("Wasn't able to load source fuzzing suite: %s", e)
         return 1
     log.verbose1("Loaded source fuzzing suite: %s", suite)
-    log.verbose3("Loaded vars: %s", pprint.pformat(bane_vars, sort_dicts=False))
+    log.verbose3("Loaded vars: %s", pprint.pformat(bane_vars))
 
     builder_type = bane_vars.get("builder_type") or "AFL++LLVM"
     try:
