@@ -20,6 +20,7 @@
 3. Run user provided binaries on samples from previous step (simple + gdb)
 4. Collect flaw information (simple, sanitizer stack trace, gdb stack trace)
 5. Generate bb_results.json
+6. Save bug samples
 """
 
 from typing import Dict, List, Optional
@@ -121,6 +122,7 @@ def main(argv=None):
             run_args = shlex.split(bane_vars.get("run_args") or "")
             run_env = bane_vars.get("run_env") or {}
             results_file_path = os.path.join(args.suite, "bb_results.json")
+            bug_samples_dir = os.path.join(args.suite, "bug_samples")
         except (FuzzDataError, KeyError, AttributeError) as e:
             log.error("Wasn't able to load fuzz data suite %s: %s", args.suite, e)
             return 1
@@ -130,6 +132,7 @@ def main(argv=None):
         run_env = {}
         reproduce_specs = args.spec
         results_file_path = args.output
+        bug_samples_dir = args.bug_samples_dir
 
     harvester = Harvester()
     harvester.set_src_path_base(src_path)
@@ -161,8 +164,6 @@ def main(argv=None):
         return 1
 
     bss = BugSampleSaver()
-    bug_samples_dir = os.path.join(args.suite, "bug_samples")
-
     try:
         bss.save_bug_samples(results, bug_samples_dir)
     except BugSampleSaverError as e:

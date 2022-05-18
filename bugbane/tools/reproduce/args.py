@@ -71,8 +71,16 @@ def parse_args(argv):
     parser_manual.add_argument(
         "-o",
         "--output",
+        "--results-file",
         help="save json results to specified FILE (note: file is not appended)",
         metavar="FILE",
+        required=True,
+    )
+    parser_manual.add_argument(
+        "-B",
+        "--bug-samples-dir",
+        help="save bug samples to specified DIR (appended, created if doesn't exist)",
+        metavar="DIR",
         required=True,
     )
 
