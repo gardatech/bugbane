@@ -81,7 +81,7 @@ def exit_on_bad_args(args: Namespace):
     input_file = none_on_bad_nonempty_file(args.input)
     if not input_file:
         sys.exit(
-            f"ERROR in --input: file '{args.input_suite}' does not exist, empty or not readable"
+            f"ERROR in --input: file '{args.input}' does not exist, empty or not readable"
         )
 
     if args.dpi < 1:
