@@ -111,9 +111,12 @@ def main(argv=None):
             if not fuzzer_type:
                 raise FuzzDataError("no fuzzer_type in configuration file")
 
-            reproduce_specs_dict: Dict[str, Dict[str, List[str]]] = bane_vars.get(
-                "reproduce_specs"
-            )
+            reproduce_specs_dict: Optional[
+                Dict[str, Dict[str, List[str]]]
+            ] = bane_vars.get("reproduce_specs")
+            if not reproduce_specs_dict:
+                raise FuzzDataError("no reproduce_specs in configuration file")
+
             fuzz_sync_dir = bane_vars.get("fuzz_sync_dir")
             reproduce_specs: List[List[str]] = dict_to_reproduce_specs(
                 fuzz_sync_dir, reproduce_specs_dict
@@ -124,7 +127,12 @@ def main(argv=None):
             results_file_path = os.path.join(args.suite, "bb_results.json")
             bug_samples_dir = os.path.join(args.suite, "bug_samples")
         except (FuzzDataError, KeyError, AttributeError) as e:
-            log.error("Wasn't able to load fuzz data suite %s: %s", args.suite, e)
+            log.error(
+                "Wasn't able to load fuzz data suite %s. %s: %s",
+                args.suite,
+                e.__class__.__name__,
+                e,
+            )
             return 1
     else:
         src_path = args.src_path
