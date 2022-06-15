@@ -41,6 +41,14 @@ def parse_args(argv):
         default=5000,
     )
     app_options.add_argument(
+        "-R",
+        "--hang-reproduce-limit",
+        help="reproduce at most R hangs per one fuzzer instance (default: 3)",
+        type=int,
+        metavar="R",
+        default=3,
+    )
+    app_options.add_argument(
         "--num-reruns",
         help="make at most N runs on same sample if application doesn't crash/hang right away (default: 3)",
         type=int,

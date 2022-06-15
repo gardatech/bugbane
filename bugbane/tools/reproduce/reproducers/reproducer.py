@@ -50,7 +50,11 @@ class Reproducer(ABC):
 
     @abstractmethod
     def run_binary_on_samples(
-        self, binary_path: str, crashes_mask: Optional[str], hangs_mask: Optional[str]
+        self,
+        binary_path: str,
+        crashes_mask: Optional[str],
+        hangs_mask: Optional[str],
+        hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         """
         Run binary specified by binary_path on each sample matching crashes_mask or hangs_mask.

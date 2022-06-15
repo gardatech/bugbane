@@ -49,6 +49,7 @@ class Harvester:
         self.run_args: Optional[List[str]] = None
         self.run_env: Optional[Dict[str, str]] = None
         self.hang_timeout_sec: float = 10.0
+        self.hang_reproduce_limit: int = 3
         self.result = TotalReproduceResult()
         self.num_reruns: int = 3
         self.use_abspath: bool = False
@@ -85,6 +86,10 @@ class Harvester:
     def set_hang_timeout(self, milliseconds: int):
         """Save milliseconds to self.run_env as seconds"""
         self.hang_timeout_sec = milliseconds / 1000.0
+
+    def set_hang_reproduce_limit(self, limit: int):
+        """Save limit to self.hang_reproduce_limit"""
+        self.hang_reproduce_limit = limit
 
     def set_num_reruns(self, num_reruns: int):
         """Save num_reruns to self.num_reruns"""
@@ -167,7 +172,10 @@ class Harvester:
                 hangs_path_mask,
             )
             cards = reproducer.run_binary_on_samples(
-                binary_path, crashes_path_mask, hangs_path_mask
+                binary_path,
+                crashes_path_mask,
+                hangs_path_mask,
+                self.hang_reproduce_limit,
             )
             self.add_reproduce_issue_cards(cards)
 

@@ -3,6 +3,7 @@ List of significant changes in BugBane.
 
 ## Version 0.4.2
 - fixed timeout option
+- added reproducer tool option --hang-reproduce-limit=R to test at most R hangs per fuzzer instance
 
 ## Version 0.4.1
 - added timeout option

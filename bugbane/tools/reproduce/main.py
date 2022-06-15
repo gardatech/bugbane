@@ -114,8 +114,6 @@ def main(argv=None):
             reproduce_specs_dict: Optional[
                 Dict[str, Dict[str, List[str]]]
             ] = bane_vars.get("reproduce_specs")
-            if not reproduce_specs_dict:
-                raise FuzzDataError("no reproduce_specs in configuration file")
 
             fuzz_sync_dir = bane_vars.get("fuzz_sync_dir")
             reproduce_specs: List[List[str]] = dict_to_reproduce_specs(
@@ -149,6 +147,7 @@ def main(argv=None):
 
     harvester.set_num_reruns(args.num_reruns)
     harvester.set_use_abspath(args.abspath)
+    harvester.set_hang_reproduce_limit(args.hang_reproduce_limit)
     harvester.set_hang_timeout(args.hang_timeout)
 
     reproduce_run_env = {

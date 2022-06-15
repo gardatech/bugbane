@@ -38,8 +38,13 @@ class GoFuzzReproducer(Reproducer):
     """
 
     def run_binary_on_samples(
-        self, binary_path: str, crashes_mask: Optional[str], hangs_mask: Optional[str]
+        self,
+        binary_path: str,
+        crashes_mask: Optional[str],
+        hangs_mask: Optional[str],
+        hang_reproduce_limit: int,
     ) -> List[IssueCard]:
+        # no need to limit hangs: reproducing already happened by go-fuzz
         crashers = glob.glob(crashes_mask)
         cards = self.collect_crashers(binary_path, crashers)
         return cards

@@ -42,11 +42,17 @@ class DefaultReproducer(Reproducer):
     """
 
     def run_binary_on_samples(
-        self, binary_path: str, crashes_mask: Optional[str], hangs_mask: Optional[str]
+        self,
+        binary_path: str,
+        crashes_mask: Optional[str],
+        hangs_mask: Optional[str],
+        hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
         cards.extend(self.run_binary_on_crashes(binary_path, crashes_mask))
-        cards.extend(self.run_binary_on_hangs(binary_path, hangs_mask))
+        cards.extend(
+            self.run_binary_on_hangs(binary_path, hangs_mask, hang_reproduce_limit)
+        )
         return cards
 
     def run_binary_on_crashes(
@@ -65,11 +71,13 @@ class DefaultReproducer(Reproducer):
         return cards
 
     def run_binary_on_hangs(
-        self, binary_path: str, mask: Optional[str]
+        self, binary_path: str, mask: Optional[str], hang_reproduce_limit: int
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
         samples = self.mask_to_samples(mask)
-        for sample in samples:
+        for num, sample in enumerate(samples, start=1):
+            if num > hang_reproduce_limit:
+                break
             cmd = self.make_gdb_run_cmd_for_hang(binary_path, sample)
             card = self.run(cmd, binary_path, sample, self.one_run_try_hang)
             if card.verdict.value >= Verdict.HANG.value:
