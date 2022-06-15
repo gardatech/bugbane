@@ -102,7 +102,7 @@ class DefaultReproducer(Reproducer):
         or until a bug is detected.
         Return partially filled IssueCard (without title and bug location)
         """
-        num_tries = min(1, self.num_tries)
+        num_tries = max(1, self.num_tries)
         for try_num in range(1, num_tries + 1):
             log.verbose3("%s run: %s (try #%d)", self.__class__.__name__, cmd, try_num)
             verdict, output = run_method(cmd, self.run_env)
@@ -125,7 +125,7 @@ class DefaultReproducer(Reproducer):
         Return Verdict based on run results and command output
         """
         ex_code, is_hang, output = run_shell_cmd(cmd, run_env, self.timeout_sec)
-        output = output.decode(errors="replace")
+        output = (output or b"").decode(errors="replace")
         verdict = self.make_verdict(ex_code, is_hang, output)
         return (verdict, output)
 
@@ -142,7 +142,9 @@ class DefaultReproducer(Reproducer):
         )
         return (verdict, output)
 
-    def make_verdict(self, exit_code: int, is_hang: bool, output: str):
+    def make_verdict(
+        self, exit_code: Optional[int], is_hang: bool, output: Optional[str]
+    ):
         """Convert application run results to Verdict"""
         verdict = Verdict.from_run_results(
             exit_code=exit_code, is_hang=is_hang, output=output

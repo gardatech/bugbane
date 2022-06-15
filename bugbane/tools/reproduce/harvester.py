@@ -183,6 +183,8 @@ class Harvester:
         """Add cards to self.issue_cards while creating issue titles"""
         for card in cards:
             card.load_location_and_set_title(self.src_path_base)
+            if card.title is None:
+                continue
             if card.title not in self.issue_cards:
                 self.issue_cards[card.title] = card
 
@@ -215,6 +217,8 @@ class Harvester:
         cards = []
 
         for _, v in self.issue_cards.items():
+            if v.verdict is None:
+                continue
             d = asdict(v)
             d.update({"verdict": v.verdict.name})
             cards.append(d)
