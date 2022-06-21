@@ -114,6 +114,8 @@ ENV FUZZ_DURATION=12
 
 FROM bugbane AS test
 
+ENV AFL_SKIP_CPUFREQ=1
+
 ENV FUZZ="/fuzz"
 RUN mkdir -p ${FUZZ}/{libFuzzer,aflpp,go-fuzz}
 
