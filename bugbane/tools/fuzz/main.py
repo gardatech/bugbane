@@ -224,6 +224,7 @@ def main(argv=None):
         "\n\t".join(tmux_cmds),
     )
 
+    start_interval = args.start_interval / 1000.0
     for tmux_cmd in tmux_cmds:
         # all the tmux commands actually use -d arg (detached mode)
         exit_code, output = run_interactive_shell_cmd(tmux_cmd)
@@ -233,6 +234,11 @@ def main(argv=None):
             )
             return 1
 
+        if start_interval > 0:
+            sleep(start_interval)
+
+    start_timestamp = int(time())
+
     try:
         sleep(5.0)
 
@@ -240,7 +246,6 @@ def main(argv=None):
         if exit_code == 0 and output:
             log.info("Fuzz process tree:\n%s", output.decode(errors="replace"))
 
-        start_timestamp = int(time())
         stats_print_counter = 0
         real_duration = 0
 

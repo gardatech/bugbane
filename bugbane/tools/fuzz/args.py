@@ -56,6 +56,12 @@ def create_argument_parser():
         type=int,
         default=16,
     )
+    input_group.add_argument(
+        "--start-interval",
+        help="interval between starting fuzz instances in milliseconds (default: 0)",
+        type=int,
+        default=0,
+    )
 
     return parser
 
@@ -64,3 +70,6 @@ def exit_on_bad_args(args: Namespace):
 
     if not os.path.isdir(args.suite):
         sys.exit(f"ERROR in --suite: directory '{args.suite}' doesn't exist")
+
+    if args.start_interval < 0:
+        sys.exit(f"ERROR in --start-interval: negative values aren't allowed")
