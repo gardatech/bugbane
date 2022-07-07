@@ -45,7 +45,7 @@ RUN go get -u \
 
 
 # AFL++
-ARG GIT_AFLPP_TAG="3.14c"
+ARG GIT_AFLPP_TAG="4.01c"
 ARG AFLPP_SRC_DIR="/AFLplusplus"
 ENV AFLPP_SRC_DIR=${AFLPP_SRC_DIR}
 RUN : \
@@ -56,7 +56,9 @@ RUN : \
     && sed -i 's|"-fsanitize=cfi";|"-fsanitize=cfi";\n    cc_params\[cc_par_cnt++\] = "-fno-sanitize-trap=cfi";|g' ./src/afl-cc.c \
     && sed -i 's|#define FANCY_BOXES|// #define FANCY_BOXES|g' ./include/config.h \
     && sed -i 's|#define STATS_UPDATE_SEC .*$|#define STATS_UPDATE_SEC 5|g' ./include/config.h \
-    && env CC=clang CXX=clang++ make source-only \
+    && export NO_NYX=1 \
+    && export CC=clang CXX=clang++ \
+    && make source-only \
     && make install \
     && :
 
