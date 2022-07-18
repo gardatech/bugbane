@@ -145,7 +145,7 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
     # no gdb output detected
     log.debug("no gdb stacktrace found")
 
-    result = get_sanitizer_crash_location(t)
+    result = get_sanitizer_crash_location(t, src_path)
     log.trace("sanitizer location result: %s", result)
     if result is not None:
         return result
@@ -246,33 +246,76 @@ def get_gdb_crash_location(
     return result
 
 
-def get_sanitizer_crash_location(output: Optional[str]) -> Optional[str]:
+def get_sanitizer_crash_location(
+    output: Optional[str], src_path: Optional[str]
+) -> Optional[str]:
     """
     Return file:line:column string containing location of sanitizer error (crash).
-    Return None if such string can not be extracted.
+    Examples of returned strings:
+    ```
+        in main at main.cpp:46:8
+        at fuzz.cpp:12:11
+    ```
+    Return None if no such string can be extracted.
     """
     if not output:
         return None
 
     t = output
-    log.trace("Text to match (in square brackets): [%s]", t)
+    log.trace("text to match (in square brackets): [%s]", t)
+
+    # TODO: split this func by sanitizers
+
+    # lsan
+    re_leak_summary = re.compile(
+        r"^\s*SUMMARY:\s+(\S+Sanitizer):\s+.*\sleaked\s+in\s+(\d+)\s+allocation.*\.\s*$",
+        re.MULTILINE,
+    )
+    leak_summary = re.search(re_leak_summary, t)
+    if leak_summary:
+        # possible values: AddressSanitizer, LeakSanitizer?
+        # sanitizer_name = leak_summary.group(1)
+
+        # number of non-freed memory allocs
+        num_allocs = int(leak_summary.group(2))
+
+        if num_allocs >= 1:
+            # parse stack trace and return topmost user code location
+            # TODO: do something better with multiple allocations
+            log.trace("src_path = %s", src_path)
+            str_lsan_location = (
+                r"^\s*#\S+\s+0[xX]\S+\s+(?:in)\s+([^\s\(]+)(?:\(.*?\))?\s*("
+            )
+            if src_path:
+                str_lsan_location += src_path
+            str_lsan_location += r".*?)\s*$"
+            re_lsan_location = re.compile(str_lsan_location, re.MULTILINE)
+            location = re.search(re_lsan_location, t)
+            if location:
+                func_name = location.group(1)
+                src_location = location.group(2)
+                return "in " + func_name + " at " + src_location
+
+        # 0 alloc locations? location not matched by regex?
+        # try to parse other sanitizers' messages
+
     # ubsan/cfisan
-    re_sanitizer_location = re.compile(
+    re_ubsan_cfisan_location = re.compile(
         r"^\s*SUMMARY:\s+(\S+Sanitizer):\s+(\S+)\s+(.*?)\s+in\s*?$", re.MULTILINE
     )
-    location = re.search(re_sanitizer_location, t)
-    log.trace("location1 = %s", location)
+    location = re.search(re_ubsan_cfisan_location, t)
+    log.trace("ubsan/cfisan location1 = %s", location)
     if location:
         # 1 = sanitizer name (UndefinedBehaviorSanitizer)
         # 2 = issue type (undefined-behavior)
         # 3 = file, line, column (/src/src/fuzzable_app.cpp:29:31)
         return "at " + location.group(3)
 
-    re_sanitizer_location2 = re.compile(
+    re_ubsan_cfisan_location2 = re.compile(
         r"^\s*(.*?:\d+:\d+):\s+runtime error:\s", re.MULTILINE
     )
-    location = re.search(re_sanitizer_location2, t)
-    log.trace("location2 = %s", location)
+    location = re.search(re_ubsan_cfisan_location2, t)
+    log.trace("ubsan/cfisan location2 = %s", location)
     if location:
         # 1 = file, line, column
         return "at " + location.group(1)

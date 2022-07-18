@@ -32,8 +32,11 @@ class Verdict(Enum):
     CRASH_ASAN = (32, "AddressSanitizer:")
     CRASH_UBSAN = (64, "Undefined behavior")
     CRASH_CFISAN = (128, "Control flow intergity violation")
-    CRASH_STACK_OVERFLOW = (256, "Stack overflow")
-    CRASH_PANIC = (512, "Panic")
+    CRASH_LSAN = (256, "Memory leak")
+    CRASH_TSAN = (512, "ThreadSanitizer:")
+    CRASH_MSAN = (1024, "MemorySanitizer:")
+    CRASH_STACK_OVERFLOW = (2048, "Stack overflow")
+    CRASH_PANIC = (4096, "Panic")
 
     def __init__(self, value, description):
         self._id = value
@@ -73,6 +76,9 @@ class Verdict(Enum):
 
         if "runtime error: control flow integrity " in output:
             return cls.CRASH_CFISAN
+
+        if "Sanitizer: detected memory leaks" in output:
+            return cls.CRASH_LSAN
 
         if "AddressSanitizer:" in output:
             return cls.CRASH_ASAN

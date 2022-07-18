@@ -148,7 +148,7 @@ CMD : \
         2>/dev/null || : \
     && cd - \
     && : AFL++ : \
-    && jq '.fuzzing += { "builder_type": "AFL++LLVM", "fuzzer_type": "AFL++", "run_args": null }' $SRC/cpp/bugbane.json \
+    && jq '.fuzzing += { "builder_type": "AFL++LLVM", "fuzzer_type": "AFL++", "run_args": "@@" }' $SRC/cpp/bugbane.json \
         | sponge $SRC/cpp/bugbane.json \
     && coverage run -a -m bugbane build -vv -i ${SRC}/cpp -o ${FUZZ}/aflpp \
     && egrep '^\$ ' ${FUZZ}/aflpp/build.log | cut -c 3- > ${FUZZ}/aflpp/build.cmds \

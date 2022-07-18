@@ -140,3 +140,6 @@ docs/html/
 
 # local gitlab-ci build results
 builds/
+
+# vim tmp files
+*.swp

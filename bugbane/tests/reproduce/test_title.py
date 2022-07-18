@@ -43,6 +43,29 @@ def helper_make_card(
     return card
 
 
+def test_asan_lsan_leak():
+    output = """==18408==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 123 byte(s) in 1 object(s) allocated from:
+    #0 0x563af7d90f79 in malloc (/fuzz/libFuzzer/asan/fuzz/fuzzme+0x125f79)
+    #1 0x563af7dd8173 in is_data_valid__leak /src/cpp/fuzz/../include/funcs.hpp:46:26
+    #2 0x563af7dd8173 in ParseData(unsigned char const*, long) /src/cpp/fuzz/../include/funcs.hpp:89:13
+    #3 0x563af7dd8400 in LLVMFuzzerTestOneInput /src/cpp/fuzz/fuzz.cpp:6:5
+    #4 0x563af7cbacc8 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/fuzz/libFuzzer/asan/fuzz/fuzzme+0x4fcc8)
+    #5 0x563af7c9a7e3 in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/fuzz/libFuzzer/asan/fuzz/fuzzme+0x2f7e3)
+    #6 0x563af7ca1f6f in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/fuzz/libFuzzer/asan/fuzz/fuzzme+0x36f6f)
+    #7 0x563af7c91247 in main (/fuzz/libFuzzer/asan/fuzz/fuzzme+0x26247)
+    #8 0x7fae0867e28f  (/usr/lib/libc.so.6+0x2928f) (BuildId: 60df1df31f02a7b23da83e8ef923359885b81492)
+
+SUMMARY: AddressSanitizer: 123 byte(s) leaked in 1 allocation(s).
+"""
+    card = helper_make_card(output, exit_code=77, is_hang=False, src_path="/src")
+    assert (
+        card.title
+        == "Memory leak in is_data_valid__leak at /src/cpp/fuzz/../include/funcs.hpp:46"
+    )
+
+
 def test_ubsan():
     output = """/src/src/fuzzable_app.cpp:29:31: runtime error: load of misaligned address 0x000000d54da5 for type 'unsigned long', which requires 8 byte alignment
 0x000000d54da5: note: pointer points here
