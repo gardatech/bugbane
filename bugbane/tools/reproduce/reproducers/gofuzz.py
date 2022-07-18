@@ -45,8 +45,11 @@ class GoFuzzReproducer(Reproducer):
         hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         # no need to limit hangs: reproducing already happened by go-fuzz
+        cards: List[IssueCard] = []
+        if not crashes_mask:
+            return cards
         crashers = glob.glob(crashes_mask)
-        cards = self.collect_crashers(binary_path, crashers)
+        cards.extend(self.collect_crashers(binary_path, crashers))
         return cards
 
     def collect_crashers(
@@ -84,7 +87,7 @@ class GoFuzzReproducer(Reproducer):
 
         output_file_path = crasher + ".output"
         try:
-            with open(output_file_path, "rt", encoding="utf-8") as f:
+            with open(output_file_path, "rt", encoding="utf-8", errors="replace") as f:
                 output = f.read()
         except OSError as e:
             raise ReproducerError(
