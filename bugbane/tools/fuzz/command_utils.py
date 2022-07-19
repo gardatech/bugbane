@@ -18,7 +18,7 @@ from typing import List, Optional
 
 
 def make_tmux_commands(
-    all_cmds: List[str], tmux_session_name: Optional[str] = None
+    all_cmds: List[Optional[str]], tmux_session_name: Optional[str] = None
 ) -> List[str]:
     """
     Convert list of commands to tmux commands.

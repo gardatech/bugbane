@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, List
 
 import os
 import sys
@@ -32,7 +32,6 @@ from bugbane.modules.process import run_interactive_shell_cmd
 from bugbane.modules.corpus_utils import ensure_initial_corpus_exists
 from bugbane.modules.format import seconds_to_hms
 
-from bugbane.modules.builds import BuildDetectionError, get_builds
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats, FuzzStatsError
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
@@ -51,6 +50,7 @@ from .stop_conditions import (
 from .dict_utils import merge_dictionaries_to_file, DictMergeError
 from .command_utils import make_tmux_commands
 from .screen_dumps import make_tmux_screen_dumps
+from .fuzz_config import FuzzConfig, FuzzConfigError
 
 
 def limit_cpu_cores(from_config: Optional[int], max_from_args: int) -> int:
@@ -73,7 +73,7 @@ def main(argv=None):
     2. Generate fuzz & tmux commands
     3. Fuzz until stop condition reached
     4. Print stats & progress
-    5. Update bane_vars file (fuzzer_version, fuzz_cores, used sanitizers)
+    5. Update bane_vars file
     """
 
     argv = argv or sys.argv[1:]
@@ -88,15 +88,15 @@ def main(argv=None):
 
     try:
         suite, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
+        fuzz_config = FuzzConfig.from_dict(config_vars=bane_vars, suite_dir=args.suite)
     except FuzzDataError as e:
         log.error("Wasn't able to load fuzzing suite paths: %s", e)
         return 1
-    log.verbose1("Loaded fuzzing suite: %s", suite)
-
-    tested_binary_path = bane_vars.get("tested_binary_path")
-    if tested_binary_path is None:
-        log.error("tested_binary_path field missing in vars file")
+    except FuzzConfigError as e:
+        log.error("bad configuration: %s", e)
         return 1
+
+    log.verbose1("Loaded fuzzing suite: %s", suite)
 
     wanted_dict_path = os.path.join(args.suite, "merged.dict")
     try:
@@ -105,45 +105,15 @@ def main(argv=None):
         log.error(f"wasn't able to prepare dictionary file: {e}")
         return 1
 
-    try:
-        builds = get_builds(args.suite, tested_binary_path)
-    except BuildDetectionError as e:
-        log.error("Bad fuzzing suite: %s", e)
-        return 1
-
-    log.info("Have %d builds", len(builds))
-    bane_vars["sanitizers"] = [
-        bt.name for bt, _ in builds.items() if bt.is_static_sanitizer()
-    ]
-
-    cores_wanted = bane_vars.get("fuzz_cores")
+    cores_wanted = fuzz_config.fuzz_cores
     fuzz_cores = limit_cpu_cores(from_config=cores_wanted, max_from_args=args.max_cpus)
     if cores_wanted is not None and cores_wanted < fuzz_cores:
         log.warning("limiting number of CPU cores to %d", fuzz_cores)
-    bane_vars["fuzz_cores"] = fuzz_cores
+    fuzz_config.fuzz_cores = fuzz_cores
 
     log.info("[*] Using %d cores for fuzzing", fuzz_cores)
 
-    timeout = bane_vars.get("timeout")
-    try:
-        timeout = timeout and int(timeout)
-    except ValueError:
-        log.error(f"timeout: value {timeout} is not convertible to integer")
-        return 1
-
-    src_root = bane_vars.get("src_root")
-    if not src_root:
-        log.error(
-            "src_root variable not found in configuration file, won't be able to collect coverage"
-        )
-        return 1
-
-    try:
-        fuzzer_type = bane_vars["fuzzer_type"]
-    except KeyError:
-        log.error("fuzzer_type variable not found in configuration file")
-        return 1
-
+    fuzzer_type = fuzz_config.fuzzer_type
     try:
         cmdgen: FuzzerCmd = FuzzerCmdFactory.create(fuzzer_type)
         fuzz_stats: FuzzStats = FuzzStatsFactory.create(fuzzer_type)
@@ -159,41 +129,35 @@ def main(argv=None):
     log.verbose1("Using %s stats", fuzz_stats.__class__.__name__)
     log.verbose1("Using %s fuzzer paths", fuzzer_info.__class__.__name__)
 
-    out_dir = os.path.join(args.suite, "out")
-    bane_vars["fuzz_sync_dir"] = out_dir
+    fuzz_sync_dir = os.path.join(args.suite, "out")
 
-    in_dir = fuzzer_info.input_dir(out_dir)
+    in_dir = fuzzer_info.input_dir(fuzz_sync_dir)
     if fuzzer_info.initial_samples_required():
         ensure_initial_corpus_exists(in_dir)
 
     # TODO: respect run_env from bane_vars file
-    run_args = bane_vars.get("run_args") or ""
-    bane_vars["run_args"] = run_args  # ensure saved run_args var is not null
-
-    app = bane_vars.get("tested_binary_path") or "./a.out"
-    app_name = os.path.basename(app)
-    bane_vars["tested_binary_name"] = app_name
-
     try:
         fuzz_cmds, reproduce_specs = cmdgen.generate(
-            run_args=run_args,
+            run_args=fuzz_config.run_args,
+            count=fuzz_config.fuzz_cores,
+            builds=fuzz_config.builds,
+            timeout_ms=fuzz_config.timeout,
             input_corpus=in_dir,
-            output_corpus=out_dir,
-            count=fuzz_cores,
-            builds=builds,
+            output_corpus=fuzz_sync_dir,
             dict_path=dict_path,
-            timeout_ms=timeout,
         )
     except (FuzzerCmdError, IndexError) as e:
         log.error("wasn't able to create fuzz commands: %s", e)
         return 1
-    bane_vars["reproduce_specs"] = reproduce_specs
 
-    stats_cmd = cmdgen.stats_cmd(out_dir)
-    stats_dir = fuzzer_info.stats_dir(out_dir)
+    stats_dir = fuzzer_info.stats_dir(fuzz_sync_dir)
+
+    all_cmds: List[Optional[str]] = []
+    stats_cmd = cmdgen.stats_cmd(fuzz_sync_dir)
+    all_cmds.append(stats_cmd)
 
     fuzz_cmds = [cmd.strip() for cmd in fuzz_cmds]
-    all_cmds = [stats_cmd] + fuzz_cmds
+    all_cmds.extend(fuzz_cmds)
 
     log.info(
         "[*] Using the following commands:\n\t%s",
@@ -212,9 +176,9 @@ def main(argv=None):
         return 1
 
     if stop_cond_name == "time_without_finds":
-        bane_vars["stop_conditions"] = {"minutes_without_paths": duration // 60}
+        stop_conditions = {"minutes_without_paths": duration // 60}
     else:  # real_run_time
-        bane_vars["stop_conditions"] = {"minutes_run_time": duration // 60}
+        stop_conditions = {"minutes_run_time": duration // 60}
 
     log.info("[*] STOP CONDITION: %s = %d seconds", stop_cond_name, duration)
 
@@ -274,7 +238,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         log.info("")
         log.info("[!] Fuzzing stopped by signal SIGINT")
-        bane_vars["stop_conditions"] = {}
+        stop_conditions = {}
 
     real_duration = int(time()) - start_timestamp
     last_fuzz_stats = deepcopy(fuzz_stats)
@@ -305,7 +269,15 @@ def main(argv=None):
     )
 
     log.info("[+] Fuzzing complete, updating configuration file")
-    bane_vars["fuzz_time_real_seconds"] = real_duration
+
+    fuzz_time_real_seconds = real_duration
+    fuzz_config.update_config_vars(
+        config_vars=bane_vars,
+        fuzz_sync_dir=fuzz_sync_dir,
+        stop_conditions=stop_conditions,
+        fuzz_time_real_seconds=fuzz_time_real_seconds,
+        reproduce_specs=reproduce_specs,
+    )
     suite.save_vars(bane_vars)
 
     return 0

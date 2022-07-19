@@ -120,15 +120,15 @@ def detect_required_stop_condition(
     cert_fuzz_level = env.get("CERT_FUZZ_LEVEL")
     ci_fuzz_duration = env.get("FUZZ_DURATION")
 
+    cert_fuzz_levels_time_without_finds = {
+        4: 2 * 60 * 60,  # 4 уровень контроля -> 2 часа без новых путей
+        3: 4 * 60 * 60,
+        2: 8 * 60 * 60,
+    }
+
     try:
         if cert_fuzz_duration is not None:
             return ("time_without_finds", int(cert_fuzz_duration))
-
-        cert_fuzz_levels_time_without_finds = {
-            4: 2 * 60 * 60,  # 4 уровень контроля -> 2 часа без новых путей
-            3: 4 * 60 * 60,
-            2: 8 * 60 * 60,
-        }
 
         if cert_fuzz_level is not None:
             duration = cert_fuzz_levels_time_without_finds[int(cert_fuzz_level)]
