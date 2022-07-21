@@ -62,9 +62,7 @@ def limit_cpu_cores(from_config: Optional[int], max_from_args: int) -> int:
     """
     fuzz_cores = from_config or 8
     max_cpus = min(max_from_args, os.cpu_count() or 1)
-    if fuzz_cores > max_cpus:
-        fuzz_cores = max_cpus
-    return fuzz_cores
+    return min(fuzz_cores, max_cpus)
 
 
 def main(argv=None):

@@ -77,7 +77,7 @@ class Verdict(Enum):
         if "runtime error: control flow integrity " in output:
             return cls.CRASH_CFISAN
 
-        if "Sanitizer: detected memory leaks" in output:
+        if exit_code == 77 and "Sanitizer: detected memory leaks" in output:
             return cls.CRASH_LSAN
 
         if "AddressSanitizer:" in output:
