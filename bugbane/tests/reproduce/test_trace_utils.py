@@ -45,7 +45,7 @@ def test_remove_column_from_location():
 
 def test_anonymize_run_string():
     assert anonymize_run_string("") == ""
-    assert anonymize_run_string(None) == None
+    assert anonymize_run_string(None) is None
     assert anonymize_run_string("func(arg1=1, arg2=2)") == "func "
     assert anonymize_run_string("RIP = 0x1234567") == "RIP = 0xADDRESS"
 
