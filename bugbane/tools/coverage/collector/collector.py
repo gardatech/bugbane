@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional
+from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
 
 import glob
@@ -40,12 +40,14 @@ class CoverageCollector(ABC):
         self.masks: List[str] = []
         self.binary: Optional[str] = None
         self.run_args: Optional[List[str]] = None
+        self.run_env: Optional[Dict[str, str]] = None
         self.src_root: Optional[str] = None
 
     def assign_application(
         self,
         binary: str,
         run_args: Optional[List[str]] = None,
+        run_env: Optional[Dict[str, str]] = None,
     ):
         """
         binary: path to coverage-instrumented build of tested application
@@ -53,6 +55,7 @@ class CoverageCollector(ABC):
         """
         self.binary = binary
         self.run_args = run_args
+        self.run_env = run_env
 
     def assign_cov_files_path(self, cov_files_path: str):
         """
@@ -108,7 +111,7 @@ class CoverageCollector(ABC):
         cmd += " "
         cmd += prepare_run_args_for_shell(self.run_args, sample)
 
-        run_shell_cmd(cmd, timeout_sec=20)
+        run_shell_cmd(cmd, extra_env=self.run_env, timeout_sec=20)
 
     @abstractmethod
     def cleanup_coverage_info(self):

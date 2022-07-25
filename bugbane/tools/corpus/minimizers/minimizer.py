@@ -112,7 +112,7 @@ class Minimizer(ABC):
 
 
 class MinimizerUsingProgram(Minimizer):
-    """Base class for afl-cmin and other tools that require running program with arguments"""
+    """Base class for afl-cmin and other tools that require running program with arguments."""
 
     def __init__(self):
         super().__init__()

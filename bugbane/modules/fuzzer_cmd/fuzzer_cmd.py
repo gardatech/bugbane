@@ -68,7 +68,7 @@ class FuzzerCmd(ABC):
         """
         Assign builds and different cmdline arguments for fuzzer commands.
         Commands are replaced in place.
-        Return reproduce spec: {"fuzzer_type": {"binary_path": "samples_root_dir", ...}}
+        Return reproduce spec: {"fuzzer_type": {"binary_path": ["samples_root_dir", ...]}}
         """
 
     @abstractmethod

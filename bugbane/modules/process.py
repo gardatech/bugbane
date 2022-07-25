@@ -52,7 +52,7 @@ def checked_run_shell_cmd(
 
 
 def run_shell_cmd(
-    cmd: str, extra_env: Dict[str, str] = None, timeout_sec: int = 120
+    cmd: str, extra_env: Optional[Dict[str, str]] = None, timeout_sec: int = 120
 ) -> Tuple[Optional[int], bool, Optional[bytes]]:
     """
     Executes shell command with possible pipe and redirect symbols "|><".
