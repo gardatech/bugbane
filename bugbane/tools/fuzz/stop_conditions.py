@@ -18,9 +18,9 @@ from typing import Callable, Dict, Optional, Tuple, Any
 from time import time
 
 import os
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats
 

@@ -16,9 +16,9 @@
 
 from typing import Dict
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.build_type import BuildType
 

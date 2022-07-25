@@ -19,9 +19,9 @@ from typing import Dict, Optional, Any
 import os
 import re
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .fuzz_stats import FuzzStats, FuzzStatsError
 from .factory import FuzzStatsFactory

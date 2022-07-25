@@ -18,11 +18,11 @@ from typing import Optional, Tuple
 
 import os
 import re
-import logging
+from bugbane.modules.log import getLogger
 
 from collections import Counter
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 def remove_column_from_location(location: Optional[str]) -> Optional[str]:

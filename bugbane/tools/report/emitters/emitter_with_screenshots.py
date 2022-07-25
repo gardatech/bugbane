@@ -18,9 +18,9 @@ from typing import Optional, List
 
 import os
 import glob
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.file_utils import make_relative_path
 from .emitter import Emitter, EmitterError, TemplateRenderError

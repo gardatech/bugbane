@@ -18,9 +18,9 @@ from typing import Optional
 from dataclasses import dataclass
 
 import re
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .verdict import Verdict
 

@@ -18,9 +18,9 @@ from typing import List, Optional
 
 import os
 import shutil
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .minimizers.minimizer import (
     MinimizerUsingProgram,

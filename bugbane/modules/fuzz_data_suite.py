@@ -19,9 +19,9 @@ from dataclasses import dataclass
 
 import os
 import json
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats
 from bugbane.modules.stats.coverage.coverage_stats import CoverageStats

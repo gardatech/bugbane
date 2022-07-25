@@ -14,9 +14,9 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .collector import CoverageCollector, CoverageCollectorError
 from .factory import CoverageCollectorFactory

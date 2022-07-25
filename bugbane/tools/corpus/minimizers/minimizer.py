@@ -21,9 +21,9 @@ import os
 import shutil
 from enum import Enum, auto
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 class MinimizerError(Exception):

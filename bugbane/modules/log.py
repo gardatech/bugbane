@@ -56,67 +56,80 @@ class BugBaneLogger(Logger):
             files to also log to.
     """
 
+    # handlers for root logger:
+    console_handler = None
+    logfile_handler = None
+    tracefile_handler = None
+
+    console_formatter = None
+    logfile_formatter = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.setLevel(logging.NOTSET)
+        logging.getLogger().setLevel(logging.NOTSET)
 
-        self.console_handler = None
-        self.logfile_handler = None
-        self.tracefile_handler = None
-
-        self.console_formatter = ConditionalFormatter("%(message)s")
-        self.logfile_formatter = ConditionalFormatter(
-            "%(asctime)s | %(name)30s | %(message)s"
-        )
-
-        self.create_handlers()
+        self.create_handlers_if_needed()
 
         self.set_verbosity_level(verbosity_level=0)
 
-    def set_verbosity_level(self, verbosity_level: int):
-        log_level = self._verb_level_to_log_level(verbosity_level)
+    @classmethod
+    def set_verbosity_level(cls, verbosity_level: int):
+        log_level = cls.verb_level_to_log_level(verbosity_level)
 
-        if self.console_handler is None:
-            self.create_handlers()
+        if cls.console_handler is None:
+            cls.create_handlers_if_needed()
 
-        handlers = [self.console_handler, self.logfile_handler, self.tracefile_handler]
+        handlers = [cls.console_handler, cls.logfile_handler, cls.tracefile_handler]
 
         for handler in handlers:
             if handler is not None:
                 handler.setLevel(log_level)
 
-    def create_handlers(self):
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(self.console_formatter)
-        self.addHandler(console_handler)
-        self.console_handler = console_handler
+    @classmethod
+    def create_handlers_if_needed(cls):
+        root_logger = logging.getLogger()
+
+        if cls.console_handler is None:
+            cls.console_formatter = ConditionalFormatter("%(message)s")
+            cls.logfile_formatter = ConditionalFormatter(
+                "%(asctime)s | %(name)30s | %(message)s"
+            )
+
+            console_handler = logging.StreamHandler(sys.stdout)
+            cls.console_handler = console_handler
+
+            console_handler.setLevel(logging.INFO)
+            console_handler.setFormatter(cls.console_formatter)
+            root_logger.addHandler(console_handler)
 
         # logfile_handler is same as console_handler, but with date & name
-        if self.logfile_handler is None and LOGFILE_PATH:
+        if cls.logfile_handler is None and LOGFILE_PATH:
             logfile_handler = logging.handlers.RotatingFileHandler(
                 filename=LOGFILE_PATH,
                 maxBytes=512000,
                 backupCount=0,  # 512 Kb logfile size
             )
+            cls.logfile_handler = logfile_handler
+
             logfile_handler.setLevel(logging.INFO)
-            logfile_handler.setFormatter(self.logfile_formatter)
-            self.addHandler(logfile_handler)
-            self.logfile_handler = logfile_handler
+            logfile_handler.setFormatter(cls.logfile_formatter)
+            root_logger.addHandler(logfile_handler)
 
         # tracefile_handler is same as console, but with date & name and uses TRACE level
-        if self.tracefile_handler is None and TRACE_LOGFILE_PATH:
+        if cls.tracefile_handler is None and TRACE_LOGFILE_PATH:
             tracefile_handler = logging.handlers.RotatingFileHandler(
                 filename=TRACE_LOGFILE_PATH,
                 maxBytes=512000,
                 backupCount=0,  # 512 Kb logfile size
             )
-            tracefile_handler.setLevel(TRACE)
-            tracefile_handler.setFormatter(self.logfile_formatter)
-            self.addHandler(tracefile_handler)
-            self.tracefile_handler = tracefile_handler
+            cls.tracefile_handler = tracefile_handler
 
-    def _verb_level_to_log_level(self, verbosity_level: int):
+            tracefile_handler.setLevel(TRACE)
+            tracefile_handler.setFormatter(cls.logfile_formatter)
+            root_logger.addHandler(tracefile_handler)
+
+    @staticmethod
+    def verb_level_to_log_level(verbosity_level: int):
         """
         Convert program verbosity level from ArgumentParser.parse_args()
         to logging library log level.
@@ -138,19 +151,19 @@ class BugBaneLogger(Logger):
 
     def verbose1(self, message, *args, **kwargs):
         if self.isEnabledFor(VERBOSE1):
-            self._log(VERBOSE1, message, *args, **kwargs)
+            self._log(VERBOSE1, message, args, **kwargs)
 
     def verbose2(self, message, *args, **kwargs):
         if self.isEnabledFor(VERBOSE2):
-            self._log(VERBOSE2, message, *args, **kwargs)
+            self._log(VERBOSE2, message, args, **kwargs)
 
     def verbose3(self, message, *args, **kwargs):
         if self.isEnabledFor(VERBOSE3):
-            self._log(VERBOSE3, message, *args, **kwargs)
+            self._log(VERBOSE3, message, args, **kwargs)
 
     def trace(self, message, *args, **kwargs):
         if self.isEnabledFor(TRACE):
-            self._log(TRACE, message, *args, **kwargs)
+            self._log(TRACE, message, args, **kwargs)
 
 
 def get_verbose_logger(logger_name: str, verbosity_level: int) -> BugBaneLogger:

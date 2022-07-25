@@ -18,10 +18,10 @@ from dataclasses import asdict
 from typing import Optional, List, Dict
 
 import os
-import logging
+from bugbane.modules.log import getLogger
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats

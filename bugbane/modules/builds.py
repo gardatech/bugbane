@@ -17,9 +17,9 @@
 from typing import Dict
 
 import os
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.file_utils import (
     none_on_bad_nonempty_dir,

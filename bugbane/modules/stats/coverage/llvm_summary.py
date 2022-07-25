@@ -17,9 +17,9 @@
 from typing import Optional
 
 import re
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger()
+log = getLogger(__name__)
 
 from bugbane.modules.format import squeeze_spaces
 

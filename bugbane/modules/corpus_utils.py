@@ -15,9 +15,9 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 import os
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 def ensure_initial_corpus_exists(path: str):

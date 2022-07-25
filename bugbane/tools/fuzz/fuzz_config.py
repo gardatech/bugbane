@@ -20,9 +20,9 @@ from dataclasses import dataclass
 
 import os
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.builds import BuildDetectionError, get_builds, BuildType
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory

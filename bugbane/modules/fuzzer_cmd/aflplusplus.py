@@ -20,9 +20,9 @@ import os
 from copy import copy
 from math import ceil
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list

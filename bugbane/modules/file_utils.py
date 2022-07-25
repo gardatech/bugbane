@@ -21,9 +21,9 @@ import sys
 import json
 from io import SEEK_END
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 def dump_dict_as_json(filepath: Optional[str], result: dict):

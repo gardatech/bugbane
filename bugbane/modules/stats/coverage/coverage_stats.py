@@ -18,9 +18,9 @@ from typing import Dict, Optional, Union, Any
 from abc import abstractmethod
 from dataclasses import dataclass
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from ..stats import Stats, StatsError
 

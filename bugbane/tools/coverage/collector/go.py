@@ -20,9 +20,9 @@ import os
 import re
 import shutil
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bs4 import BeautifulSoup
 

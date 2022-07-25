@@ -102,7 +102,7 @@ COPY ${BB_PATH} /bugbane
 WORKDIR /bugbane
 
 RUN : \
-    && python3 -m pip install -e .[all] \
+    && python3 -m pip install -e .[reporting] \
     && coverage run -m pytest \
     && echo "UNIT COVERAGE:" \
     && coverage report --include "*/bugbane/*" \

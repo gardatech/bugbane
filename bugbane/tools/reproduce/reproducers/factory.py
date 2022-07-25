@@ -16,9 +16,9 @@
 
 from typing import Dict, Callable, Optional
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.factory import Factory
 

@@ -18,11 +18,11 @@ from typing import Optional, List, Dict, Tuple
 
 import os
 import math
-import logging
+from bugbane.modules.log import getLogger
 
 from bugbane.modules.string_utils import replace_part_in_str_list
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 from bugbane.modules.build_type import BuildType

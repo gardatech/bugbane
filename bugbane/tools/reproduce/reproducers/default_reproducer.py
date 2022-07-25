@@ -16,9 +16,9 @@
 
 from typing import Callable, Tuple, Dict, List, Optional
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 import glob
 

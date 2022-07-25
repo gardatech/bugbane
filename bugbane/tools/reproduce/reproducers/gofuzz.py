@@ -18,10 +18,10 @@ from typing import Optional, List, Tuple
 
 import re
 import glob
-import logging
+from bugbane.modules.log import getLogger
 
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.process import make_env_shell_str
 

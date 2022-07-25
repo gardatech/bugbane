@@ -17,9 +17,9 @@
 from typing import Optional
 
 import re
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger()
+log = getLogger(__name__)
 
 from .coverage_stats import CoverageStats, CoverageStatsError
 from .factory import CoverageStatsFactory

@@ -19,9 +19,9 @@ from typing import Tuple, List, Dict, Optional
 import os
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired, SubprocessError
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 def checked_run_shell_cmd(

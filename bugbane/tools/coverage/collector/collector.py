@@ -18,9 +18,9 @@ from typing import List, Optional
 from abc import ABC, abstractmethod
 
 import glob
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.process import prepare_run_args_for_shell, run_shell_cmd
 

@@ -15,9 +15,9 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 import os
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd
 from bugbane.modules.process import run_interactive_shell_cmd

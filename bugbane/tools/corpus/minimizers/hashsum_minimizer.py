@@ -19,9 +19,9 @@ from typing import Dict, Callable, Optional
 import os
 import glob
 import hashlib
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .minimizer import Minimizer, MinimizerError
 

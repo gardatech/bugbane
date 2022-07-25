@@ -16,9 +16,9 @@
 
 from typing import Optional, Union
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from jinja2 import Environment, FileSystemLoader
 

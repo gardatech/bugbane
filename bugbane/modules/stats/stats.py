@@ -19,11 +19,11 @@ from abc import ABC, abstractmethod
 
 import os
 import glob
-import logging
+from bugbane.modules.log import getLogger
 
 from bugbane.modules.string_utils import is_glob_mask
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.file_utils import none_on_bad_nonempty_file
 

@@ -26,9 +26,9 @@ from abc import ABC, abstractmethod
 import os
 import shutil
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.process import run_shell_cmd, make_env_shell_str
 from bugbane.modules.build_type import BuildType

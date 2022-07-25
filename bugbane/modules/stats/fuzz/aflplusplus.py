@@ -16,9 +16,9 @@
 
 from typing import Optional, Dict, Any
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from bugbane.modules.format import metric_try_to_float
 

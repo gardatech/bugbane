@@ -16,9 +16,9 @@
 
 from typing import Optional
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger()
+log = getLogger(__name__)
 
 from bs4 import BeautifulSoup
 

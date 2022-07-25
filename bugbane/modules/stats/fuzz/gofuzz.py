@@ -19,12 +19,12 @@ from typing import Dict, Optional, Any
 import re
 import time
 
-import logging
+from bugbane.modules.log import getLogger
 
 from bugbane.modules.file_utils import read_last_lines
 from bugbane.modules.format import golang_duration_to_seconds
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .fuzz_stats import FuzzStats, FuzzStatsError
 from .factory import FuzzStatsFactory

@@ -17,9 +17,9 @@
 from typing import Dict, Callable
 from abc import ABC
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 
 class Factory(ABC):

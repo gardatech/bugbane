@@ -19,9 +19,9 @@ import os
 import json
 from datetime import datetime
 
-import logging
+from bugbane.modules.log import getLogger
 
-log = logging.getLogger(__name__)
+log = getLogger(__name__)
 
 from .dd_api.abc import DefectDojoAPI, DefectDojoAPIError
 
