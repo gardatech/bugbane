@@ -32,7 +32,7 @@ import shutil
 
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 from bugbane.modules.file_utils import dump_dict_as_json
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 
 from .args import exit_on_bad_args, parse_args
 
@@ -93,7 +93,7 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
     exit_on_bad_args(args)
-    log = get_first_logger(__name__, verbosity_level=args.verbose)
+    log = get_verbose_logger(__name__, verbosity_level=args.verbose)
 
     log.info("[*] BugBane reproduce tool")
 

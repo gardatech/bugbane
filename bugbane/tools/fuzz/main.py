@@ -27,7 +27,7 @@ from time import sleep, time
 # TODO: check if disk space is OK
 # TODO: calculate progress towards stop condition goal
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.process import run_interactive_shell_cmd
 from bugbane.modules.corpus_utils import ensure_initial_corpus_exists
 from bugbane.modules.format import seconds_to_hms
@@ -76,7 +76,7 @@ def main(argv=None):
 
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
-    log = get_first_logger(__name__, args.verbose)
+    log = get_verbose_logger(__name__, args.verbose)
 
     log.info("[*] BugBane fuzz tool")
 

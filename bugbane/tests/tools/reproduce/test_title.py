@@ -23,9 +23,9 @@ from bugbane.tools.reproduce.issue_card import IssueCard
 from bugbane.tools.reproduce.trace_utils import get_crash_location, get_hang_location
 from bugbane.tools.reproduce.verdict import Verdict
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 
-get_first_logger(__name__, 3)
+get_verbose_logger(__name__, 3)
 
 
 def helper_make_card(

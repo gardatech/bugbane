@@ -21,7 +21,7 @@ Screenshot tool
 import sys
 import shutil
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 
 from .args import parse_args
 from .factory import ScreenshotMakerFactory
@@ -31,7 +31,7 @@ from .screenshot import ScreenshotError
 def main(argv=None):
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
-    log = get_first_logger(__name__, args.verbose)
+    log = get_verbose_logger(__name__, args.verbose)
 
     if args.screener == "pango":
         if shutil.which("pango-view") is None:

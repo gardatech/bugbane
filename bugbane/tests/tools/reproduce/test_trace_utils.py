@@ -25,9 +25,9 @@ from bugbane.tools.reproduce.trace_utils import (
     get_gdb_crash_location,
 )
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 
-get_first_logger(__name__, 3)
+get_verbose_logger(__name__, 3)
 
 
 def test_remove_column_from_location():

@@ -18,7 +18,7 @@ import os
 import sys
 import shutil
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 from bugbane.modules.stats.coverage.factory import CoverageStatsFactory
@@ -41,7 +41,7 @@ def main(argv=None):
 
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
-    log = get_first_logger(__name__, args.verbose)
+    log = get_verbose_logger(__name__, args.verbose)
 
     log.info("[*] BugBane report tool")
 

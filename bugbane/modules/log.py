@@ -29,96 +29,146 @@ VERBOSE3 = 17
 TRACE = 9
 
 # env variables specfy paths to log files
-LOGFILE_PATH = os.getenv("LOGFILE")
-TRACE_LOGFILE_PATH = os.getenv("TRACE_LOGFILE")
+LOGFILE_PATH = os.getenv("BB_LOGFILE")
+TRACE_LOGFILE_PATH = os.getenv("BB_TRACEFILE")
 
 
-def get_first_logger(loggername: str, verbosity_level: int) -> Logger:
+def set_as_logger_class(new_logger_class):
     """
-    This method setups logging options like custom log levels
-    and returns new instance of Logger.
-    Call this from script entrypoint.
-    Other modules should create logger as usual:
-    ```
-    import logging
-    log = logging.getLogger(__name__)
-    ```
+    Decorator to set wrapped class as base logger class in logging library.
+    The wrapped class should be inherited from Logger.
     """
 
-    log_level = _verb_level_to_log_level(verbosity_level)
-    _setup_logging(log_level)
-    logger = logging.getLogger(loggername)
+    logging.setLoggerClass(new_logger_class)
+    return new_logger_class
+
+
+@set_as_logger_class
+class BugBaneLogger(Logger):
+    """
+    Custom logger class:
+        1. Has more log levels and log methods:
+            verbose1, verbose2 and verbose3: between INFO and DEBUG
+            trace: below DEBUG for tracing (messages include line number and function name)
+        2. Log level prefix is not printed for the following levels:
+            info, verbose1, verbose2, verbose3.
+        3. Environment variables BB_LOGFILE and BB_TRACEFILE can be used to specify
+            files to also log to.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setLevel(logging.NOTSET)
+
+        self.console_handler = None
+        self.logfile_handler = None
+        self.tracefile_handler = None
+
+        self.console_formatter = ConditionalFormatter("%(message)s")
+        self.logfile_formatter = ConditionalFormatter(
+            "%(asctime)s | %(name)30s | %(message)s"
+        )
+
+        self.create_handlers()
+
+        self.set_verbosity_level(verbosity_level=0)
+
+    def set_verbosity_level(self, verbosity_level: int):
+        log_level = self._verb_level_to_log_level(verbosity_level)
+
+        if self.console_handler is None:
+            self.create_handlers()
+
+        handlers = [self.console_handler, self.logfile_handler, self.tracefile_handler]
+
+        for handler in handlers:
+            if handler is not None:
+                handler.setLevel(log_level)
+
+    def create_handlers(self):
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.INFO)
+        console_handler.setFormatter(self.console_formatter)
+        self.addHandler(console_handler)
+        self.console_handler = console_handler
+
+        # logfile_handler is same as console_handler, but with date & name
+        if self.logfile_handler is None and LOGFILE_PATH:
+            logfile_handler = logging.handlers.RotatingFileHandler(
+                filename=LOGFILE_PATH,
+                maxBytes=512000,
+                backupCount=0,  # 512 Kb logfile size
+            )
+            logfile_handler.setLevel(logging.INFO)
+            logfile_handler.setFormatter(self.logfile_formatter)
+            self.addHandler(logfile_handler)
+            self.logfile_handler = logfile_handler
+
+        # tracefile_handler is same as console, but with date & name and uses TRACE level
+        if self.tracefile_handler is None and TRACE_LOGFILE_PATH:
+            tracefile_handler = logging.handlers.RotatingFileHandler(
+                filename=TRACE_LOGFILE_PATH,
+                maxBytes=512000,
+                backupCount=0,  # 512 Kb logfile size
+            )
+            tracefile_handler.setLevel(TRACE)
+            tracefile_handler.setFormatter(self.logfile_formatter)
+            self.addHandler(tracefile_handler)
+            self.tracefile_handler = tracefile_handler
+
+    def _verb_level_to_log_level(self, verbosity_level: int):
+        """
+        Convert program verbosity level from ArgumentParser.parse_args()
+        to logging library log level.
+        """
+
+        if (verbosity_level or 0) < 1:
+            return logging.INFO
+
+        if verbosity_level > 4:
+            return TRACE
+
+        mapping = {
+            4: logging.DEBUG,
+            3: VERBOSE3,
+            2: VERBOSE2,
+            1: VERBOSE1,
+        }
+        return mapping[verbosity_level]
+
+    def verbose1(self, message, *args, **kwargs):
+        if self.isEnabledFor(VERBOSE1):
+            self._log(VERBOSE1, message, *args, **kwargs)
+
+    def verbose2(self, message, *args, **kwargs):
+        if self.isEnabledFor(VERBOSE2):
+            self._log(VERBOSE2, message, *args, **kwargs)
+
+    def verbose3(self, message, *args, **kwargs):
+        if self.isEnabledFor(VERBOSE3):
+            self._log(VERBOSE3, message, *args, **kwargs)
+
+    def trace(self, message, *args, **kwargs):
+        if self.isEnabledFor(TRACE):
+            self._log(TRACE, message, *args, **kwargs)
+
+
+def get_verbose_logger(logger_name: str, verbosity_level: int) -> BugBaneLogger:
+    """
+    Returns BugBaneLogger with loglevel set up to match `verbosity_level`,
+    passed from e.g. argparse.ArgumentParser.
+    """
+    logger: BugBaneLogger = getLogger(logger_name)
+    logger.set_verbosity_level(verbosity_level)
     logger.debug("Logging initialized")
     return logger
 
 
-def _verb_level_to_log_level(verbosity_level: int):
-    """
-    Convert program verbosity level from ArgumentParser.parse_args()
-    to logging library log level
-    """
-
-    if not verbosity_level or verbosity_level < 1:
-        return logging.INFO
-
-    if verbosity_level > 4:
-        return TRACE
-
-    mapping = {
-        4: logging.DEBUG,
-        3: VERBOSE3,
-        2: VERBOSE2,
-        1: VERBOSE1,
-    }
-    return mapping[verbosity_level]
-
-
-def _setup_logging(log_level: int):
-    logger = logging.getLogger()
-    logger.setLevel(logging.NOTSET)
-
-    _add_log_level_method(VERBOSE1, "VERBOSE1")
-    _add_log_level_method(VERBOSE2, "VERBOSE2")
-    _add_log_level_method(VERBOSE3, "VERBOSE3")
-    _add_log_level_method(TRACE, "TRACE")
-
-    console_formatter = ConditionalFormatter("%(message)s")
-    logfile_formatter = ConditionalFormatter("%(asctime)s | %(name)30s | %(message)s")
-
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setLevel(log_level)
-    console_handler.setFormatter(console_formatter)
-    logger.addHandler(console_handler)
-
-    if LOGFILE_PATH:  # same as console, but with date & name
-        # 512 Kb
-        logfile_handler = logging.handlers.RotatingFileHandler(
-            filename=LOGFILE_PATH, maxBytes=512000, backupCount=0
-        )
-        logfile_handler.setLevel(log_level)
-        logfile_handler.setFormatter(logfile_formatter)
-        logger.addHandler(logfile_handler)
-
-    if TRACE_LOGFILE_PATH:  # same as console, but with date & name and uses TRACE level
-        # 512 Kb
-        dbg_logfile_handler = logging.handlers.RotatingFileHandler(
-            filename=TRACE_LOGFILE_PATH, maxBytes=512000, backupCount=0
-        )
-        dbg_logfile_handler.setLevel(TRACE)
-        dbg_logfile_handler.setFormatter(logfile_formatter)
-        logger.addHandler(dbg_logfile_handler)
-
-    # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-
-
-def _add_log_level_method(level: int, levelname: str):
-    logging.addLevelName(level, levelname)
-
-    def logmethod(self: Logger, message, *args, **kwargs):
-        if self.isEnabledFor(level):
-            self._log(level, message, args, **kwargs)
-
-    setattr(logging.Logger, levelname.lower(), logmethod)
+def getLogger(logger_name: str) -> BugBaneLogger:
+    """Replacement for logging.getLogger(). Returns BugBaneLogger."""
+    logger: BugBaneLogger = logging.getLogger(logger_name)  # type: ignore
+    assert isinstance(logger, BugBaneLogger)
+    return logger
 
 
 class ConditionalFormatter(logging.Formatter):

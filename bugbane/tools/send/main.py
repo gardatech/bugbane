@@ -18,7 +18,7 @@ import sys
 import pprint
 from argparse import Namespace
 
-from bugbane.modules.log import get_first_logger
+from bugbane.modules.log import get_verbose_logger
 
 from .args import parse_args
 
@@ -54,7 +54,7 @@ def create_dd_api_from_args(args: Namespace) -> DefectDojoAPI:
 def main(argv=None):
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
-    log = get_first_logger(__name__, args.verbose)
+    log = get_verbose_logger(__name__, args.verbose)
 
     log.info("[*] BugBane send tool")
 
