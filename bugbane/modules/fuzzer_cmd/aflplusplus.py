@@ -39,8 +39,8 @@ class AFLplusplusCmd(FuzzerCmd):
     def generate_one(
         self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
     ) -> str:
-        self._replace_ld_preload(run_env)
-        env_str = make_env_shell_str(run_env)
+        env_copy = self._replace_ld_preload(run_env)
+        env_str = make_env_shell_str(env_copy)
         cmd = f"afl-fuzz -i {input_corpus} -o {output_corpus} -m none -S $name -- $appname $run_args"
 
         if env_str:
@@ -48,16 +48,17 @@ class AFLplusplusCmd(FuzzerCmd):
 
         return cmd
 
-    def _replace_ld_preload(self, run_env: Dict[str, str]) -> None:
-        """Replace LD_PRELOAD with AFL_PRELOAD in input `run_env` dictionary."""
+    def _replace_ld_preload(self, run_env: Dict[str, str]) -> Dict[str, str]:
+        """
+        Replace LD_PRELOAD with AFL_PRELOAD in input `run_env` dictionary.
+        Return new run_env dictionary.
+        """
+        env_copy = dict(run_env)
 
-        if not run_env:
-            return
+        if env_copy and "LD_PRELOAD" in env_copy:
+            env_copy["AFL_PRELOAD"] = env_copy.pop("LD_PRELOAD")
 
-        if not "LD_PRELOAD" in run_env:
-            return
-
-        run_env["AFL_PRELOAD"] = run_env.pop("LD_PRELOAD")
+        return env_copy
 
     def stats_cmd(self, sync_dir: str) -> Optional[str]:
         return f"watch -t -n 5 afl-whatsup -s {sync_dir}"
