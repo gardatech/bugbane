@@ -43,7 +43,7 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
         newmask = self._sanitize_mask(mask)
         cmd = self._make_run_cmd(newmask, dest)
         exit_code, is_timeout, output = run_shell_cmd(
-            cmd, timeout_sec=self.tool_timeout_sec
+            cmd, extra_env=self.run_env, timeout_sec=self.tool_timeout_sec
         )
         if is_timeout:
             raise MinimizerError(f"timeout during minimization of samples at {mask}")
