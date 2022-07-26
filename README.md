@@ -230,7 +230,7 @@ bb-fuzz обнаруживает сборки на диске и распред�
 ```json
 "run_env": {
     "LD_PRELOAD": "/src/mylib.so",
-    "ENABLE_FUZZ_TARGETS", "1"
+    "ENABLE_FUZZ_TARGETS": "1"
 }
 ```
 
