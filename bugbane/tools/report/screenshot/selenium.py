@@ -34,7 +34,7 @@ class SeleniumScreenshotMaker(ScreenshotMaker):
         options = FirefoxOptions()
         options.headless = True
         driver = Firefox(options=options)
-        driver.set_window_size(800, 600)
+        driver.set_window_size(1024, 600)
         return driver
 
     def convert(self, input_file_path: str, output_file_path: str, dpi: int):
