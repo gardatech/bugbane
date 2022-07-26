@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional
+from typing import List, Dict, Optional
 
 import os
 import shutil
@@ -49,8 +49,9 @@ def deduplicate_by_tool(
     dest: str,
     tool_name: str,
     program: str,
-    run_args: List[str],
-    prog_timeout_ms: int,
+    run_args: Optional[List[str]],
+    run_env: Optional[Dict[str, str]],
+    prog_timeout_ms: Optional[int],
 ) -> Optional[int]:
     try:
         minimizer: MinimizerUsingProgram = MinimizerFactory.create(tool_name)
@@ -60,7 +61,10 @@ def deduplicate_by_tool(
     log.verbose1("Using tool minimizer %s", minimizer.__class__.__name__)
 
     minimizer.configure(
-        program=program, run_args=run_args, prog_timeout_ms=prog_timeout_ms
+        program=program,
+        run_args=run_args,
+        run_env=run_env,
+        prog_timeout_ms=prog_timeout_ms,
     )  # use default tool timeout
     count = minimizer.run(masks, dest)
     return count

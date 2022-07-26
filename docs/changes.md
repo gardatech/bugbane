@@ -1,6 +1,9 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.4.3
+- all tools that run tested application now support run_env variable (bb-fuzz replaces LD_PRELOAD with similar fuzzer variable, e.g. AFL_PRELOAD for AFL++)
+
 ## Version 0.4.2
 - fixed timeout option
 - added reproduce tool option --hang-reproduce-limit=R to test at most R hangs per fuzzer instance (R=3 by default)

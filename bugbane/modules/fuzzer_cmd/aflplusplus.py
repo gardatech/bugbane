@@ -26,6 +26,7 @@ log = getLogger(__name__)
 
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list
+from bugbane.modules.process import make_env_shell_str
 
 from .fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from .factory import FuzzerCmdFactory
@@ -35,11 +36,28 @@ from .factory import FuzzerCmdFactory
 class AFLplusplusCmd(FuzzerCmd):
     """AFL++ commands generator"""
 
-    def generate_one(self, input_corpus: str, output_corpus: str) -> str:
-        return (
-            f"afl-fuzz -i {input_corpus} -o {output_corpus}"
-            + " -m none -S $name -- $appname $run_args"
-        )
+    def generate_one(
+        self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
+    ) -> str:
+        self._replace_ld_preload(run_env)
+        env_str = make_env_shell_str(run_env)
+        cmd = f"afl-fuzz -i {input_corpus} -o {output_corpus} -m none -S $name -- $appname $run_args"
+
+        if env_str:
+            return f"env {env_str} {cmd}"
+
+        return cmd
+
+    def _replace_ld_preload(self, run_env: Dict[str, str]) -> None:
+        """Replace LD_PRELOAD with AFL_PRELOAD in input `run_env` dictionary."""
+
+        if not run_env:
+            return
+
+        if not "LD_PRELOAD" in run_env:
+            return
+
+        run_env["AFL_PRELOAD"] = run_env.pop("LD_PRELOAD")
 
     def stats_cmd(self, sync_dir: str) -> Optional[str]:
         return f"watch -t -n 5 afl-whatsup -s {sync_dir}"

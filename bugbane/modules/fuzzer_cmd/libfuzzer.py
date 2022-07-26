@@ -26,6 +26,7 @@ log = getLogger(__name__)
 
 
 from bugbane.modules.build_type import BuildType
+from bugbane.modules.process import make_env_shell_str
 
 from .fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from .factory import FuzzerCmdFactory
@@ -41,6 +42,7 @@ class LibFuzzerCmd(FuzzerCmd):
     def generate(
         self,
         run_args: str,
+        run_env: Dict[str, str],
         input_corpus: str,
         output_corpus: str,
         count: int,
@@ -58,7 +60,7 @@ class LibFuzzerCmd(FuzzerCmd):
         self.count = count
         self.output_corpus = output_corpus
 
-        cmds = [self.generate_one(input_corpus, output_corpus)]
+        cmds = [self.generate_one(input_corpus, output_corpus, run_env)]
         specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
@@ -72,8 +74,14 @@ class LibFuzzerCmd(FuzzerCmd):
 
         return (cmds, specs)
 
-    def generate_one(self, input_corpus: str, output_corpus: str) -> str:
-        cmd = "$appname -use_value_profile=1 -cross_over_uniform_dist=1 -max_len=500 "
+    def generate_one(
+        self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
+    ) -> str:
+        env_str = make_env_shell_str(run_env)
+        cmd = ""
+        if env_str:
+            cmd += f"env {env_str} "
+        cmd += "$appname -use_value_profile=1 -cross_over_uniform_dist=1 -max_len=500 "
         cmd += "-rss_limit_mb=0 -create_missing_dirs=1 "
         run_dir = os.path.dirname(output_corpus)
         artifacts_dir = os.path.join(run_dir, "artifacts") + os.sep
@@ -102,7 +110,7 @@ class LibFuzzerCmd(FuzzerCmd):
         base_cmd = cmds[0]
         del cmds[0]
         if dict_path:
-            base_cmd = base_cmd.replace(" ", f" -dict={dict_path} ", 1)
+            base_cmd = base_cmd.replace("$appname ", f"$appname -dict={dict_path} ", 1)
 
         base_cmd = self.add_timeout_to_cmd(base_cmd, timeout_ms)
 
@@ -117,7 +125,9 @@ class LibFuzzerCmd(FuzzerCmd):
             basic_count = 0
 
         if basic_count > 0:
-            cmd = base_cmd.replace(" ", f" -fork={basic_count} -ignore_crashes=1 ", 1)
+            cmd = base_cmd.replace(
+                "$appname ", f"$appname -fork={basic_count} -ignore_crashes=1 ", 1
+            )
             cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.BASIC])
             cmds.append(cmd_with_basic_build)
             specs[builds[BuildType.BASIC]] = [self.output_corpus]
@@ -136,7 +146,9 @@ class LibFuzzerCmd(FuzzerCmd):
                     break
 
         for san, count in sanitizer_counts.items():
-            cmd = base_cmd.replace(" ", f" -fork={count} -ignore_crashes=1 ", 1)
+            cmd = base_cmd.replace(
+                "$appname ", f"$appname -fork={count} -ignore_crashes=1 ", 1
+            )
             cmd_with_san_build = cmd.replace("$appname", builds[san])
             cmds.append(cmd_with_san_build)
             specs[builds[san]] = [self.output_corpus]
@@ -149,7 +161,7 @@ class LibFuzzerCmd(FuzzerCmd):
             timeout_ms = 10000
 
         timeout_seconds = max(1, math.ceil(timeout_ms / 1000.0))
-        return cmd.replace(" ", f" -timeout={timeout_seconds} ", 1)
+        return cmd.replace("$appname ", f"$appname -timeout={timeout_seconds} ", 1)
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int

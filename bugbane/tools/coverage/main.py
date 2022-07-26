@@ -100,8 +100,9 @@ def main(argv=None):
     cov_collector: CoverageCollector = CoverageCollectorFactory.create(coverage_type)
     log.verbose1("Using %s", cov_collector.__class__.__name__)
 
-    # TODO: respect run_env from bane_vars file
-    cov_collector.assign_application(binary=coverage_build_path, run_args=run_args, run_env=run_env)
+    cov_collector.assign_application(
+        binary=coverage_build_path, run_args=run_args, run_env=run_env
+    )
     cov_collector.assign_src_root(src_root)
     cov_collector.assign_cov_files_path(cov_files_path)
     cov_collector.assign_sample_masks(sample_masks)

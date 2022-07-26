@@ -52,7 +52,10 @@ def main(argv=None):
     if args.run_mode == "suite":
         try:
             _, bane_vars = FuzzDataSuite.unpack_from_fuzzing_suite_dir(args.suite)
-            tested_binary_path = bane_vars.get("tested_binary_path") or None
+            tested_binary_path = bane_vars.get("tested_binary_path")
+
+            if not tested_binary_path:
+                raise FuzzDataError("no tested_binary_path in configuration")
 
             builds = detect_builds(args.suite, tested_binary_path)
 
@@ -74,7 +77,11 @@ def main(argv=None):
                     break
 
             run_args = shlex.split(bane_vars.get("run_args") or "")
+            run_env = bane_vars.get("run_env") or {}
             fuzzer_type = bane_vars.get("fuzzer_type")
+            if not fuzzer_type:
+                raise FuzzDataError("no fuzzer_type in configuration")
+
             prog_timeout = bane_vars.get("timeout")
 
             storage = os.path.join(
@@ -109,6 +116,8 @@ def main(argv=None):
         except IndexError:
             app = None
             run_args = None
+
+        run_env = {}
 
         fuzzer_type = args.fuzzer_type
         prog_timeout = args.timeout
@@ -149,12 +158,13 @@ def main(argv=None):
         tmpdir_tool = tempfile.mkdtemp(dir=tmpdir_prefix, prefix="dedup_tool_")
         try:
             masks = [os.path.join(tmpdir, "*")]
-            count = deduplicate_by_tool(  # TODO: respect run_env from bane_vars file
+            count = deduplicate_by_tool(
                 masks=masks,
                 dest=tmpdir_tool,
                 tool_name=minimizing_tool,
                 program=app,
                 run_args=run_args,
+                run_env=run_env,
                 prog_timeout_ms=prog_timeout,
             )
         except MinimizerError as e:

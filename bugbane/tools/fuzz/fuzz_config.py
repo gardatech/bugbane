@@ -39,8 +39,7 @@ class FuzzConfigError(ConfigError):
 @dataclass
 class FuzzConfig:
     """
-    All the configuration fields loaded and validated.
-    The data is ready to start fuzzing.
+    Holds settings used for to start fuzzing.
     NOTE: the data validation is only happening in from_dict method.
     """
 

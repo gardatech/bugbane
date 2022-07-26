@@ -30,6 +30,7 @@ class FuzzerCmd(ABC):
     def generate(
         self,
         run_args: str,
+        run_env: Dict[str, str],
         input_corpus: str,
         output_corpus: str,
         count: int,
@@ -41,13 +42,18 @@ class FuzzerCmd(ABC):
         Generate commands to run fuzzer on `count` cores.
         Return tuple: (cmds, reproduce_specs)
         """
-        cmds = [self.generate_one(input_corpus, output_corpus) for _ in range(count)]
+        cmds = [
+            self.generate_one(input_corpus, output_corpus, run_env)
+            for _ in range(count)
+        ]
         replace_part_in_str_list(cmds, "$run_args", run_args, -1, 0, count - 1)
         specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
         return cmds, specs
 
     @abstractmethod
-    def generate_one(self, input_corpus: str, output_corpus: str) -> str:
+    def generate_one(
+        self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
+    ) -> str:
         """
         Generate one basic fuzzer command.
         Returned result may contain:

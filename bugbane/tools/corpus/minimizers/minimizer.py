@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional, Callable
+from typing import List, Dict, Optional, Callable
 from abc import ABC, abstractmethod
 
 import os
@@ -119,16 +119,19 @@ class MinimizerUsingProgram(Minimizer):
 
         self.program: Optional[str] = None
         self.run_args: Optional[List[str]] = None
+        self.run_env: Optional[Dict[str, str]] = None
         self.tool_timeout_sec = 60 * 60
 
     def configure(
         self,
         program: str,
         run_args: Optional[List[str]] = None,
+        run_env: Optional[Dict[str, str]] = None,
         prog_timeout_ms: Optional[int] = None,
         tool_timeout_sec: int = 60 * 60,
     ):
         self.program = program
         self.run_args = run_args
+        self.run_env = run_env
         self.prog_timeout_ms = prog_timeout_ms
         self.tool_timeout_sec = tool_timeout_sec

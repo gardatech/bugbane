@@ -57,7 +57,7 @@ def test_limit_cpu_cores(mocker: MockerFixture):
 def test_generate_commands():
     cmdgen = AFLplusplusCmd()
 
-    cmd = cmdgen.generate_one("in", "out")
+    cmd = cmdgen.generate_one("in", "out", run_env={})
     assert cmd == "afl-fuzz -i in -o out -m none -S $name -- $appname $run_args"
 
     builds = {
@@ -71,7 +71,12 @@ def test_generate_commands():
     }
 
     cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=17, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=17,
+        builds=builds,
     )
     assert len(cmds) == 17
 
@@ -162,7 +167,12 @@ def test_aflpp_generate_cmds():
         BuildType.COVERAGE: "./coverage/app",
     }
     cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
     )
     print(cmds)
     helper_check_cmds(cmds, builds)
@@ -176,7 +186,12 @@ def test_aflpp_generate_specs():
         BuildType.COVERAGE: "./coverage/app",
     }
     _, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=4, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=4,
+        builds=builds,
     )
     print(specs)
     assert "AFL++" in specs
@@ -195,7 +210,12 @@ def test_libfuzzer_generate_specs():
         BuildType.COVERAGE: "./coverage/app",
     }
     _, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=4, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=4,
+        builds=builds,
     )
     print(specs)
     assert "libFuzzer" in specs
@@ -212,7 +232,12 @@ def test_gofuzz_generate_specs():
         BuildType.GOFUZZ: "./gofuzz/app.zip",
     }
     _, specs = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=4, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=4,
+        builds=builds,
     )
     print(specs)
     assert "go-fuzz" in specs
@@ -232,6 +257,7 @@ def test_aflpp_dict():
     }
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -254,6 +280,7 @@ def test_aflpp_timeout():
     }
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -285,7 +312,12 @@ def test_aflpp_generate_cmplog_for_one_core():
     }
 
     cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=1, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=1,
+        builds=builds,
     )
     print(cmds)
     helper_check_cmds(cmds, builds)
@@ -307,11 +339,83 @@ def test_libfuzzer_generate_all_builds():
     }
 
     cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
     )
     print(cmds)
     assert len(cmds) == 4  # basic + 3 sanitizers
     helper_check_cmds(cmds, builds)
+
+
+def test_aflpp_generate_cmds_with_env():
+    cmdgen = AFLplusplusCmd()
+
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.ASAN: "./asan/app",
+        BuildType.UBSAN: "./ubsan/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    cmds, _ = cmdgen.generate(
+        run_args="@@",
+        run_env={"LD_PRELOAD": "/a/b/c.so"},
+        input_corpus="in",
+        output_corpus="out",
+        count=6,
+        builds=builds,
+    )
+    assert len(cmds) == 6
+    for cmd in cmds:
+        assert cmd.startswith("env AFL_PRELOAD=/a/b/c.so")
+
+
+def test_libfuzzer_generate_cmds_with_env():
+    cmdgen = LibFuzzerCmd()
+    builds = {
+        BuildType.BASIC: "./basic/app",
+        BuildType.ASAN: "./asan/app",
+        BuildType.UBSAN: "./ubsan/app",
+        BuildType.COVERAGE: "./coverage/app",
+    }
+
+    cmds, _ = cmdgen.generate(
+        run_args="@@",
+        run_env={"VAR": "123", "TEST": "test test"},
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+    )
+    print(cmds)
+    assert len(cmds) == 3
+    for cmd in cmds:
+        assert cmd.startswith('env VAR=123 TEST="test test" ./')
+
+
+def test_gofuzz_generate_cmds_with_env():
+    cmdgen = GoFuzzCmd()
+    builds = {
+        BuildType.GOFUZZ: "./gofuzz/app.zip",
+    }
+
+    cmds, _ = cmdgen.generate(
+        run_args="-func=TestFuzzFunc",
+        run_env={"TEST": "test test", "VAR_1": "value1", "port": "7777"},
+        input_corpus="in",
+        output_corpus="testdata",
+        count=8,
+        builds=builds,
+        timeout_ms=2500,
+    )
+    print(cmds)
+
+    for cmd in cmds:
+        assert cmd.startswith('env TEST="test test" VAR_1=value1 port=7777 go-fuzz ')
 
 
 def test_libfuzzer_generate_few_builds():
@@ -323,7 +427,12 @@ def test_libfuzzer_generate_few_builds():
     }
 
     cmds, _ = cmdgen.generate(
-        run_args="@@", input_corpus="in", output_corpus="out", count=8, builds=builds
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
     )
     print(cmds)
 
@@ -342,6 +451,7 @@ def test_libfuzzer_generate_one_build():
 
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -360,6 +470,7 @@ def test_libfuzzer_generate_one_build():
 
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -382,6 +493,7 @@ def test_libfuzzer_dict():
 
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -404,6 +516,7 @@ def test_libfuzzer_timeout():
 
     cmds, _ = cmdgen.generate(
         run_args="@@",
+        run_env={},
         input_corpus="in",
         output_corpus="out",
         count=8,
@@ -432,6 +545,7 @@ def test_cmd_gen_not_enough_cores():
         with pytest.raises(FuzzerCmdError):
             _, _ = cmdgen.generate(
                 run_args="@@",
+                run_env={},
                 input_corpus="in",
                 output_corpus="out",
                 count=2,
@@ -448,6 +562,7 @@ def test_gofuzz_generate_one_build():
 
     cmds, _ = cmdgen.generate(
         run_args="-func=TestFuzzFunc",
+        run_env={},
         input_corpus="in",
         output_corpus="testdata",
         count=8,
@@ -474,6 +589,7 @@ def test_gofuzz_dict():
 
     cmds, _ = cmdgen.generate(
         run_args="-func=TestFuzzFunc",
+        run_env={},
         input_corpus="in",
         output_corpus="testdata",
         count=8,
@@ -495,6 +611,7 @@ def test_gofuzz_timeout():
 
     cmds, _ = cmdgen.generate(
         run_args="-func=TestFuzzFunc",
+        run_env={},
         input_corpus="in",
         output_corpus="testdata",
         count=8,
@@ -519,6 +636,7 @@ def test_gofuzz_generate_bad():
     with pytest.raises(FuzzerCmdError):
         _, _ = cmdgen.generate(
             run_args="-func=TestFuzzFunc",
+            run_env={},
             input_corpus="in",
             output_corpus="testdata",
             count=8,
@@ -576,6 +694,7 @@ def test_make_tmux_commands():
     for cmdgen, extra_cmds in cmdgen_with_extra_cmds:
         cmds, _ = cmdgen.generate(
             run_args="@@",
+            run_env={},
             input_corpus="in",
             output_corpus="out",
             count=8,
@@ -642,6 +761,7 @@ def test_generate_combos_c_cxx():
                 )
                 cmdgen.generate(
                     run_args="@@",
+                    run_env={},
                     input_corpus="./in",
                     output_corpus="./out",
                     count=num_cores,
@@ -666,6 +786,7 @@ def test_generate_combos_gofuzz():
             )
             cmdgen.generate(
                 run_args="-func=TestFuzzFunc",
+                run_env={},
                 input_corpus="./in",
                 output_corpus="./out",
                 count=num_cores,

@@ -133,10 +133,10 @@ def main(argv=None):
     if fuzzer_info.initial_samples_required():
         ensure_initial_corpus_exists(in_dir)
 
-    # TODO: respect run_env from bane_vars file
     try:
         fuzz_cmds, reproduce_specs = cmdgen.generate(
             run_args=fuzz_config.run_args,
+            run_env=fuzz_config.run_env,
             count=fuzz_config.fuzz_cores,
             builds=fuzz_config.builds,
             timeout_ms=fuzz_config.timeout,

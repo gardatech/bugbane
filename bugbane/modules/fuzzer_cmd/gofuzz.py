@@ -25,6 +25,7 @@ log = getLogger(__name__)
 
 
 from bugbane.modules.build_type import BuildType
+from bugbane.modules.process import make_env_shell_str
 
 from .libfuzzer import LibFuzzerCmd
 from .fuzzer_cmd import FuzzerCmdError
@@ -41,6 +42,7 @@ class GoFuzzCmd(LibFuzzerCmd):
     def generate(
         self,
         run_args: str,
+        run_env: Dict[str, str],
         input_corpus: str,
         output_corpus: str,
         count: int,
@@ -51,7 +53,9 @@ class GoFuzzCmd(LibFuzzerCmd):
         self.count = count
         self.output_corpus = output_corpus
 
-        cmds = [self.generate_one(input_corpus, output_corpus) + " " + run_args]
+        cmds = [
+            self.generate_one(input_corpus, output_corpus, run_env) + " " + run_args
+        ]
         specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
 
         replace_part_in_str_list(  # replace $i with 1-based indexes
@@ -65,8 +69,14 @@ class GoFuzzCmd(LibFuzzerCmd):
 
         return (cmds, specs)
 
-    def generate_one(self, input_corpus: str, output_corpus: str) -> str:
-        cmd = "go-fuzz -bin=$appname -dumpcover "  # dump coverage profile data while fuzzing
+    def generate_one(
+        self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
+    ) -> str:
+        env_str = make_env_shell_str(run_env)
+        cmd = ""
+        if env_str:
+            cmd += f"env {env_str} "
+        cmd += "go-fuzz -bin=$appname -dumpcover "  # dump coverage profile data while fuzzing
         run_dir = os.path.dirname(output_corpus)
         log_path = os.path.join(run_dir, "go-fuzz.log")
         cmd += f"-workdir={output_corpus} 2>&1 | tee {log_path}"
@@ -87,7 +97,7 @@ class GoFuzzCmd(LibFuzzerCmd):
         if BuildType.GOFUZZ not in builds:
             raise FuzzerCmdError("no GOFUZZ build provided")
 
-        cmd = base_cmd.replace(" ", f" -procs={self.count} ", 1)
+        cmd = base_cmd.replace("$appname ", f"$appname -procs={self.count} ", 1)
 
         cmd = self.add_timeout_to_cmd(cmd, timeout_ms)
 
