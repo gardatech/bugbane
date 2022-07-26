@@ -90,6 +90,7 @@ def main(argv=None):
     else:
         coverage_build_path = args.program[0]
         run_args = args.program[1:]
+        run_env = {}
         coverage_type = args.cov_type
         coverage_report_path = args.output
         src_root = args.src_root
