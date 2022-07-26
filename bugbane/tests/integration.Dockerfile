@@ -133,7 +133,7 @@ CMD : \
     && cp -t ${FUZZ}/libFuzzer/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \
             ${AFLPP_SRC_DIR}/dictionaries/xml*.dict \
-    && coverage run -a -m bugbane fuzz -vv --suite ${FUZZ}/libFuzzer \
+    && coverage run -a -m bugbane fuzz -vv suite ${FUZZ}/libFuzzer \
     && coverage run -a -m bugbane coverage -vv suite ${FUZZ}/libFuzzer \
     && coverage run -a -m bugbane reproduce -vv suite ${FUZZ}/libFuzzer \
     && rm -rf /storage/libFuzzer \
@@ -158,7 +158,7 @@ CMD : \
     && cp -t ${FUZZ}/aflpp/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \
             ${AFLPP_SRC_DIR}/dictionaries/xml*.dict \
-    && coverage run -a -m bugbane fuzz -vv --suite ${FUZZ}/aflpp \
+    && coverage run -a -m bugbane fuzz -vv suite ${FUZZ}/aflpp \
     && coverage run -a -m bugbane coverage -vv suite ${FUZZ}/aflpp \
     && coverage run -a -m bugbane reproduce -vv suite ${FUZZ}/aflpp \
     && rm -rf /storage/aflpp \
@@ -180,7 +180,7 @@ CMD : \
     && mv build/*.zip ${FUZZ}/go-fuzz/gofuzz/ \
     && cp ${SRC}/go/bugbane.json ${FUZZ}/go-fuzz \
     && cd - \
-    && coverage run -a -m bugbane fuzz -vv --suite ${FUZZ}/go-fuzz \
+    && coverage run -a -m bugbane fuzz -vv suite ${FUZZ}/go-fuzz \
     && coverage run -a -m bugbane coverage -vv suite ${FUZZ}/go-fuzz \
     && coverage run -a -m bugbane reproduce -vv suite ${FUZZ}/go-fuzz \
     && coverage run -a -m bugbane report -vv --html-screener selenium \

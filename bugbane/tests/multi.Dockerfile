@@ -124,7 +124,7 @@ RUN : \
             /AFLplusplus/dictionaries/xml*.dict \
     && :
 
-RUN coverage run -a -m bugbane fuzz -vv --suite /fuzz/aflpp && date
+RUN coverage run -a -m bugbane fuzz -vv suite /fuzz/aflpp && date
 RUN coverage run -a -m bugbane coverage -vv suite /fuzz/aflpp && date
 RUN coverage run -a -m bugbane reproduce -vv suite /fuzz/aflpp && date
 RUN coverage run -a -m bugbane report -vv --name report_aflpp suite /fuzz/aflpp && date
@@ -198,7 +198,7 @@ RUN : \
             /AFLplusplus/dictionaries/xml*.dict \
     && :
 
-RUN coverage run -a -m bugbane fuzz -vv --suite /fuzz/libfuzzer && date
+RUN coverage run -a -m bugbane fuzz -vv suite /fuzz/libfuzzer && date
 RUN coverage run -a -m bugbane coverage -vv suite /fuzz/libfuzzer && date
 RUN coverage run -a -m bugbane reproduce -vv suite /fuzz/libfuzzer && date
 RUN coverage run -a -m \

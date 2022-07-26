@@ -45,12 +45,6 @@ def create_argument_parser():
     )
     input_group = parser.add_argument_group("input options")
     input_group.add_argument(
-        "--suite",
-        help="input fuzzing directory",
-        metavar="DIR",
-        required=True,
-    )
-    input_group.add_argument(
         "--max-cpus",
         help="upper limit for number of CPU cores to utilize (default: 16)",
         type=int,
@@ -63,13 +57,21 @@ def create_argument_parser():
         default=0,
     )
 
+    subparsers = parser.add_subparsers(help="run mode", dest="run_mode")
+
+    parser_suite = subparsers.add_parser("suite", help="fuzz suite run mode")
+    parser_suite.add_argument(
+        "suite",
+        help="path to fuzz suite with fuzz builds and bugbane configuration file",
+    )
+
     return parser
 
 
 def exit_on_bad_args(args: Namespace):
 
     if not os.path.isdir(args.suite):
-        sys.exit(f"ERROR in --suite: directory '{args.suite}' doesn't exist")
+        sys.exit(f"ERROR: suite directory '{args.suite}' doesn't exist")
 
     if args.start_interval < 0:
         sys.exit(f"ERROR in --start-interval: negative values aren't allowed")

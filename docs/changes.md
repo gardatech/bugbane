@@ -2,12 +2,14 @@
 List of significant changes in BugBane.
 
 ## Version 0.4.3
-- all tools that run tested application now support run_env variable (bb-fuzz replaces LD_PRELOAD with similar fuzzer variable, e.g. AFL_PRELOAD for AFL++)
+- **(breaking change)** bb-fuzz syntax updated to match other tools.<br>
+    Users will need to remove dashes from `suite` option: change `bb-fuzz --suite $DIR` to `bb-fuzz suite $DIR`
+- all tools that run tested application now support `run_env` variable (bb-fuzz replaces LD_PRELOAD with similar fuzzer variable, e.g. AFL_PRELOAD for AFL++)
 
 ## Version 0.4.2
 - fixed timeout option
-- added reproduce tool option --hang-reproduce-limit=R to test at most R hangs per fuzzer instance (R=3 by default)
-- added fuzz tool option --start-interval to specify delay between starting fuzzer instances
+- added reproduce tool option `--hang-reproduce-limit=R` to test at most R hangs per fuzzer instance (R=3 by default)
+- added fuzz tool option `--start-interval` to specify delay between starting fuzzer instances
 - better bug title when detecting memory leaks reported by ASAN/LSAN
 
 ## Version 0.4.1
