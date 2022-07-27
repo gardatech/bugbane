@@ -184,10 +184,14 @@ class FuzzBox:
             "\n\t".join(tmux_cmds),
         )
 
+        extra_env = {
+            "AFL_PIZZA_MODE": "0",  # disable AFL++ 1st april joke
+        }
+
         start_interval_seconds = start_interval / 1000.0
         for tmux_cmd in tmux_cmds:
             # all the tmux commands actually use -d arg (detached mode)
-            exit_code, output = run_interactive_shell_cmd(tmux_cmd)
+            exit_code, output = run_interactive_shell_cmd(tmux_cmd, extra_env=extra_env)
             if exit_code != 0:
                 raise FuzzBoxError(
                     f"failed to run command '{tmux_cmd}'. Output follows:\n{output}"
