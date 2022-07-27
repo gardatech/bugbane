@@ -29,7 +29,7 @@ from .trace_utils import (
     get_crash_location,
     get_hang_location,
     location_to_file_line,
-    remove_column_from_location,
+    post_process_location,
 )
 
 
@@ -60,8 +60,9 @@ class IssueCard:
                 self.sample,
             )
         else:
-            location = remove_column_from_location(location)
-            title += " " + location
+            location = post_process_location(location)
+            if location:
+                title += " " + location
 
         title = anonymize_run_string(title)
         self.title = title

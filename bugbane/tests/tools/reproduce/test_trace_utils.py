@@ -19,7 +19,7 @@ This module tests generating titles from various output strings
 """
 
 from bugbane.tools.reproduce.trace_utils import (
-    remove_column_from_location,
+    post_process_location,
     anonymize_run_string,
     get_hang_location,
     get_gdb_crash_location,
@@ -30,17 +30,23 @@ from bugbane.modules.log import get_verbose_logger
 get_verbose_logger(__name__, 3)
 
 
-def test_remove_column_from_location():
-    location = "/path/to/file.cpp:20:56"
-    assert remove_column_from_location(location) == "/path/to/file.cpp:20"
-    assert remove_column_from_location("") == ""
-    assert remove_column_from_location(None) is None
+def test_post_process_location():
+    location = "/path/to/some/../file.cpp:20:56"
+    assert post_process_location(location) == "/path/to/file.cpp:20"
+    assert post_process_location("") == ""
+    assert post_process_location(None) is None
 
-    # only line number, no column
-    assert remove_column_from_location("file.cpp:20") == "file.cpp:20"
+    # only line number, no column, double dots
+    assert post_process_location("../file.cpp:20") == "../file.cpp:20"
+    
+    # more double dots
+    assert post_process_location("../../file.cpp:20") == "../../file.cpp:20"
 
-    # no line number, no column
-    assert remove_column_from_location("file.cpp") == "file.cpp"
+    # single dots
+    assert post_process_location("././file.cpp") == "file.cpp"
+    
+    # no dots, line numbers or columns
+    assert post_process_location("file.cpp") == "file.cpp"
 
 
 def test_anonymize_run_string():

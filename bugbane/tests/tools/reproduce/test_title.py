@@ -62,7 +62,7 @@ SUMMARY: AddressSanitizer: 123 byte(s) leaked in 1 allocation(s).
     card = helper_make_card(output, exit_code=77, is_hang=False, src_path="/src")
     assert (
         card.title
-        == "Memory leak in is_data_valid__leak at /src/cpp/fuzz/../include/funcs.hpp:46"
+        == "Memory leak in is_data_valid__leak at /src/cpp/include/funcs.hpp:46"
     )
 
 
@@ -182,7 +182,7 @@ Quit anyway? (y or n) [answered Y; input not from terminal]
 """
     # python gets exit code of gdb itself, which is 0
     card = helper_make_card(output, exit_code=0, is_hang=False)
-    assert card.title == "Crash in just_abort at /src/src/../include/funcs.h:12"
+    assert card.title == "Crash in just_abort at /src/include/funcs.h:12"
 
 
 def test_failed_assert():
@@ -218,7 +218,7 @@ Quit anyway? (y or n) [answered Y; input not from terminal]
     # python gets exit code of gdb itself, which is 0
     card = helper_make_card(output, exit_code=0, is_hang=False)
 
-    assert card.title == "Crash in failed_assert at /src/src/../include/funcs.h:17"
+    assert card.title == "Crash in failed_assert at /src/include/funcs.h:17"
 
 
 def test_location_is_in_user_code():
