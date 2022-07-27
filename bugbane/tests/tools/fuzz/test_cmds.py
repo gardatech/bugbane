@@ -22,36 +22,11 @@ from pytest_mock import MockerFixture
 from bugbane.modules.build_type import BuildType
 from bugbane.modules.string_utils import replace_part_in_str_list
 from bugbane.tools.fuzz.command_utils import make_tmux_commands
-from bugbane.tools.fuzz.main import limit_cpu_cores
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
 from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.aflplusplus import AFLplusplusCmd
 from bugbane.modules.fuzzer_cmd.libfuzzer import LibFuzzerCmd
 from bugbane.modules.fuzzer_cmd.gofuzz import GoFuzzCmd
-
-
-def test_limit_cpu_cores(mocker: MockerFixture):
-    default_for_empty = 8
-    in_out = [
-        # (config, max-cpus, cpu_count), expected result
-        ((None, 16, 4), 4),
-        ((None, 16, 9), default_for_empty),
-        ((1, 16, 4), 1),
-        ((1, 16, 32), 1),
-        ((1, 16, 1), 1),
-        ((1, 1, 16), 1),
-        ((2, 1, 16), 1),
-        ((2, 16, 1), 1),
-        ((2, 16, 16), 2),
-        ((17, 16, 16), 16),
-        ((100, 256, 512), 100),
-    ]
-
-    for (inp, expected) in in_out:
-        from_config, max_cpus, cpu_count = inp
-        mocker.patch("bugbane.tools.fuzz.main.os.cpu_count", return_value=cpu_count)
-        limited = limit_cpu_cores(from_config=from_config, max_from_args=max_cpus)
-        assert limited == expected
 
 
 def test_generate_commands():

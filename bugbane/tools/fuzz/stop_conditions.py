@@ -96,13 +96,11 @@ def total_run_time(stats: FuzzStats, seconds: int) -> bool:
 
 
 def detect_required_stop_condition(
-    environ: Optional[Dict[str, str]] = None, bane_vars: Optional[Dict[str, Any]] = None
+    environ: Optional[Dict[str, str]] = None
 ) -> Tuple[str, int]:
     """
     Gets condition for stopping fuzzing job.
-    Returns tuple: (stop condition function name, time in seconds).
-
-    Note: bane_vars is not used as of now.
+    Returns tuple: (stop condition function name, required fuzz duration in seconds).
 
     Return first detected:
         env var CERT_FUZZ_DURATION set? -> time_without_finds with specified time
@@ -112,9 +110,6 @@ def detect_required_stop_condition(
     """
 
     env = environ or os.environ
-    bane_vars = bane_vars or {}
-
-    log.trace("env size is %d, vars size is %d", len(env), len(bane_vars))
 
     cert_fuzz_duration = env.get("CERT_FUZZ_DURATION")
     cert_fuzz_level = env.get("CERT_FUZZ_LEVEL")

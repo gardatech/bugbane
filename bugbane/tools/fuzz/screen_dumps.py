@@ -26,14 +26,13 @@ from bugbane.modules.process import run_interactive_shell_cmd
 def make_tmux_screen_dumps(
     fuzz_cmd_generator: FuzzerCmd,
     num_fuzz_instances: int,
-    have_stats_instance: bool,
     screens_dir: str,
 ):
     """
     Creates list of tmux commands using provided fuzz cmd generator.
     Makes screen dumps and saves them to screens_dir.
     """
-
+    have_stats_instance = bool(fuzz_cmd_generator.stats_cmd(sync_dir="anything"))
     log.verbose1("Saving tmux screen dumps to %s...", screens_dir)
 
     os.makedirs(screens_dir, exist_ok=True)
