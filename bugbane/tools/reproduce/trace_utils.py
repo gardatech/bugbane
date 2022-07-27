@@ -38,6 +38,7 @@ def remove_column_from_location(location: Optional[str]) -> Optional[str]:
     re_line_column = re.compile(r"^(.*?):(\d+)(?::\d+)?$")
     return re.sub(re_line_column, r"\1:\2", location)
 
+
 def post_process_location(location: Optional[str]) -> Optional[str]:
     """
     Remove column number from source location string.
@@ -350,7 +351,9 @@ def get_sanitizer_crash_location(
     return None
 
 
-def location_to_file_line(location: Optional[str]) -> Tuple[Optional[str], Optional[int]]:
+def location_to_file_line(
+    location: Optional[str],
+) -> Tuple[Optional[str], Optional[int]]:
     """
     Extract file and line number from location
     Return tuple (file, line)

@@ -49,7 +49,11 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
             raise MinimizerError(f"timeout during minimization of samples at {mask}")
 
         if output:
-            log.verbose1(output.decode(errors="replace"))
+            decoded = output.decode(errors="replace")
+            processed = self.post_process_afl_cmin_output(
+                output=decoded, display_limit=30
+            )
+            log.verbose1(processed)
         else:
             log.warning("afl-cmin generated no output")
         if exit_code != 0:
@@ -58,6 +62,31 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
             )
 
         return None  # TODO: maybe count files on disk
+
+    @staticmethod
+    def post_process_afl_cmin_output(output: str, display_limit: int) -> str:
+        """
+        `display_limit` is number of lines which we allowed to keep
+        """
+
+        if display_limit < 2:
+            raise MinimizerError(
+                f"too small value specified for display_limit argument: '{display_limit}'"
+            )
+
+        if output.count("\n") <= display_limit - 1:
+            return output
+
+        half = display_limit // 2
+
+        head = output[:1000]
+        tail = output[-1000:]
+
+        head_lines = head.split("\n")
+        tail_lines = tail.split("\n")
+
+        processed = head_lines[:half] + ["<...>"] + tail_lines[-half - 1 :]
+        return "\n".join(processed)
 
     @staticmethod
     def _sanitize_mask(mask: str):

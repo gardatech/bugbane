@@ -38,13 +38,13 @@ def test_post_process_location():
 
     # only line number, no column, double dots
     assert post_process_location("../file.cpp:20") == "../file.cpp:20"
-    
+
     # more double dots
     assert post_process_location("../../file.cpp:20") == "../../file.cpp:20"
 
     # single dots
     assert post_process_location("././file.cpp") == "file.cpp"
-    
+
     # no dots, line numbers or columns
     assert post_process_location("file.cpp") == "file.cpp"
 

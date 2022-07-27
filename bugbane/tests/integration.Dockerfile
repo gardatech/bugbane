@@ -110,7 +110,6 @@ RUN : \
     && :
 
 ENV COVERAGE_RCFILE=/bugbane/setup.cfg
-ENV FUZZ_DURATION=12
 
 
 
@@ -133,6 +132,7 @@ CMD : \
     && cp -t ${FUZZ}/libFuzzer/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \
             ${AFLPP_SRC_DIR}/dictionaries/xml*.dict \
+    && export FUZZ_DURATION=3 \
     && coverage run -a -m bugbane fuzz -vv suite ${FUZZ}/libFuzzer \
     && coverage run -a -m bugbane coverage -vv suite ${FUZZ}/libFuzzer \
     && coverage run -a -m bugbane reproduce -vv suite ${FUZZ}/libFuzzer \
@@ -158,6 +158,7 @@ CMD : \
     && cp -t ${FUZZ}/aflpp/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \
             ${AFLPP_SRC_DIR}/dictionaries/xml*.dict \
+    && export FUZZ_DURATION=12 \
     && coverage run -a -m bugbane fuzz -vv suite ${FUZZ}/aflpp \
     && coverage run -a -m bugbane coverage -vv suite ${FUZZ}/aflpp \
     && coverage run -a -m bugbane reproduce -vv suite ${FUZZ}/aflpp \
