@@ -170,8 +170,11 @@ class DefaultReproducer(Reproducer):
         generic error message without stack trace.
         Output may contain gdb stack trace of crash.
         """
-        cmd = f"gdb --batch -q --ex 'r {self.prep_run_args(sample_path)}'"
-        cmd += f" --ex 'bt' --ex 'quit' {binary_path} 0</dev/null"
+        cmd = "gdb --batch -q"
+        cmd += " --ex 'set filename-display absolute'"
+        cmd += f" --ex 'r {self.prep_run_args(sample_path)}'"
+        cmd += " --ex 'bt'"
+        cmd += f" --ex 'quit' {binary_path} 0</dev/null"
         return cmd
 
     def make_gdb_run_cmd_for_hang(self, binary_path: str, sample_path: str) -> str:
@@ -184,8 +187,9 @@ class DefaultReproducer(Reproducer):
         kill_after = max(int(self.timeout_sec * 0.9), 4)
         run_before_stepping_sec = max(int(self.timeout_sec * 0.25), 2)
 
-        cmd = f"timeout --kill-after {kill_after}s -s SIGINT {run_before_stepping_sec}s gdb -q "
-        cmd += f"--ex 'r {self.prep_run_args(sample_path)}'"
+        cmd = f"timeout --kill-after {kill_after}s -s SIGINT {run_before_stepping_sec}s gdb -q"
+        cmd += " --ex 'set filename-display absolute'"
+        cmd += f" --ex 'r {self.prep_run_args(sample_path)}'"
 
         cmd += ' --ex "echo <HANG_START>\\n"'
 

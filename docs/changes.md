@@ -1,6 +1,12 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.4.4
+- reproduce tool:
+    - now normalizes crash/hang location in issue title: "Crash in /src/a/b/../../c.cpp:20" -> "Crash in /src/c.cpp:20"
+    - now uses absolute paths in stack traces produced by gdb
+- better README
+
 ## Version 0.4.3
 - **(breaking change)** bb-fuzz syntax updated to match other tools.<br>
     Users will need to remove dashes from `suite` option: change `bb-fuzz --suite $DIR` to `bb-fuzz suite $DIR`

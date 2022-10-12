@@ -197,7 +197,7 @@ $CXX $CXXFLAGS --std=c++11 -I. re2/fuzzing/re2_fuzzer.cc /AFLplusplus/libAFLDriv
 | gofuzz | Сборка для фаззинга с использованием dvyukov/go-fuzz (zip-архив). Не поддерживается bb-build, поддерживается остальными утилитами | - |
 | laf | Сборка для фаззинга, скомпилированная с переменной окружения AFL_LLVM_LAF_ALL | AFL++LLVM, AFL++LLVM-LTO |
 | cmplog | Сборка для фаззинга, скомпилированная с переменной окружения AFL_USE_CMPLOG | AFL++LLVM, AFL++LLVM-LTO |
-| asan | Сборка для фаззинга с адресным санитайзером (Address Sanitizer) | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer 
+| asan | Сборка для фаззинга с адресным санитайзером (Address Sanitizer) | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
 | ubsan | Сборка для фаззинга с санитайзером неопределённого поведения (Undefined Behavior Sanitizer) | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
 | cfisan | Сборка для фаззинга с санитайзером целостности потока выполнения (Control Flow Integrity Sanitizer) | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
 | tsan \* | Сборка для фаззинга с санитайзером потоков (Thread Sanitizer) | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
@@ -386,6 +386,28 @@ bb-reproduce suite /fuzz
 При каждом запуске анализируется вывод приложения в терминал, в том числе сообщения об ошибках от санитайзеров. Каждый баг воспроизводится до успешного воспроизведения, но не более N раз. Число N определяется аргументом запуска bb-reproduce `--num-reruns`, значение по умолчанию: 3. Если при воспроизведении падения не обнаруживается стек вызовов, приложение запускается под отладчиком gdb. Зависания воспроизводятся сразу под отладчиком gdb.<br>
 
 </details>
+
+### Просмотр информации о багах
+Информацио о найденных багах можно вывести в терминал с использованием утилиты jq (устанавливается отдельно).<br>
+Это позволяет просматривать и заводить баги вручную, например, если не используется система Defect Dojo или утилита bb-send.<br>
+
+Простой текстовый формат для удобного просмотра в терминале:
+```shell
+jq '.issue_cards[] | "-" * 79, .title, .reproduce_cmd, .output, "Sample saved as:", .sample, ""' -rM bb_results.json
+```
+
+Готовое описание issue для GitHub:
+````shell
+jq '.issue_cards[] | "## \(.title)", "Originally reproduced by executing: \n```shell\n\(.reproduce_cmd)\n```", "Output:\n```\n\(.output)```", "Saved sample name: \(.sample)", ""' -rM bb_results.json
+````
+
+Готовое описание issue для Jira:
+````shell
+jq '.issue_cards[] | "h1. \(.title)", "Originally reproduced by executing: \n{noformat}\n\(.reproduce_cmd)\n{noformat}", "Output:\n{noformat}\n\(.output){noformat}", "Saved sample name: \(.sample)", ""' -rM bb_results.json
+````
+
+Рекомендуется заводить issue на каждый отдельный баг, поскольку баги уже прошли минимизацию с помощью bb-reproduce и с высокой долей вероятности являются уникальными.<br>
+Если заводится одно issue на группу багов, то к нему достаточно приложить архив с директорией bug_samples.<br>
 
 ## bb-send
 Заводит воспроизводимые баги в системе управления уязвимостями Defect Dojo.<br>
