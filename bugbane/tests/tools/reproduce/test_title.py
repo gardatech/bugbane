@@ -373,6 +373,31 @@ exit status 2"""
     assert card.title == "Crash in go.Parse at /src/go/fuzzable.go:9"
 
 
+def test_csharp_unhandled_exception():
+    """C# fuzz target tested with SharpFuzz."""
+
+    output = """Unhandled exception. System.ArgumentOutOfRangeException: Specified argument was out of the range of valid values. (Parameter 'start')
+   at System.Text.RegularExpressions.RegexInterpreter.FindFirstChar()
+   at System.Text.RegularExpressions.RegexRunner.Scan(Regex regex, String text, Int32 textbeg, Int32 textend, Int32 textstart, Int32 prevlen, Boolean quick, TimeSpan timeout)
+   at System.Text.RegularExpressions.Regex.Run(Boolean quick, Int32 prevlen, String input, Int32 beginning, Int32 length, Int32 startat)
+   at System.Text.RegularExpressions.Regex.Match(String input)
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__0(String str) in /home/builder/fuzz/targets/System.Text.RegularExpressions/Program.cs:line 21
+   at SharpFuzz.Fuzzer.<>c__DisplayClass11_0.<Wrap>b__0(Stream stream)
+   at SharpFuzz.Fuzzer.RunWithoutAflFuzz(Action`1 action, Stream stream)
+   at SharpFuzz.Fuzzer.Run(Action`1 action)
+   at SharpFuzz.Fuzzer.Run(Action`1 action, Int32 bufferSize)
+   at Program.<Main>$(String[] args) in /home/builder/fuzz/targets/System.Text.RegularExpressions/Program.cs:line 6
+Aborted
+"""
+    card = helper_make_card(
+        output, exit_code=134, is_hang=None, src_path="/home/builder/fuzz/targets"
+    )
+    assert (
+        card.title
+        == "Unhandled exception System.ArgumentOutOfRangeException at /home/builder/fuzz/targets/System.Text.RegularExpressions/Program.cs:21"
+    )
+
+
 def test_no_errors():
     output = """Bad input data entered!
 Leaving...

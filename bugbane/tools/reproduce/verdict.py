@@ -37,6 +37,7 @@ class Verdict(Enum):
     CRASH_MSAN = (1024, "MemorySanitizer:")
     CRASH_STACK_OVERFLOW = (2048, "Stack overflow")
     CRASH_PANIC = (4096, "Panic")
+    CRASH_UNHANDLED_EXCEPTION = (8192, "Unhandled exception")
 
     def __init__(self, value, description):
         self._id = value
@@ -76,6 +77,9 @@ class Verdict(Enum):
 
         if "runtime error: control flow integrity " in output:
             return cls.CRASH_CFISAN
+
+        if exit_code == 134 and "Unhandled exception" in output:
+            return cls.CRASH_UNHANDLED_EXCEPTION
 
         if exit_code == 77 and "Sanitizer: detected memory leaks" in output:
             return cls.CRASH_LSAN

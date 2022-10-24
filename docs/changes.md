@@ -5,6 +5,7 @@ List of significant changes in BugBane.
 - reproduce tool:
     - now normalizes crash/hang location in issue title: "Crash in /src/a/b/../../c.cpp:20" -> "Crash in /src/c.cpp:20"
     - now uses absolute paths in stack traces produced by gdb
+    - now detects unhandled exceptions in stacktraces produced by C#
 - better README
 
 ## Version 0.4.3

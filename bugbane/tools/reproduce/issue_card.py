@@ -45,7 +45,7 @@ class IssueCard:
     verdict: Optional[Verdict] = None
     title: Optional[str] = None
 
-    def load_location_and_set_title(self, src_path: Optional[str] = None):
+    def load_location_and_set_title(self, src_path: Optional[str] = None) -> None:
         if self.verdict == Verdict.HANG:
             location = get_hang_location(self.output, src_path)
         else:

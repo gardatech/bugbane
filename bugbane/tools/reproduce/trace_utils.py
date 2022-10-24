@@ -103,6 +103,10 @@ def get_hang_location(output: str, src_path: Optional[str]) -> Optional[str]:
     if not output:
         return None
 
+    result = get_dotnet_crash_or_hang_location(output, src_path)
+    if result is not None:
+        return result
+
     result = get_golang_crash_or_hang_location(output, src_path)
     if result is not None:
         return result
@@ -144,6 +148,11 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
     """
 
     t = output
+    result = get_dotnet_crash_or_hang_location(t, src_path)
+    log.trace("dotnet location result: %s", result)
+    if result is not None:
+        return result
+
     result = get_golang_crash_or_hang_location(t, src_path)
     log.trace("golang location result: %s", result)
     if result is not None:
@@ -164,6 +173,49 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
 
     log.debug("wasn't able to determine crash location")
     return None
+
+
+def get_dotnet_crash_or_hang_location(
+    output: Optional[str], src_path: Optional[str] = None
+) -> Optional[str]:
+    """
+    Find first user code in .NET stack trace.
+    If user code can't be found, return topmost location in stack trace.
+    If it can't be found, return None
+    """
+    if not output:
+        return None
+
+    src_path = src_path or ""
+    re_dotnet_stacktrace = re.compile(
+        r"^\s+at\s+.*?\s+in\s+(.*?)\s*:\s*line\s+(\d+)\s*$", re.MULTILINE
+    )
+    # groups: 1=file, 2=line
+
+    saved_match = re_dotnet_stacktrace.search(output)
+    log.trace("first match: %s", saved_match)
+    if not saved_match:
+        return None
+
+    for m in re_dotnet_stacktrace.finditer(output):
+        log.trace("match in loop: %s", m)
+        if m.group(1).startswith(src_path):
+            saved_match = m
+            break
+
+    file_path = saved_match.group(1)
+    file_line = saved_match.group(2)
+
+    re_dotnet_issue_type = re.compile(
+        r"^\s*Unhandled exception\W+\s+(.*?)\W\s", re.MULTILINE
+    )
+    m = re_dotnet_issue_type.search(output)
+    log.trace("issue type match: %s", m)
+    issue_type = (m.group(1) + " ") if m else ""
+
+    location = f"{issue_type}at {file_path}:{file_line}"
+    log.debug("dotnet location: %s", location)
+    return location
 
 
 def get_golang_crash_or_hang_location(
@@ -262,9 +314,14 @@ def get_sanitizer_crash_location(
     output: Optional[str], src_path: Optional[str]
 ) -> Optional[str]:
     """
-    Return file:line:column string containing location of sanitizer error (crash).
+    Return bug description for sanitizer errors (crashes), possibly including:
+        issue_type
+        file_path
+        line_number
+        column_number
     Examples of returned strings:
     ```
+        stack-overflow in main at main.cpp:42:8
         in main at main.cpp:46:8
         at fuzz.cpp:12:11
     ```
