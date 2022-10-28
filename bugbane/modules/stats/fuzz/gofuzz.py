@@ -31,11 +31,16 @@ from .factory import FuzzStatsFactory
 
 
 class GoFuzzFuzzStatsError(FuzzStatsError):
-    """Exceptions that happen in GoFuzzFuzzStats class"""
+    """Exception class for errors in GoFuzzFuzzStats class."""
 
 
 @FuzzStatsFactory.register("go-fuzz")
 class GoFuzzFuzzStats(FuzzStats):
+    """
+    FuzzStats for dvyukov/go-fuzz.
+    Stats are read from fuzzer log file.
+    """
+
     stats_file_name = "go-fuzz.log"
 
     def fuzzer_type(self) -> str:
@@ -89,6 +94,7 @@ class GoFuzzFuzzStats(FuzzStats):
             lines = read_last_lines(
                 file_path, num_lines=num_lines, expected_line_size=160
             )
+            m = None
             for line in reversed(lines):
                 m = re_all_stats.match(line)
                 if m:

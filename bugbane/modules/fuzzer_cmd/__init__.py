@@ -1,1 +1,1 @@
-from . import aflplusplus, libfuzzer, gofuzz
+from . import aflplusplus, libfuzzer, gofuzz, gotest

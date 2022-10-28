@@ -27,6 +27,7 @@ from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.aflplusplus import AFLplusplusCmd
 from bugbane.modules.fuzzer_cmd.libfuzzer import LibFuzzerCmd
 from bugbane.modules.fuzzer_cmd.gofuzz import GoFuzzCmd
+from bugbane.modules.fuzzer_cmd.gotest import GoTestCmd
 
 
 def test_generate_commands():
@@ -528,7 +529,62 @@ def test_cmd_gen_not_enough_cores():
             )
 
 
-def test_gofuzz_generate_one_build():
+def test_gotest_generate():
+    cmdgen = GoTestCmd()
+    builds = {
+        BuildType.GOTEST: "./gotest/fuzz",
+        BuildType.COVERAGE: "./coverage/app",  # useless build for go-test
+    }
+
+    cmds, _ = cmdgen.generate(
+        run_args="-test.fuzz=FuzzParse",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=8,
+        builds=builds,
+    )
+    print(cmds)
+
+    assert len(cmds) == 1
+    cmd = cmds[0]
+
+    assert cmd.startswith("./gotest/fuzz")
+    assert "coverage/app" not in cmd
+    assert " -test.fuzz=FuzzParse " in cmd
+    assert ' -test.coverprofile=out/coverprofile ' in cmd
+    assert " -test.parallel=8 " in cmd
+    assert ' -test.fuzzcachedir=out ' in cmd
+    helper_check_cmds(cmds, builds)
+
+
+def test_gotest_generate_bad_run_args():
+    cmdgen = GoTestCmd()
+    builds = {
+        BuildType.GOTEST: "./gotest/fuzz",
+    }
+
+    bad_args = [
+        "@@",
+        "-test.run=FuzzParse/samplename",
+        "-test.fuzz=Parse",
+        "",
+        None,
+    ]
+
+    for ba in bad_args:
+        with pytest.raises(FuzzerCmdError):
+            cmdgen.generate(
+                run_args=ba,
+                run_env={},
+                input_corpus="in",
+                output_corpus="out",
+                count=8,
+                builds=builds,
+            )
+
+
+def test_gofuzz_generate():
     cmdgen = GoFuzzCmd()
     builds = {
         BuildType.GOFUZZ: "./gofuzz/app.zip",
@@ -536,7 +592,7 @@ def test_gofuzz_generate_one_build():
     }
 
     cmds, _ = cmdgen.generate(
-        run_args="-func=TestFuzzFunc",
+        run_args="",
         run_env={},
         input_corpus="in",
         output_corpus="testdata",
@@ -546,12 +602,11 @@ def test_gofuzz_generate_one_build():
     print(cmds)
 
     assert len(cmds) == 1
-    assert "-bin=./gofuzz/app.zip" in cmds[0]
+    assert '-bin=./gofuzz/app.zip' in cmds[0]
     assert "coverage/app" not in cmds[0]
     assert "-dumpcover" in cmds[0]
     assert "-procs=8" in cmds[0]
-    assert "-workdir=testdata" in cmds[0]
-    assert "-func=TestFuzzFunc" in cmds[0]
+    assert '-workdir=testdata' in cmds[0]
     helper_check_cmds(cmds, builds)
 
 
@@ -725,8 +780,8 @@ def test_generate_combos_c_cxx():
         },
     }
     for name in FuzzerCmdFactory.registry:
-        # skip go-fuzz here
-        if name == "go-fuzz":
+        # skip go-fuzz and go-test here
+        if name in ("go-fuzz", "go-test"):
             continue
         cmdgen: FuzzerCmd = FuzzerCmdFactory.create(name)
         for num_cores in range(1, 8):

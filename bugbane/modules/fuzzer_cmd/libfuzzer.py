@@ -86,7 +86,7 @@ class LibFuzzerCmd(FuzzerCmd):
         run_dir = os.path.dirname(output_corpus)
         artifacts_dir = os.path.join(run_dir, "artifacts") + os.sep
         log_path = os.path.join(run_dir, "libfuzzer$i.log")
-        cmd += f"-artifact_prefix={artifacts_dir} {output_corpus} {input_corpus} 2>&1 | tee {log_path}"
+        cmd += f'-artifact_prefix={artifacts_dir} {output_corpus} {input_corpus} 2>&1 | tee "{log_path}"'
         return cmd
 
     def stats_cmd(self, sync_dir: str) -> Optional[str]:

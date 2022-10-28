@@ -14,13 +14,16 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from io import BytesIO, StringIO
+import pytest
 from pytest_mock import MockerFixture
+
+from io import BytesIO, StringIO
 
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats
 from bugbane.modules.stats.fuzz.aflplusplus import AFLplusplusFuzzStats
 from bugbane.modules.stats.fuzz.libfuzzer import LibFuzzerFuzzStats
 from bugbane.modules.stats.fuzz.gofuzz import GoFuzzFuzzStats
+from bugbane.modules.stats.fuzz.gotest import GoTestFuzzStats
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 
 MOCK_FILE_UTILS_OPEN = "bugbane.modules.file_utils.open"
@@ -111,6 +114,8 @@ INFO: -fork=5: 115 seed inputs, starting to fuzz in /tmp/libFuzzerTemp.FuzzWithF
 
     print(res)
 
+    assert res is not None
+
     assert res["num_forks"] == 5  # from the beginning of the log
 
     # stats from the very last line of the log:
@@ -164,6 +169,8 @@ INFO: -fork=5: 115 seed inputs, starting to fuzz in /tmp/libFuzzerTemp.FuzzWithF
 
     print(res)
 
+    assert res is not None
+
     assert res["num_forks"] == 5  # from the beginning of the log
 
     # stats from the very last line of the log:
@@ -173,8 +180,11 @@ INFO: -fork=5: 115 seed inputs, starting to fuzz in /tmp/libFuzzerTemp.FuzzWithF
     assert res["crashes"] == 2
 
     # time stats:
-    assert res["last_path"] == 100  # int of mocked return value of getmtime
-    assert res["start_time"] == 100 - 50  # 50 is last recorded "time" in log
+    # 100 is log file modification time
+    # 50 is the last recorded time
+    # 15 is seconds from start to finding the last new sample
+    assert res["last_path"] == 100 - 50 + 15
+    assert res["start_time"] == 100 - 50
 
 
 def test_fuzzer_type_consistent():
@@ -219,6 +229,8 @@ def test_gofuzz(mocker: MockerFixture):
 
     print(res)
 
+    assert res is not None
+
     assert res["num_workers"] == 6
 
     # stats from the very last line of the log:
@@ -233,3 +245,147 @@ def test_gofuzz(mocker: MockerFixture):
 
     # now (3h) - last_path_delta (26m51s) = 2h33m9s
     assert res["last_path"] == 2 * 3600 + 33 * 60 + 9
+
+
+def test_gotest(mocker: MockerFixture):
+    """
+    Test parsing of `go test` fuzzing statistics.
+    NOTE: native fuzzing is available in Go since go1.18.
+    """
+
+    log_contents = """fuzz: elapsed: 0s, gathering baseline coverage: 0/7 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 7/7 completed, now fuzzing with 5 workers
+fuzz: elapsed: 3s, execs: 438524 (146164/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 6s, execs: 931701 (164127/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 9s, execs: 1423838 (164287/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 12s, execs: 1916848 (164097/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 15s, execs: 2431438 (171526/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 18s, execs: 2912488 (160592/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 21s, execs: 3399798 (162428/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 24s, execs: 3896759 (164879/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 27s, execs: 4373523 (159709/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 30s, execs: 4844644 (156779/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 33s, execs: 5328713 (161575/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 36s, execs: 5845473 (172254/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 39s, execs: 6299640 (151408/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 42s, execs: 6767188 (155850/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 45s, execs: 7245679 (159524/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 48s, execs: 7717725 (157320/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 51s, execs: 8197280 (159616/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 54s, execs: 8671769 (158400/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 57s, execs: 9139587 (155943/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m0s, execs: 9610020 (156821/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m3s, execs: 10069317 (153092/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m6s, execs: 10582206 (170939/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m9s, execs: 11077164 (164995/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m12s, execs: 11556946 (159927/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m15s, execs: 12034289 (159116/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m18s, execs: 12512924 (159543/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m21s, execs: 12990618 (159265/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m24s, execs: 13491021 (166523/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m27s, execs: 14006344 (172065/sec), new interesting: 0 (total: 7)
+fuzz: elapsed: 1m30s, execs: 14498556 (163794/sec), new interesting: 0 (total: 7)"""
+
+    stats = GoTestFuzzStats()
+
+    mocker.patch(
+        "bugbane.modules.stats.fuzz.gotest.open", return_value=StringIO(log_contents)
+    )
+    mocker.patch(
+        "bugbane.modules.stats.fuzz.gotest.os.path.getmtime", return_value=100.1
+    )
+
+    res = stats.read_one("hopefully/mocked/file/path")
+
+    print(res)
+
+    assert res is not None
+
+    assert res["num_workers"] == 5
+
+    # stats from the very last line of the log:
+    assert res["execs"] == 14498556
+    assert res["execs_per_sec"] == 163794
+    assert res["timeouts"] == 0
+    assert res["crashes"] == 0
+
+    # time stats:
+    # last modification time (100s) - duration (1m30s=90s) = 10s
+    assert res["start_time"] == 10
+
+    # last modification time (100s) - duration (90s) + last_path_delta (3s) = 13s
+    assert res["last_path"] == 13
+
+
+def test_gotest_crash(mocker: MockerFixture):
+    """
+    `go test` fuzzing statistics with some crash detected.
+    """
+
+    log_contents = """fuzz: elapsed: 0s, gathering baseline coverage: 0/1 completed
+fuzz: elapsed: 0s, gathering baseline coverage: 1/1 completed, now fuzzing with 1 workers
+fuzz: elapsed: 3s, execs: 50820 (16937/sec), new interesting: 3 (total: 4)
+fuzz: elapsed: 6s, execs: 103222 (17465/sec), new interesting: 3 (total: 4)
+fuzz: minimizing 47-byte failing input file
+fuzz: elapsed: 8s, minimizing
+--- FAIL: FuzzParse (7.98s)
+    --- FAIL: FuzzParse (0.00s)
+        testing.go:1356: panic: test
+            goroutine 138628 [running]:
+            runtime/debug.Stack()
+                /usr/lib/go/src/runtime/debug/stack.go:24 +0xdb
+            testing.tRunner.func1()
+                /usr/lib/go/src/testing/testing.go:1356 +0x1f2
+            panic({0x5d0540, 0x63de48})
+                /usr/lib/go/src/runtime/panic.go:884 +0x212
+            _/src/go.SimpleParse(...)
+                /src/go/fuzz_test.go:14
+            _/src/go.FuzzParse.func1(0x0?, {0xc006deb248, 0x5, 0x4663f9?})
+                /src/go/fuzz_test.go:20 +0x3eb
+            reflect.Value.call({0x5d20e0?, 0x60e800?, 0x13?}, {0x5fff7a, 0x4}, {0xc006e26b70, 0x2, 0x2?})
+                /usr/lib/go/src/reflect/value.go:584 +0x8c5
+            reflect.Value.Call({0x5d20e0?, 0x60e800?, 0x51b?}, {0xc006e26b70?, 0x6ffc68?, 0x71f580?})
+                /usr/lib/go/src/reflect/value.go:368 +0xbc
+            testing.(*F).Fuzz.func1.1(0x0?)
+                /usr/lib/go/src/testing/fuzz.go:337 +0x231
+            testing.tRunner(0xc006e36b60, 0xc006e32480)
+                /usr/lib/go/src/testing/testing.go:1446 +0x10b
+            created by testing.(*F).Fuzz.func1
+                /usr/lib/go/src/testing/fuzz.go:324 +0x5b9
+
+
+    Failing input written to testdata/fuzz/FuzzParse/3e4c6ce8bf00c2198ddd89dbd9debfda7684b131ab38b2338d4ca4c773a47cb6
+    To re-run:
+    go test -run=FuzzParse/3e4c6ce8bf00c2198ddd89dbd9debfda7684b131ab38b2338d4ca4c773a47cb6
+FAIL
+coverage: 0.0% of statements"""
+
+    stats = GoTestFuzzStats()
+
+    mocker.patch(
+        "bugbane.modules.stats.fuzz.gotest.open", return_value=StringIO(log_contents)
+    )
+    mocker.patch(
+        "bugbane.modules.stats.fuzz.gotest.os.path.getmtime", return_value=100.1
+    )
+
+    res = stats.read_one("hopefully/mocked/file/path")
+
+    print(res)
+
+    assert res is not None
+
+    assert res["num_workers"] == 1
+
+    # stats from the very last line of the log:
+    assert res["execs"] == 103222
+    assert res["execs_per_sec"] == 17465
+    assert res["timeouts"] == 0
+    assert res["crashes"] == 1
+
+    # time stats:
+    # last modification time (100s) - duration (6s) = 94s
+    assert res["start_time"] == 94
+
+    # last modification time (100s) - duration (6s) + last_path_delta (3s) = 97s
+    assert res["last_path"] == 97

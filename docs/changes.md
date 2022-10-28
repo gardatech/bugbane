@@ -1,6 +1,14 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.5.0
+- added support for native Go fuzzer (introduced in go1.18).<br>
+  The support is limited due to current limitations of the fuzzer:
+    - go fuzzer will bail immediately at the first found bug, hence bb-fuzz will exit as well
+    - go fuzzer doesn't allow collecting coverage during fuzzing, hence bb-coverage will not work at all
+    - go fuzzer doesn't have a concept of input samples directory, hence importing samples with bb-corpus will require additional fiddling
+- fixed libFuzzer "time without finds" stop condition detection
+
 ## Version 0.4.4
 - reproduce tool:
     - now normalizes crash/hang location in issue title: "Crash in /src/a/b/../../c.cpp:20" -> "Crash in /src/c.cpp:20"

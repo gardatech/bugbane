@@ -14,4 +14,4 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from . import default_reproducer, gofuzz
+from . import default_reproducer, gofuzz, gotest

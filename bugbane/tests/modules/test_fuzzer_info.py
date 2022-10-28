@@ -19,36 +19,42 @@ from bugbane.modules.fuzzer_info.fuzzer_info import FuzzerInfo
 from bugbane.modules.fuzzer_info.aflplusplus import AFLplusplusInfo
 from bugbane.modules.fuzzer_info.libfuzzer import LibFuzzerInfo
 from bugbane.modules.fuzzer_info.gofuzz import GoFuzzInfo
+from bugbane.modules.fuzzer_info.gotest import GoTestInfo
 
 
 def test_factory():
-    paths: FuzzerInfo = FuzzerInfoFactory.create("AFL++")
-    assert paths.__class__ is AFLplusplusInfo
+    info: FuzzerInfo = FuzzerInfoFactory.create("AFL++")
+    assert info.__class__ is AFLplusplusInfo
 
-    paths: FuzzerInfo = FuzzerInfoFactory.create("libFuzzer")
-    assert paths.__class__ is LibFuzzerInfo
+    info: FuzzerInfo = FuzzerInfoFactory.create("libFuzzer")
+    assert info.__class__ is LibFuzzerInfo
 
-    paths: FuzzerInfo = FuzzerInfoFactory.create("go-fuzz")
-    assert paths.__class__ is GoFuzzInfo
+    info: FuzzerInfo = FuzzerInfoFactory.create("go-fuzz")
+    assert info.__class__ is GoFuzzInfo
+
+    info: FuzzerInfo = FuzzerInfoFactory.create("go-test")
+    assert info.__class__ is GoTestInfo
 
 
 def test_afl():
-    paths = AFLplusplusInfo()
-    assert paths.initial_samples_required()
-    assert paths.input_dir("./out") == "in"
+    info = AFLplusplusInfo()
+    assert info.initial_samples_required()
+    assert info.input_dir("./out") == "in"
 
-    assert paths.sample_mask("./out", "*") == "./out/*/queue/id*"
-    assert paths.sample_mask("./out", "default") == "./out/default/queue/id*"
+    assert info.sample_mask("./out", "*") == "./out/*/queue/id*"
+    assert info.sample_mask("./out", "default") == "./out/default/queue/id*"
 
-    assert paths.crash_mask("./out", "*") == "./out/*/crashes/id*"
-    assert paths.crash_mask("./out", "m1") == "./out/m1/crashes/id*"
+    assert info.crash_mask("./out", "*") == "./out/*/crashes/id*"
+    assert info.crash_mask("./out", "m1") == "./out/m1/crashes/id*"
 
-    assert paths.hang_mask("./out", "*") == "./out/*/hangs/id*"
-    assert paths.hang_mask("./out", "s257") == "./out/s257/hangs/id*"
+    assert info.hang_mask("./out", "*") == "./out/*/hangs/id*"
+    assert info.hang_mask("./out", "s257") == "./out/s257/hangs/id*"
 
-    assert paths.stats_dir("/fuzz/out") == "/fuzz/out"
-    assert paths.stats_dir("out/") == "out/"
-    assert paths.coverage_dir("out/") is None
+    assert info.stats_dir("/fuzz/out") == "/fuzz/out"
+    assert info.stats_dir("out/") == "out/"
+    assert info.coverage_dir("out/") is None
+
+    assert info.can_continue_after_bug() is True
 
 
 def test_libfuzzer():
@@ -56,38 +62,63 @@ def test_libfuzzer():
     unlike AFL-like fuzzers, libFuzzer doesn't use fuzzer names and subfolders
     """
 
-    paths = LibFuzzerInfo()
-    assert not paths.initial_samples_required()
-    assert paths.input_dir("./out") == "./out"
+    info = LibFuzzerInfo()
+    assert not info.initial_samples_required()
+    assert info.input_dir("./out") == "./out"
 
-    assert paths.sample_mask("./out", "*") == "./out/*"
-    assert paths.sample_mask("./out", "default") == "./out/*"
+    assert info.sample_mask("./out", "*") == "./out/*"
+    assert info.sample_mask("./out", "default") == "./out/*"
 
-    assert paths.crash_mask("./out", "*") == "artifacts/crash-*"
-    assert paths.crash_mask("./out", "m1") == "artifacts/crash-*"
+    assert info.crash_mask("./out", "*") == "artifacts/crash-*"
+    assert info.crash_mask("./out", "m1") == "artifacts/crash-*"
 
-    assert paths.hang_mask("./out", "*") == "artifacts/timeout-*"
-    assert paths.hang_mask("./out", "s257") == "artifacts/timeout-*"
+    assert info.hang_mask("./out", "*") == "artifacts/timeout-*"
+    assert info.hang_mask("./out", "s257") == "artifacts/timeout-*"
 
-    assert paths.stats_dir("/fuzz/out") == "/fuzz"
-    assert paths.stats_dir("out/") == "out/.."
-    assert paths.coverage_dir("out/") is None
+    assert info.stats_dir("/fuzz/out") == "/fuzz"
+    assert info.stats_dir("out/") == "out/.."
+    assert info.coverage_dir("out/") is None
+
+    assert info.can_continue_after_bug() is True
 
 
 def test_gofuzz():
-    paths = GoFuzzInfo()
-    assert not paths.initial_samples_required()
-    assert paths.input_dir("./out") == "./out/corpus"
+    info = GoFuzzInfo()
+    assert not info.initial_samples_required()
+    assert info.input_dir("./out") == "./out/corpus"
 
-    assert paths.sample_mask("./out", "*") == "./out/corpus/*"
-    assert paths.sample_mask("./out", "default") == "./out/corpus/*"
+    assert info.sample_mask("./out", "*") == "./out/corpus/*"
+    assert info.sample_mask("./out", "default") == "./out/corpus/*"
 
-    assert paths.crash_mask("./out", "*").startswith("./out/crashers/*")
-    assert paths.crash_mask("./out", "m1").startswith("./out/crashers/*")
+    assert info.crash_mask("./out", "*").startswith("./out/crashers/*")
+    assert info.crash_mask("./out", "m1").startswith("./out/crashers/*")
 
-    assert paths.hang_mask("./out", "*").startswith("./out/crashers/*")
-    assert paths.hang_mask("./out", "s257").startswith("./out/crashers/*")
+    assert info.hang_mask("./out", "*").startswith("./out/crashers/*")
+    assert info.hang_mask("./out", "s257").startswith("./out/crashers/*")
 
-    assert paths.stats_dir("/fuzz/out") == "/fuzz"
-    assert paths.stats_dir("out/") == "out/.."
-    assert paths.coverage_dir("out/") == "out/"
+    assert info.stats_dir("/fuzz/out") == "/fuzz"
+    assert info.stats_dir("out/") == "out/.."
+    assert info.coverage_dir("out/") == "out/"
+
+    assert info.can_continue_after_bug() is True
+
+
+def test_gotest():
+    info = GoTestInfo()
+    assert not info.initial_samples_required()
+    assert info.input_dir("./out") == "./out/corpus"
+
+    assert info.sample_mask("./out", "*") == "./out/*/*"
+    assert info.sample_mask("./out", "default") == "./out/*/*"
+
+    assert info.crash_mask("./out", "*") == "testdata/fuzz/*/*"
+    assert info.crash_mask("./out", "m1") == "testdata/fuzz/*/*"
+
+    assert info.hang_mask("./out", "*") == ""
+    assert info.hang_mask("./out", "m1") == ""
+
+    assert info.stats_dir("/fuzz/out") == "/fuzz"
+    assert info.stats_dir("out/") == "out/.."
+    assert info.coverage_dir("out/") == "out/"
+
+    assert info.can_continue_after_bug() is False

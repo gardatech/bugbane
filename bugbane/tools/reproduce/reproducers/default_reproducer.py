@@ -38,7 +38,7 @@ from .factory import ReproducerFactory
 @ReproducerFactory.register_default()
 class DefaultReproducer(Reproducer):
     """
-    Reproducer that runs tested application
+    Reproducer that runs tested application.
     """
 
     def run_binary_on_samples(

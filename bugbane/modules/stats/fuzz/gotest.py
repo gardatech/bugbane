@@ -14,71 +14,52 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Optional, Any
+from typing import Optional
 
 import os
 import re
 
+from bugbane.modules.format import golang_duration_to_seconds
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
-from .fuzz_stats import FuzzStats, FuzzStatsError
+from .gofuzz import GoFuzzFuzzStats
+from .fuzz_stats import FuzzStatsError
 from .factory import FuzzStatsFactory
 
 
-class LibFuzzerFuzzStatsError(FuzzStatsError):
-    """Exceptions that happen in LibFuzzerFuzzStats class"""
+class GoTestFuzzStatsError(FuzzStatsError):
+    """Exception class for errors in LibFuzzerFuzzStats."""
 
 
-@FuzzStatsFactory.register("libFuzzer")
-class LibFuzzerFuzzStats(FuzzStats):
-    stats_file_name = "libfuzzer*.log"
+@FuzzStatsFactory.register("go-test")
+class GoTestFuzzStats(GoFuzzFuzzStats):
+    """
+    FuzzStats for `go test` native fuzzer (for go > 1.18).
+    Stats are read from fuzzer log file.
+    """
+
+    stats_file_name = "go-test-fuzz.log"
 
     def fuzzer_type(self) -> str:
-        return "libFuzzer"
-
-    def _load_multidict(self, data: Dict[str, Dict[str, Any]]):
-        for subdir, fuzz_stats in data.items():
-            self.num_instances += fuzz_stats.get("num_forks", 0)
-
-            execs = fuzz_stats.get("execs", 0)
-            self.execs += execs
-
-            execs_per_sec = fuzz_stats.get("execs_per_sec", 0.0)
-            self.execs_per_sec_sum += execs_per_sec
-
-            crashes = fuzz_stats.get("crashes", 0)
-            self.crashes += crashes
-
-            hangs = fuzz_stats.get("timeouts", 0)
-            self.hangs += hangs
-
-            start_time = fuzz_stats.get("start_time", 0)
-            self.start_timestamp = min(self.start_timestamp, start_time)
-
-            last_path = fuzz_stats.get("last_path", 0)
-            self.last_path_timestamp = max(self.last_path_timestamp, last_path)
-
-            log.verbose3(
-                "Loaded %d execs, %d crashes and %d hangs from subdir %s",
-                execs,
-                crashes,
-                hangs,
-                subdir,
-            )
+        return "go-test"
 
     def read_one(self, file_path: str) -> Optional[dict]:
         """
-        Reads libFuzzer log file.
+        Reads `go test` fuzzing log file.
         Returns dict with fuzzer stats.
         """
+
+        # XXX: this code is similar to LibFuzzerFuzzStats.read_one
+        # except for regexes and early exit on "FAIL" string
+
         log.debug("loading fuzzer stats from file '%s'", file_path)
 
-        re_num_forks = re.compile(r"^INFO: .*?fork=(\d+)")
+        re_num_forks = re.compile(r"^.*?now fuzzing with (\d+) workers")
         re_all_stats = re.compile(
-            r"^#(\d+):.*?\s+corp: (\d+)\s+.*?exec/s:?\s+(\d+)\s+oom/timeout/crash:\s+\d+/(\d+)/(\d+)\s+\s*?time:\s+(\d+).*?$",
-        )  # groups: 1=total_execs 2=total_samples 3=execs_per_sec 4=timeouts 5=crashes 6=duration
+            r"^.*?:\s+elapsed:\s+(\S+),\s+execs:\s+(\d+)\s+\((\d+)\/sec\).*?total:\s+(\d+)\).*?$",
+        )  # groups: 1=duration_str 2=execs 3=execs_per_sec 4=num_samples
 
         stats = {}
 
@@ -105,38 +86,42 @@ class LibFuzzerFuzzStats(FuzzStats):
                             num_forks = int(m.group(1))
                             continue
 
+                    if line.strip() == "FAIL":
+                        crashes = (
+                            1  # `go test` fuzzer currently exits after first found bug
+                        )
+                        break
+
                     m = re_all_stats.match(line)
                     if m is None:
                         continue
                     last_stats_match = m
 
-                    samples = int(m.group(2))
-                    duration = int(m.group(6))
+                    samples = int(m.group(4))
+                    duration = golang_duration_to_seconds(m.group(1))
 
                     if samples > max_samples:
                         max_samples = samples
                         max_samples_duration = duration
 
         except OSError as e:
-            raise LibFuzzerFuzzStatsError(
+            raise GoTestFuzzStatsError(
                 f"error while reading fuzzer stats file '{file_path}': {e}"
             ) from e
         except ValueError as e:
-            raise LibFuzzerFuzzStatsError(
+            raise GoTestFuzzStatsError(
                 f"malformed fuzzer stat in file '{file_path}', line {linenum} ({e})"
             ) from e
 
         if last_stats_match is not None:
             m = last_stats_match
-            execs = int(m.group(1))
+            execs = int(m.group(2))
             execs_per_sec = int(m.group(3))
-            timeouts = int(m.group(4))
-            crashes = int(m.group(5))
 
-        stats["num_forks"] = num_forks
+        stats["num_workers"] = num_forks
         stats["execs"] = execs
         stats["execs_per_sec"] = execs_per_sec
-        stats["timeouts"] = timeouts
+        stats["timeouts"] = timeouts  # TODO: separate crashes from hangs if possible
         stats["crashes"] = crashes
 
         start_time = last_mod_time - duration

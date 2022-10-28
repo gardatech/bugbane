@@ -69,6 +69,13 @@ class FuzzBoxError(Exception):
     """Exception class for errors in FuzzBox class."""
 
 
+class CannotContinueFuzzingException(FuzzBoxError):
+    """
+    Fuzzing process cannot continue.
+    E.g., `go test` has found a bug and exited.
+    """
+
+
 class FuzzBox:
     """
     Class for controlling fuzzing process:
@@ -246,6 +253,9 @@ class FuzzBox:
         )
 
     def _display_process_tree(self):
+        """
+        Prints out pstree output if the tool is available.
+        """
         exit_code, output = run_interactive_shell_cmd("pstree -a | grep -v pstree")
         if exit_code == 0 and output:
             log.info("Fuzz process tree:\n%s", output.decode(errors="replace"))
@@ -265,6 +275,12 @@ class FuzzBox:
             self.stats.load(stats_dir)
             if stats_counter == 0:
                 log.info("[%s] %s", seconds_to_hms(real_duration), self.stats)
+            if (
+                self.stats.crashes > 0 or self.stats.hangs > 0
+            ) and not self.info.can_continue_after_bug():
+                raise CannotContinueFuzzingException(
+                    "a bug was found and selected fuzzer cannot continue testing"
+                )
 
         except FileNotFoundError:
             log.debug("FileNotFoundError when trying to load stats")
@@ -303,6 +319,9 @@ class FuzzBox:
         )
 
     def _dump_screens(self) -> None:
+        """
+        Dump tmux panes on disk.
+        """
         log.verbose1("Dumping screens...")
         screens_dir = os.path.join(self.suite_dir, "screens")
 

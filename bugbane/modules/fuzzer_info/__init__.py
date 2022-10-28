@@ -14,4 +14,4 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from . import aflplusplus, libfuzzer, gofuzz
+from . import aflplusplus, libfuzzer, gofuzz, gotest

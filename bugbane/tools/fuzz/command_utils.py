@@ -33,6 +33,6 @@ def make_tmux_commands(
         if cmd is None:  # stats command missing
             continue
 
-        cmds.append(f"tmux new-window -dn {tmux_session_name}:{i} '{cmd}'")
+        cmds.append(f"tmux new-window -dn {tmux_session_name}:{i} '{cmd} ; sh -i'")
 
     return cmds

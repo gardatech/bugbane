@@ -54,3 +54,6 @@ class LibFuzzerInfo(FuzzerInfo):
 
     def coverage_dir(self, sync_dir: str) -> Optional[str]:
         return None
+
+    def can_continue_after_bug(self) -> bool:
+        return True

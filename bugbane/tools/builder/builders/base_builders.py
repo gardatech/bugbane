@@ -154,7 +154,7 @@ class GCCBuilder(Builder):
         BuildType.COVERAGE,
     }
 
-    # TODO: move common method realizations to BaseBuilder
+    # TODO: move common method implementations to BaseBuilder
 
     def build_all(self) -> List[BuildType]:
         succ_builds = []

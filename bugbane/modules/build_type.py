@@ -20,7 +20,8 @@ from enum import Enum, auto
 
 class BuildType(Enum):
     BASIC = auto()
-    GOFUZZ = auto()
+    GOFUZZ = auto()  # build for dvyukov/go-fuzz
+    GOTEST = auto()  # native go fuzzer build (go >= 1.18)
     LAF = auto()
     CMPLOG = auto()
     ASAN = auto()
@@ -66,7 +67,7 @@ class BuildType(Enum):
         """
         This build allows to collect coverage information.
         """
-        return self in (BuildType.GOFUZZ, BuildType.COVERAGE)
+        return self in (BuildType.GOFUZZ, BuildType.GOTEST, BuildType.COVERAGE)
 
     def is_fuzz_target(self):
         """

@@ -23,12 +23,14 @@ from bugbane.tools.reproduce.reproducers.factory import ReproducerFactory
 from bugbane.tools.reproduce.reproducers.reproducer import Reproducer
 from bugbane.tools.reproduce.reproducers.default_reproducer import DefaultReproducer
 from bugbane.tools.reproduce.reproducers.gofuzz import GoFuzzReproducer
+from bugbane.tools.reproduce.reproducers.gotest import GoTestReproducer
 
 
 def test_factory():
     assert ReproducerFactory.create("AFL++").__class__ is DefaultReproducer
     assert ReproducerFactory.create("libFuzzer").__class__ is DefaultReproducer
     assert ReproducerFactory.create("go-fuzz").__class__ is GoFuzzReproducer
+    assert ReproducerFactory.create("go-test").__class__ is GoTestReproducer
 
 
 def test_factory_bad(mocker: MockerFixture):
@@ -56,3 +58,23 @@ def test_factory_overwrite():
 
     assert len(ReproducerFactoryChild.registry) == 0
     assert ReproducerFactoryChild.default is SomeClass2
+
+
+def test_gotest_make_reproduce_cmd():
+    r = GoTestReproducer()
+
+    prog = "./fuzzme"
+    inp_exp = [
+        (
+            "testdata/fuzz/FuzzParse/beefbeefbeef",
+            "-test.run=FuzzParse/beefbeefbeef",
+        ),
+        (
+            "/fuzz/myapp/testdata/fuzz/FuzzSimpleParse/beefbeefbeef",
+            "-test.run=FuzzSimpleParse/beefbeefbeef",
+        ),
+    ]
+
+    for (inp, exp) in inp_exp:
+        print(f"{inp=}, {exp=}")
+        assert r.prep_run_args(sample_path=inp) == exp

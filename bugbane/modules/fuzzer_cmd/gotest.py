@@ -32,12 +32,38 @@ from .fuzzer_cmd import FuzzerCmdError
 from .factory import FuzzerCmdFactory
 
 
-@FuzzerCmdFactory.register("go-fuzz")
-class GoFuzzCmd(LibFuzzerCmd):
+@FuzzerCmdFactory.register("go-test")
+class GoTestCmd(LibFuzzerCmd):
+    """
+    Command generator for native Go fuzzer (`go test . -fuzz=...`).
+    Relies on the fact that tested app was already built with a command like this:
+    ```
+    go test . -fuzz=FuzzSomething -o fuzz -c -cover
+    ```
+    NOTE: even if there are multiple FuzzXxx functions available,
+    only one needs to be passed in the -fuzz option (any one) and the resulting binary
+    will still contain all available functions.
+
+    This generator is then creates a command like this:
+    ```
+    ./fuzz \
+        -test.fuzz=FuzzParse \
+        -test.parallel=6 \
+        -test.fuzztime=1440s \
+        -test.fuzzcachedir=out \
+        -test.coverprofile=out/coverprofile \
+        2>&1 \
+        | tee go-test-fuzz.log
+    ```
+    NOTE: -test.fuzz option will be added only if provided in `run_args`
+    bugbane variable.
+    NOTE: crashes/hangs will always be saved in "testdata" directory and there's
+    no way to control it in `go test`.
+    """
+
     def __init__(self):
         super().__init__()
-        self.count = None
-        self.output_corpus = None
+        self.run_args = ""
 
     def generate(
         self,
@@ -50,11 +76,9 @@ class GoFuzzCmd(LibFuzzerCmd):
         dict_path: Optional[str] = None,
         timeout_ms: Optional[int] = None,
     ) -> Tuple[List[str], Dict[str, Dict[str, List[str]]]]:
-        if run_args:
-            log.warning("`run_args` are not used by go-fuzz, ignored")
-
         self.count = count
         self.output_corpus = output_corpus
+        self.run_args = run_args
 
         cmds = [self.generate_one(input_corpus, output_corpus, run_env)]
         specs = self.make_replacements(cmds, builds, dict_path, timeout_ms)
@@ -73,17 +97,24 @@ class GoFuzzCmd(LibFuzzerCmd):
     def generate_one(
         self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
     ) -> str:
-
-        # generate command like this:
-        # go-fuzz -bin=fuzz.zip -dumpcover -workdir=out 2>&1 | tee go-fuzz.log
         cmd = ""
         env_str = make_env_shell_str(run_env)
         if env_str:
             cmd += f"env {env_str} "
-        cmd += "go-fuzz -bin=$appname -dumpcover "  # dump coverage profile data while fuzzing
+
+        cmd += "$appname"
+        run_args = self.run_args or ""
+        if "-test.fuzz=Fuzz" not in run_args:
+            raise FuzzerCmdError(
+                'empty or bad "run_args" option provided.'
+                " Please specify -test.fuzz option, e.g. -test.fuzz=FuzzParse"
+            )
+        cmd += f" {run_args}"  # for -test.fuzz=FuzzXxx
+        cover_path = os.path.join(output_corpus, "coverprofile")
+        cmd += f" -test.coverprofile={cover_path}"  # dump coverage profile data while fuzzing
         run_dir = os.path.dirname(output_corpus)
-        log_path = os.path.join(run_dir, "go-fuzz.log")
-        cmd += f"-workdir={output_corpus} 2>&1 | tee {log_path}"
+        log_path = os.path.join(run_dir, "go-test-fuzz.log")
+        cmd += f' -test.fuzzcachedir={output_corpus} 2>&1 | tee "{log_path}"'
         return cmd
 
     def make_replacements(
@@ -94,23 +125,26 @@ class GoFuzzCmd(LibFuzzerCmd):
         timeout_ms: Optional[int] = None,
     ) -> Dict[str, Dict[str, List[str]]]:
         if dict_path:
-            log.warning("dictionaries are not supported by go-fuzz, ignored")
+            log.warning("dictionaries are not supported by `go test` fuzzer, ignored")
+        if timeout_ms:
+            log.warning(
+                "timeout specified but ignored, because `go test`"
+                " fuzzer treats fuzz timeouts as errors"
+            )
 
         specs = {}
 
         base_cmd = cmds[0]
         del cmds[0]
 
-        if BuildType.GOFUZZ not in builds:
-            raise FuzzerCmdError("no GOFUZZ build provided")
+        if BuildType.GOTEST not in builds:
+            raise FuzzerCmdError("no GOTEST build provided")
 
-        cmd = base_cmd.replace("$appname ", f"$appname -procs={self.count} ", 1)
+        cmd = base_cmd.replace("$appname ", f"$appname -test.parallel={self.count} ", 1)
 
-        cmd = self.add_timeout_to_cmd(cmd, timeout_ms)
-
-        cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.GOFUZZ])
+        cmd_with_basic_build = cmd.replace("$appname", builds[BuildType.GOTEST])
         cmds.append(cmd_with_basic_build)
 
-        specs[builds[BuildType.GOFUZZ]] = [self.output_corpus]
-        specs = {"go-fuzz": specs}
+        specs[builds[BuildType.GOTEST]] = [self.output_corpus]
+        specs = {"go-test": specs}
         return specs

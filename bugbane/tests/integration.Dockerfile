@@ -45,13 +45,16 @@ RUN go get -u \
 
 
 # AFL++
-ARG GIT_AFLPP_TAG="4.01c"
+ARG GIT_AFLPP_BRANCH="dev"
+# 4.05a+
+ARG GIT_AFLPP_COMMIT="a6a26d8"
 ARG AFLPP_SRC_DIR="/AFLplusplus"
 ENV AFLPP_SRC_DIR=${AFLPP_SRC_DIR}
 RUN : \
-    && git clone --depth 1 https://github.com/AFLplusplus/AFLplusplus \
-        -b ${GIT_AFLPP_TAG} ${AFLPP_SRC_DIR} \
+    && git clone https://github.com/AFLplusplus/AFLplusplus \
+        -b ${GIT_AFLPP_BRANCH} ${AFLPP_SRC_DIR} \
     && cd ${AFLPP_SRC_DIR} \
+    && git reset --hard ${GIT_AFLPP_COMMIT} \
     && sed -i 's|cc_params\[cc_par_cnt++\] = "-fsanitize-undefined-trap-on-error";||g' ./src/afl-cc.c \
     && sed -i 's|"-fsanitize=cfi";|"-fsanitize=cfi";\n    cc_params\[cc_par_cnt++\] = "-fno-sanitize-trap=cfi";|g' ./src/afl-cc.c \
     && sed -i 's|#define FANCY_BOXES|// #define FANCY_BOXES|g' ./include/config.h \
@@ -151,7 +154,7 @@ CMD : \
     && jq '.fuzzing += { "builder_type": "AFL++LLVM", "fuzzer_type": "AFL++", "run_args": "@@" }' $SRC/cpp/bugbane.json \
         | sponge $SRC/cpp/bugbane.json \
     && coverage run -a -m bugbane build -vv -i ${SRC}/cpp -o ${FUZZ}/aflpp \
-    && egrep '^\$ ' ${FUZZ}/aflpp/build.log | cut -c 3- > ${FUZZ}/aflpp/build.cmds \
+    && grep -E '^\$ ' ${FUZZ}/aflpp/build.log | cut -c 3- > ${FUZZ}/aflpp/build.cmds \
     && jq ".fuzzing += { \"build_cmd\": \"${FUZZ}/aflpp/build.cmds\" }" $SRC/cpp/bugbane.json \
         > ${FUZZ}/aflpp/bugbane.json \
     && mkdir -p ${FUZZ}/aflpp/dictionaries \

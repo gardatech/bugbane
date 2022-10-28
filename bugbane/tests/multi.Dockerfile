@@ -112,7 +112,7 @@ RUN echo -e '{\n\
 
 FROM configure_aflpp_target AS test_aflpp
 RUN coverage run -a -m bugbane build -vv -i /src/re2 -o /fuzz/aflpp && \
-    egrep '^\$ ' /fuzz/aflpp/build.log | cut -c 3- > /fuzz/aflpp/build.cmds && \
+    grep -E '^\$ ' /fuzz/aflpp/build.log | cut -c 3- > /fuzz/aflpp/build.cmds && \
     jq '.fuzzing += {"build_cmd": "/fuzz/aflpp/build.cmds"}' /src/re2/bugbane.json \
         > /fuzz/aflpp/bugbane.json && \
     date
@@ -186,7 +186,7 @@ RUN echo -e '{\n\
 
 FROM configure_libfuzzer_target AS test_libfuzzer
 RUN coverage run -a -m bugbane build -vv -i /src/re2 -o /fuzz/libfuzzer && \
-    egrep '^\$ ' /fuzz/libfuzzer/build.log | cut -c 3- > /fuzz/libfuzzer/build.cmds && \
+    grep -E '^\$ ' /fuzz/libfuzzer/build.log | cut -c 3- > /fuzz/libfuzzer/build.cmds && \
     jq '.fuzzing += {"build_cmd": "/fuzz/libfuzzer/build.cmds"}' /src/re2/bugbane.json \
         > /fuzz/libfuzzer/bugbane.json && \
     date

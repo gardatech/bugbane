@@ -157,7 +157,7 @@ class Harvester:
         for app_and_dir in build_specs:
             binary_path, instance_path = app_and_dir.split(":", 1)
             log.verbose2(
-                "Will search for crashes and hangs in directory '%s' for app '%s'",
+                "Will search for crashes and hangs for sync directory '%s' for app '%s'",
                 instance_path,
                 binary_path,
             )
@@ -166,11 +166,15 @@ class Harvester:
             hangs_path_mask = fuzzer_info.hang_mask(sync_dir, instance_path)
 
             log.trace("sync_dir=%s, instance_path=%s", sync_dir, instance_path)
-            log.verbose2(
-                "Sample masks: '%s' (crashes) and '%s' (hangs)",
-                crashes_path_mask,
-                hangs_path_mask,
-            )
+            if hangs_path_mask:
+                log.verbose2(
+                    "Sample masks: '%s' (crashes) and '%s' (hangs)",
+                    crashes_path_mask,
+                    hangs_path_mask,
+                )
+            else:
+                log.verbose2("Sample masks: '%s' (crashes)", crashes_path_mask)
+
             cards = reproducer.run_binary_on_samples(
                 binary_path,
                 crashes_path_mask,

@@ -197,4 +197,4 @@ def prepare_run_args_for_shell(run_args: List[str], sample_path: str) -> str:
 
     if "@@" in run_args:
         return run_args.replace("@@", f'"{sample_path}"')
-    return run_args + f'< "{sample_path}"'
+    return run_args + f' < "{sample_path}"'

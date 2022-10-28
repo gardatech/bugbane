@@ -26,7 +26,7 @@ from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 from .args import parse_args
 
 from .fuzz_config import FuzzConfig, FuzzConfigError
-from .fuzz_box import FuzzBox, FuzzBoxError
+from .fuzz_box import FuzzBox, FuzzBoxError, CannotContinueFuzzingException
 
 
 def main(argv=None):
@@ -68,6 +68,9 @@ def main(argv=None):
             start_interval=args.start_interval, max_cpus_argument=args.max_cpus
         )
         fuzzer.wait_until_stop_condition()
+    except CannotContinueFuzzingException as e:
+        log.warning(f"while running fuzzers: {e}")
+        interrupted = True
     except FuzzBoxError as e:
         log.error(f"while running fuzzers: {e}")
         return 1

@@ -306,7 +306,7 @@ class AFLplusplusCmd(FuzzerCmd):
         cmd = f"""tmux capture-pane -e -t {tmux_session_name}:{window_index} -S -5 -p \
                     | uniq \
                     | grep -e 'status check tool' -e 'american fuzzy lop' -A 35 \
-                    | egrep -v '^tput: unknown terminfo' \
+                    | grep -E -v '^tput: unknown terminfo' \
                     | cat -s \
                     | head -n -1"""
         return cmd

@@ -23,10 +23,14 @@ from bugbane.modules.string_utils import replace_part_in_str_list
 
 
 class FuzzerCmdError(Exception):
-    """Exception for errors in FuzzerCmd class"""
+    """Exception for errors in FuzzerCmd class."""
 
 
 class FuzzerCmd(ABC):
+    """
+    ABC for generating commands to start fuzzing.
+    """
+
     def generate(
         self,
         run_args: str,
@@ -119,6 +123,6 @@ class FuzzerCmd(ABC):
         self, tmux_session_name: str, window_index: int
     ) -> str:
         """
-        Generate one tmux capture-pane command with possible beautifying greps
-        to get fuzzer screen/log/stats dump on stdout
+        Generate one tmux capture-pane command with possible "beautifying" greps
+        to get fuzzer screen/log/stats dump on stdout.
         """

@@ -82,3 +82,10 @@ class FuzzerInfo(ABC):
         """
         Return directory with coverage files or None if fuzzer doesn't collect coverage
         """
+
+    @abstractmethod
+    def can_continue_after_bug(self) -> bool:
+        """
+        Return True if fuzzer continues to work after discovering a bug.
+        Return False if fuzzer only works until any bug was found.
+        """

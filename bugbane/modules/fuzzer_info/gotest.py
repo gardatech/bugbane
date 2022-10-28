@@ -18,44 +18,45 @@ from typing import Optional
 
 import os
 
-from .fuzzer_info import FuzzerInfo
+from .gofuzz import GoFuzzInfo
 from .factory import FuzzerInfoFactory
 
 
-@FuzzerInfoFactory.register("go-fuzz")
-class GoFuzzInfo(FuzzerInfo):
-    REPRODUCE_REQUIRED = False  # go-fuzz reproduces bugs on its own
+@FuzzerInfoFactory.register("go-test")
+class GoTestInfo(GoFuzzInfo):
+    REPRODUCE_REQUIRED = True
 
-    COVERAGE_REQUIRED = False  # go-fuzz should be launched with -dumpcover option
+    COVERAGE_REQUIRED = False  # go test should be started with -test.coverprofile
 
     def initial_samples_required(self) -> bool:
         return False
 
     def input_dir(self, sync_dir: str) -> str:
+        # FIXME: this will not work, need concrete subdirectory for FuzzXxx function
         return os.path.join(sync_dir, "corpus")
 
     def sample_mask(self, sync_dir: str, instance_name: str) -> str:
-        return os.path.join(sync_dir, "corpus", "*")
+        instance_name = "*"  # TODO: get instance_name from -test.fuzz option
+        return os.path.join(sync_dir, instance_name, "*")
 
     def crash_mask(self, sync_dir: str, instance_name: str) -> str:
-        return os.path.join(sync_dir, "crashers", "*[!t]?[!t]")
+        instance_name = "*"  # TODO: get instance_name from -test.fuzz option
+        run_dir = self.stats_dir(sync_dir)
+
+        return os.path.normpath(
+            os.path.join(run_dir, "testdata", "fuzz", instance_name, "*")
+        )
 
     def hang_mask(self, sync_dir: str, instance_name: str) -> str:
-        return self.crash_mask(sync_dir, instance_name)
-
-    def stats_dir(self, sync_dir: str) -> str:
-        """
-        go-fuzz "stats" directory is right outside sync_dir (should contain logs)
-        """
-        norm = os.path.normpath(sync_dir)
-        num = len(norm.split(os.sep))
-        if num <= 1:
-            return os.path.join(norm, "..")
-
-        return os.path.dirname(norm)
+        # NOTE: gdb traces of compiled `go test` binary don't show user code,
+        # instead they consist of `go test` code.
+        # This was tested on sleeps and infinite cycles.
+        # Hence we don't reproduce hangs
+        return ""
 
     def coverage_dir(self, sync_dir: str) -> Optional[str]:
         return sync_dir
 
     def can_continue_after_bug(self) -> bool:
-        return True
+        # https://github.com/golang/go/issues/48127
+        return False
