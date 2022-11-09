@@ -3,6 +3,7 @@ build
 coverage
 pylint
 pytest
+pytest-mock
 tox
 rope
 wheel

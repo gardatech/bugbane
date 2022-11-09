@@ -1,5 +1,7 @@
 beautifulsoup4
+Jinja2
 lxml
 requests
 selenium
+WeasyPrint == 52.5
 git+https://github.com/DefectDojo/defectdojo_api@6f6d5e31dd2855e3e15d756b3a01a7dd8d77fdf9

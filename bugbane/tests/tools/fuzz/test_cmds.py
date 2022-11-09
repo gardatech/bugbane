@@ -552,9 +552,9 @@ def test_gotest_generate():
     assert cmd.startswith("./gotest/fuzz")
     assert "coverage/app" not in cmd
     assert " -test.fuzz=FuzzParse " in cmd
-    assert ' -test.coverprofile=out/coverprofile ' in cmd
+    assert " -test.coverprofile=out/coverprofile " in cmd
     assert " -test.parallel=8 " in cmd
-    assert ' -test.fuzzcachedir=out ' in cmd
+    assert " -test.fuzzcachedir=out " in cmd
     helper_check_cmds(cmds, builds)
 
 
@@ -602,11 +602,11 @@ def test_gofuzz_generate():
     print(cmds)
 
     assert len(cmds) == 1
-    assert '-bin=./gofuzz/app.zip' in cmds[0]
+    assert "-bin=./gofuzz/app.zip" in cmds[0]
     assert "coverage/app" not in cmds[0]
     assert "-dumpcover" in cmds[0]
     assert "-procs=8" in cmds[0]
-    assert '-workdir=testdata' in cmds[0]
+    assert "-workdir=testdata" in cmds[0]
     helper_check_cmds(cmds, builds)
 
 
