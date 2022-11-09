@@ -64,7 +64,9 @@ class Builder(ABC):
         self.build_store_dir: Optional[str] = None
         self.build_log_path: Optional[str] = None
 
-    def configure(self, build_cmd, build_root, build_store_dir, build_log_path):
+    def configure(
+        self, build_cmd: str, build_root: str, build_store_dir: str, build_log_path: str
+    ):
         self.build_cmd = build_cmd
         self.build_types = []
         self.build_root = build_root
@@ -181,23 +183,39 @@ class GCCBuilder(Builder):
         return succ_builds
 
     def _prep_store_dir(self):
-        """Create output directory for builds"""
-        if os.path.exists(self.build_store_dir):
-            shutil.rmtree(self.build_store_dir)
-        os.makedirs(self.build_store_dir)
+        """
+        Create output directory for builds.
+        If output directory exists, remove each existing build directory in it.
+
+        Safety measure: this method raises BuildError if output directory
+        contains files with names similar to any of build directories.
+        """
+
+        if not os.path.exists(self.build_store_dir):
+            os.makedirs(self.build_store_dir)
+            return
+
+        for bt in BuildType:
+            dest = os.path.join(self.build_store_dir, bt.dirname())
+            if os.path.exists(dest):
+                if not os.path.isdir(dest):
+                    raise BuildError(
+                        f"refusing to delete file at path {dest} (this path is required for build type {bt})"
+                    )
+                log.verbose2("removing directory %s", dest)
+                shutil.rmtree(dest)
 
     def _init_build_log(self):
-        """
-        Create empty build log file
-        """
+        """Create empty build log file."""
 
         if not self.build_log_path:
             return
 
-        open(self.build_log_path, "wt").close()
+        open(self.build_log_path, "wt", encoding="utf-8").close()
 
     def build_one(self, bt: BuildType):
-        """Perform one build"""
+        """Perform one build."""
+
         extra_env = self.create_build_env(bt)
         extra_env = {
             k: v for k, v in extra_env.items() if v
@@ -250,14 +268,15 @@ class GCCBuilder(Builder):
             print(f"$ {env_str}{self.build_cmd}\n\n{text}\n\n", file=f)
 
     def store_build(self, bt: BuildType):
-        """Save build to separate directory"""
+        """Save build to separate directory."""
+
         dest = os.path.join(self.build_store_dir, bt.dirname())
         if bt != BuildType.COVERAGE:
             log.verbose1("Moving results of %s build to %s", bt.name.upper(), dest)
             shutil.move(self.build_root, dest)
         else:
             # coverage build usually contains gcno files
-            # it's better to not move them from original place
+            # it's better to not move them from original place, instead we copy them
             log.verbose1("Copying results of %s build to %s", bt.name.upper(), dest)
             shutil.copytree(self.build_root, dest)
 
