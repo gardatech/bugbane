@@ -69,9 +69,9 @@ def create_argument_parser():
     )
     output_group.add_argument(
         "--dpi",
-        help="resulting image resolution (default: 180)",
+        help="resulting image resolution (default: 128)",
         type=int,
-        default=180,
+        default=128,
     )
 
     return parser

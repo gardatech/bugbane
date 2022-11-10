@@ -202,7 +202,7 @@ class GCCBuilder(Builder):
                     raise BuildError(
                         f"refusing to delete file at path {dest} (this path is required for build type {bt})"
                     )
-                log.verbose2("removing directory %s", dest)
+                log.verbose1("Removing directory %s", dest)
                 shutil.rmtree(dest)
 
     def _init_build_log(self):

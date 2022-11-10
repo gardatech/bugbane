@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict, Any
 from dataclasses import dataclass
 
 import os
@@ -181,7 +181,7 @@ class FuzzDataSuite:
             ) from e
         return vars_dict
 
-    def save_vars(self, bane_vars: dict):
+    def save_vars(self, bane_vars: Dict[str, Any], directory: Optional[str] = None):
         """
         Save new bane_vars to JSON file
         """
@@ -190,13 +190,17 @@ class FuzzDataSuite:
                 "no json file in fuzzing data suite, don't know where to save new vars"
             )
 
+        save_path = self.vars_json_path
+        if directory is not None:
+            save_path = os.path.join(directory, os.path.basename(save_path))
+
         data = {"fuzzing": bane_vars}
         try:
-            with open(self.vars_json_path, "wt") as json_file:
+            with open(save_path, "wt") as json_file:
                 json.dump(data, json_file, indent=4, ensure_ascii=False)
         except OSError as e:
             raise FuzzDataError(
-                f"while trying to save json file '{self.vars_json_path}': {e}"
+                f"while trying to save json file '{save_path}': {e}"
             ) from e
 
     def _loaded_vars_should_present(self, d: dict):

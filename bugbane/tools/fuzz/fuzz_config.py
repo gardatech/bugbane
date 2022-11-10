@@ -127,7 +127,6 @@ class FuzzConfig:
         cfg["sanitizers"] = [
             bt.name for bt, _ in self.builds.items() if bt.is_static_sanitizer()
         ]
-        cfg["tested_binary_name"] = os.path.basename(self.tested_binary_path)
         cfg["run_args"] = self.run_args
         cfg["run_env"] = self.run_env
         cfg["fuzz_cores"] = self.fuzz_cores

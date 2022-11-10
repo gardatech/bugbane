@@ -38,7 +38,12 @@ def get_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
     """
     builds = detect_builds(suite, tested_binary_path)
     if not any(bt.is_fuzz_target() for bt in builds):
-        log.error("Fuzz target build missing in input fuzzing suite")
+        log.error(
+            'Fuzzing build missing in input fuzzing suite or "tested_binary_path" is invalid'
+        )
+        log.error(
+            'If your build is at /fuzz/asan/myapp, "tested_binary_path" should be set to just "myapp"'
+        )
         raise BuildDetectionError("fuzz target build missing")
 
     if not any(bt.is_coverage() for bt in builds):
@@ -52,7 +57,7 @@ def detect_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
     """
     Enumerate directories (defined by BuildType) in suite path.
     """
-    log.trace("suite: %s, tested_binary_name: %s", suite, tested_binary_path)
+    log.trace("suite: %s, tested_binary_path: %s", suite, tested_binary_path)
 
     if not suite or not tested_binary_path:
         return {}
@@ -70,7 +75,7 @@ def detect_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
 
         app = os.path.join(subdir, tested_binary_path)
         app_path = os.path.join(suite_dir, app)
-        log.trace("looking for binary %s...", app_path)
+        log.verbose3("Checking whether binary exists: %s", app_path)
         app_path = none_on_bad_nonempty_file(app_path)
         if app_path is None:
             continue

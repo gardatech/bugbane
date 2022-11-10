@@ -91,7 +91,7 @@ class EmitterWithScreenshots(Emitter):
 
     def delete_existing_screenshots(self, output_directory: str):
         pngs = glob.glob(os.path.join(output_directory, "*.png"))
-        log.trace("going to delete pngs=%s", pngs)
+        log.trace("going to delete pngs: %s", ", ".join(pngs))
         for png in pngs:
             os.remove(png)
 
@@ -114,7 +114,7 @@ class EmitterWithScreenshots(Emitter):
         for screen in screens:
             outpath = os.path.join(output_directory, os.path.basename(screen) + ".png")
             log.trace("converting %s to %s", screen, outpath)
-            self.ansi_screenshot_maker.convert(screen, outpath, 128)
+            self.ansi_screenshot_maker.convert(screen, outpath, dpi=128)
             outpaths.append(
                 make_relative_path(outpath, 2)
             )  # report.md uses relative paths to images

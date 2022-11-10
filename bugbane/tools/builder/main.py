@@ -85,16 +85,12 @@ def main(argv=None):
     log.info("Build results: %s", args.output)
     log.info("[+] Build complete. Updating configuration file")
 
-    tested_binary_path = bane_vars.get("tested_binary_path")
-    tested_binary_name = os.path.basename(tested_binary_path)
-    bane_vars["tested_binary_name"] = tested_binary_name
-
     bane_vars["sanitizers"] = [
         bt.name.upper() for bt in builds_complete if bt.is_static_sanitizer()
     ]
 
     bane_vars["src_root"] = os.path.normpath(args.input)
 
-    suite.save_vars(bane_vars)
+    suite.save_vars(bane_vars=bane_vars, directory=args.output)
 
     return 0

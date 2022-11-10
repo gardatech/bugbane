@@ -1,6 +1,16 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.5.1
+- build tool:
+    - **(breaking change)** bb-build now saves updated configuration file to output directory, initial file is now left intact.<br>
+        Now there's no need to manually copy the file after using bb-build
+    - improved output directory cleanup algorithm.<br>
+        Now bb-build only removes subdirectories (e.g. basic, asan, coverage) instead of removing the whole `-o` directory,<br>
+        so it is now safe to have files in output directory before using bb-build
+- screenshot tool:
+    - changed default dpi used for pango-view from 180 to 128 to match dpi used by report tool
+
 ## Version 0.5.0
 - added support for native Go fuzzer (introduced in go1.18).<br>
   The support is limited due to current limitations of the fuzzer:

@@ -129,8 +129,6 @@ CMD : \
     && jq '.fuzzing += { "builder_type": "libFuzzer", "fuzzer_type": "libFuzzer" }' $SRC/cpp/bugbane.json \
         | sponge $SRC/cpp/bugbane.json \
     && coverage run -a -m bugbane build -vv -i ${SRC}/cpp -o ${FUZZ}/libFuzzer \
-    && jq ".fuzzing += { \"build_cmd\": \"${FUZZ}/libFuzzer/build.cmds\" }" $SRC/cpp/bugbane.json \
-        > ${FUZZ}/libFuzzer/bugbane.json \
     && mkdir -p ${FUZZ}/libFuzzer/dictionaries \
     && cp -t ${FUZZ}/libFuzzer/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \
@@ -155,8 +153,6 @@ CMD : \
         | sponge $SRC/cpp/bugbane.json \
     && coverage run -a -m bugbane build -vv -i ${SRC}/cpp -o ${FUZZ}/aflpp \
     && grep -E '^\$ ' ${FUZZ}/aflpp/build.log | cut -c 3- > ${FUZZ}/aflpp/build.cmds \
-    && jq ".fuzzing += { \"build_cmd\": \"${FUZZ}/aflpp/build.cmds\" }" $SRC/cpp/bugbane.json \
-        > ${FUZZ}/aflpp/bugbane.json \
     && mkdir -p ${FUZZ}/aflpp/dictionaries \
     && cp -t ${FUZZ}/aflpp/dictionaries \
             ${AFLPP_SRC_DIR}/dictionaries/regexp.dict \

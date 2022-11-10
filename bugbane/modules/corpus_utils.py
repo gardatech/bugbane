@@ -35,7 +35,7 @@ def ensure_initial_corpus_exists(path: str):
             if os.path.isfile(p) and os.path.getsize(p) > 0:
                 return  # have directory with some nonempty files
     else:
-        log.debug("Creating initial corpus directory %s", path)
+        log.verbose1("Creating initial corpus directory %s", path)
         os.makedirs(path)
 
     sample_path = os.path.join(path, "1")
