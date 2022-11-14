@@ -16,25 +16,25 @@
 
 import pytest
 
-from bugbane.modules import format
+import bugbane.modules.format_utils as fu
 
 
 def test_squeeze_spaces():
     text = "    Hello,      world! Test  spaces here    "
 
-    assert format.squeeze_spaces(text) == " Hello, world! Test spaces here "
+    assert fu.squeeze_spaces(text) == " Hello, world! Test spaces here "
 
 
 def test_squeeze_spaces_ok_string():
     text = "Hello, world! Test spaces here"
 
-    assert format.squeeze_spaces(text) == "Hello, world! Test spaces here"
+    assert fu.squeeze_spaces(text) == "Hello, world! Test spaces here"
 
 
 def test_squeeze_spaces_tabs():
     text = " \t\tHello,    \t  world!\tTest  spaces here\t    "
 
-    assert format.squeeze_spaces(text) == " Hello, world!\tTest spaces here "
+    assert fu.squeeze_spaces(text) == " Hello, world!\tTest spaces here "
 
 
 def test_metric_try_to_float():
@@ -50,7 +50,7 @@ def test_metric_try_to_float():
     ]
 
     for inp, exp in in_out:
-        assert format.metric_try_to_float(inp) == exp
+        assert fu.metric_try_to_float(inp) == exp
 
 
 def test_remove_trailing_zeroes():
@@ -64,7 +64,7 @@ def test_remove_trailing_zeroes():
     ]
 
     for inp, exp in in_out:
-        assert format.remove_float_trailing_zeroes(inp) == exp
+        assert fu.remove_float_trailing_zeroes(inp) == exp
 
 
 def test_zfill_to_collection_size():
@@ -79,7 +79,7 @@ def test_zfill_to_collection_size():
     ]
 
     for inp, exp in in_out:
-        assert format.zfill_to_collection_size(*inp) == exp
+        assert fu.zfill_to_collection_size(*inp) == exp
 
 
 def test_count_to_report_count():
@@ -100,7 +100,7 @@ def test_count_to_report_count():
     ]
 
     for inp, exp in in_out:
-        assert format.count_to_report_count(inp) == exp
+        assert fu.count_to_report_count(inp) == exp
 
 
 def test_count_to_report_count_cyr():
@@ -121,7 +121,7 @@ def test_count_to_report_count_cyr():
     ]
 
     for inp, exp in in_out:
-        assert format.count_to_report_count_cyr(inp) == exp
+        assert fu.count_to_report_count_cyr(inp) == exp
 
 
 def test_cyr_word_for_quantity():
@@ -155,12 +155,12 @@ def test_cyr_word_for_quantity():
     ]
 
     for inp, exp in in_out:
-        assert format.cyr_word_for_quantity(*inp) == exp
+        assert fu.cyr_word_for_quantity(*inp) == exp
 
 
 def test_cyr_word_for_time_unit_bad():
     with pytest.raises(ValueError):
-        format.cyr_word_for_quantity(127, "!!! millions of years !!!")
+        fu.cyr_word_for_quantity(127, "!!! millions of years !!!")
 
 
 def test_seconds_to_dhms():
@@ -181,7 +181,7 @@ def test_seconds_to_dhms():
         (43200000, (500, 0, 0, 0)),
     ]
     for inp, exp in in_out:
-        assert format.seconds_to_dhms(inp) == exp
+        assert fu.seconds_to_dhms(inp) == exp
 
 
 def test_golang_duration_to_seconds():
@@ -204,7 +204,7 @@ def test_golang_duration_to_seconds():
         ("2h10m", 7800),
     ]
     for inp, exp in in_out:
-        assert format.golang_duration_to_seconds(inp) == exp
+        assert fu.golang_duration_to_seconds(inp) == exp
 
 
 def test_seconds_to_report_duration_cyr():
@@ -226,7 +226,7 @@ def test_seconds_to_report_duration_cyr():
         (43200000, "500 дней"),
     ]
     for inp, exp in in_out:
-        assert format.seconds_to_report_duration_cyr(inp) == exp
+        assert fu.seconds_to_report_duration_cyr(inp) == exp
 
 
 def test_count_to_report_count_with_unit_cyr():
@@ -241,7 +241,7 @@ def test_count_to_report_count_with_unit_cyr():
         ((2_023_400_000, "hangs"), "2.0234 млрд. зависаний"),
     ]
     for inp, exp in in_out:
-        assert format.count_to_report_count_with_unit_cyr(*inp) == exp
+        assert fu.count_to_report_count_with_unit_cyr(*inp) == exp
 
 
 def test_seconds_to_hms():
@@ -254,4 +254,4 @@ def test_seconds_to_hms():
         (1072743, "297:59:03"),
     ]
     for inp, exp in in_out:
-        assert format.seconds_to_hms(inp) == exp
+        assert fu.seconds_to_hms(inp) == exp

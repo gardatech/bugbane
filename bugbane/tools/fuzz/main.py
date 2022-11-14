@@ -69,10 +69,10 @@ def main(argv=None):
         )
         fuzzer.wait_until_stop_condition()
     except CannotContinueFuzzingException as e:
-        log.warning(f"while running fuzzers: {e}")
+        log.warning("while running fuzzers: %s", str(e))
         interrupted = True
     except FuzzBoxError as e:
-        log.error(f"while running fuzzers: {e}")
+        log.error("while running fuzzers: %s", str(e))
         return 1
     except KeyboardInterrupt:
         log.info("")

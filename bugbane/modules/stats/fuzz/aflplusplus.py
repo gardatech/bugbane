@@ -20,7 +20,7 @@ from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
-from bugbane.modules.format import metric_try_to_float
+from bugbane.modules.format_utils import metric_try_to_float
 
 from .fuzz_stats import FuzzStats, FuzzStatsError
 from .factory import FuzzStatsFactory
@@ -90,8 +90,9 @@ class AFLplusplusFuzzStats(FuzzStats):
             ) from e
 
         stats = {}
+        i = 0  # satisfy pylint & pyright
         try:
-            for i, line in enumerate(data):
+            for i, line in enumerate(data, start=1):
                 if len(line) < 3:
                     continue
                 k, v = line.split(":", 1)

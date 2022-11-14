@@ -74,4 +74,4 @@ def exit_on_bad_args(args: Namespace):
         sys.exit(f"ERROR: suite directory '{args.suite}' doesn't exist")
 
     if args.start_interval < 0:
-        sys.exit(f"ERROR in --start-interval: negative values aren't allowed")
+        sys.exit("ERROR in --start-interval: negative values aren't allowed")

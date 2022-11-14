@@ -31,7 +31,7 @@ log = getLogger(__name__)
 
 from bugbane.modules.process import run_interactive_shell_cmd
 from bugbane.modules.corpus_utils import ensure_initial_corpus_exists
-from bugbane.modules.format import seconds_to_hms
+from bugbane.modules.format_utils import seconds_to_hms
 
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats, FuzzStatsError

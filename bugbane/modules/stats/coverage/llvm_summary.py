@@ -21,7 +21,7 @@ from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
-from bugbane.modules.format import squeeze_spaces
+from bugbane.modules.format_utils import squeeze_spaces
 
 from .coverage_stats import CoverageStats, CoverageStatsError
 from .factory import CoverageStatsFactory

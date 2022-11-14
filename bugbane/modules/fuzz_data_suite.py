@@ -34,11 +34,7 @@ from bugbane.modules.file_utils import (
     none_on_bad_nonempty_file,
 )
 
-from bugbane.modules.format import (
-    count_to_report_count_cyr,
-    count_to_report_count_with_unit_cyr,
-    seconds_to_report_duration_cyr,
-)
+import bugbane.modules.format_utils as fu
 
 
 class FuzzDataError(Exception):
@@ -153,10 +149,10 @@ class FuzzDataSuite:
         self._loaded_vars_should_present(data)
         data.update(self._load_data_from_files())
 
-        data["fuzz_cores_with_units"] = count_to_report_count_with_unit_cyr(
+        data["fuzz_cores_with_units"] = fu.count_to_report_count_with_unit_cyr(
             data["fuzz_cores"], "on_cores"
         )
-        data["fuzz_time_real_with_units"] = seconds_to_report_duration_cyr(
+        data["fuzz_time_real_with_units"] = fu.seconds_to_report_duration_cyr(
             data["fuzz_time_real_seconds"]
         )
         return data
@@ -296,18 +292,18 @@ class FuzzDataSuite:
         log.debug("Loaded FuzzStats stats: %s", self.fuzz_stats)
 
         # TODO: move all formatting to emitter
-        result["execs_total"] = count_to_report_count_cyr(self.fuzz_stats.execs)
-        result["execs_total_with_units"] = count_to_report_count_with_unit_cyr(
+        result["execs_total"] = fu.count_to_report_count_cyr(self.fuzz_stats.execs)
+        result["execs_total_with_units"] = fu.count_to_report_count_with_unit_cyr(
             self.fuzz_stats.execs, "execs"
         )
 
-        result["num_crashes"] = count_to_report_count_cyr(self.fuzz_stats.crashes)
-        result["num_crashes_with_units"] = count_to_report_count_with_unit_cyr(
+        result["num_crashes"] = fu.count_to_report_count_cyr(self.fuzz_stats.crashes)
+        result["num_crashes_with_units"] = fu.count_to_report_count_with_unit_cyr(
             self.fuzz_stats.crashes, "crashes"
         )
 
-        result["num_hangs"] = count_to_report_count_cyr(self.fuzz_stats.hangs)
-        result["num_hangs_with_units"] = count_to_report_count_with_unit_cyr(
+        result["num_hangs"] = fu.count_to_report_count_cyr(self.fuzz_stats.hangs)
+        result["num_hangs_with_units"] = fu.count_to_report_count_with_unit_cyr(
             self.fuzz_stats.hangs, "hangs"
         )
 

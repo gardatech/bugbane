@@ -22,7 +22,7 @@ import time
 from bugbane.modules.log import getLogger
 
 from bugbane.modules.file_utils import read_last_lines
-from bugbane.modules.format import golang_duration_to_seconds
+from bugbane.modules.format_utils import golang_duration_to_seconds
 
 log = getLogger(__name__)
 

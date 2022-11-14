@@ -104,7 +104,7 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
 
     def _make_run_cmd(self, mask: str, dest: str):
         run_args = " ".join(self.run_args or [])
-        cmd = f"afl-cmin "
+        cmd = "afl-cmin "
         if self.prog_timeout_ms is not None:
             # make "dangerously low" timeout values to be at least 50 ms
             self.prog_timeout_ms = max(self.prog_timeout_ms, 50)

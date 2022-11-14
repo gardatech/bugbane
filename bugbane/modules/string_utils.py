@@ -20,7 +20,7 @@ from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
-from bugbane.modules.format import zfill_to_collection_size
+from bugbane.modules.format_utils import zfill_to_collection_size
 
 
 def is_glob_mask(text: str) -> bool:

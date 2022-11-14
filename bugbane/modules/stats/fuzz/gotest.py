@@ -19,7 +19,7 @@ from typing import Optional
 import os
 import re
 
-from bugbane.modules.format import golang_duration_to_seconds
+from bugbane.modules.format_utils import golang_duration_to_seconds
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)

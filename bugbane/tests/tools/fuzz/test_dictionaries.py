@@ -100,7 +100,7 @@ def test_add_from_directory(mocker: MockerFixture):
 
     mocker.patch(
         MOCK_GLOB,
-        return_value=[fname for fname in files.keys() if fname.endswith(".dict")],
+        return_value=[fname for fname in files if fname.endswith(".dict")],
     )
     mocker.patch(MOCK_OPEN, lambda v, mode, encoding: StringIO(files[v]))
     mocker.patch(MOCK_FILE_UTILS_NONE_ON_BAD, lambda s: s)

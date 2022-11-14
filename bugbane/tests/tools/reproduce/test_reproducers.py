@@ -63,7 +63,6 @@ def test_factory_overwrite():
 def test_gotest_make_reproduce_cmd():
     r = GoTestReproducer()
 
-    prog = "./fuzzme"
     inp_exp = [
         (
             "testdata/fuzz/FuzzParse/beefbeefbeef",
