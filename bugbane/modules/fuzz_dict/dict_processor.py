@@ -98,12 +98,47 @@ class DictProcessor:
         tokens: Set[str] = set()
 
         for line in lines:
-            t = line.strip()
-            if not t or t.startswith("#"):
+            t = self._extract_token_from_one_line(line)
+            if not self._is_token_valid(t):
+                if t:
+                    log.warning("invalid dictionary token skipped: %s", line)
                 continue
             tokens.add(t)
 
         return tokens
+
+    def _extract_token_from_one_line(self, line: str) -> str:
+        """
+        If line is empty or starts with comment, return empty string.
+        Otherwise, remove optional token name and return extracted token.
+        """
+
+        t = line.strip()
+        if not t or t.startswith("#"):
+            return ""
+
+        # remove comment after token
+        if "#" in t:
+            t = t.split("#")[0]
+
+        if "=" not in t:
+            return t
+
+        t = t.split("=")[1]
+        return t.strip()
+
+    def _is_token_valid(self, token: str) -> bool:
+        """
+        Return True if token is not empty and is quoted with double quotes.
+        Return False otherwise.
+        """
+        if not token:
+            return False
+
+        if len(token) < 3:  # quotes + at least one symbol
+            return False
+
+        return token.startswith('"') and token.endswith('"')
 
     def get_tokens(self) -> List[str]:
         """
@@ -120,6 +155,9 @@ class DictProcessor:
 
         try:
             with open(output_dict_file_path, "wt", encoding="utf-8") as f:
+                print(
+                    "# this dictionary was automatically generated with BugBane", file=f
+                )
                 # TODO: generator expression instead of list comprehension (how to test?)
                 f.writelines([s + "\n" for s in self.get_tokens()])
         except OSError as e:

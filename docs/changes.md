@@ -8,6 +8,8 @@ List of significant changes in BugBane.
     - improved output directory cleanup algorithm.<br>
         Now bb-build only removes subdirectories (e.g. basic, asan, coverage) instead of removing the whole `-o` directory,<br>
         so it is now safe to have files in output directory before using bb-build
+- fuzz tool:
+    - dictionary merging algorithm now removes token names, thus removing duplicate tokens with different names
 - screenshot tool:
     - changed default dpi used for pango-view from 180 to 128 to match dpi used by report tool
 

@@ -92,9 +92,9 @@ def test_clear():
 
 def test_add_from_directory(mocker: MockerFixture):
     files = {
-        "1.dict": '# comment\n# comment2\n"token1"\n"token2"',
+        "1.dict": '# comment\n# comment2\n"token1"\n"token2" # comment after token',
         "something": '# comment\n# comment2\n"token4"\n"token5"',
-        "2.dict": '# comment\n# comment2\n"token2"\n"token3"',
+        "2.dict": '# comment\n# comment2\n"token2"\ntoken_name="token3"',
         "3.dict": "# only comment here\n",
     }
 
