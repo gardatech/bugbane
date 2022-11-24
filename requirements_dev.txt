@@ -1,9 +1,10 @@
 black
 build
 coverage
+mmg
 pylint
 pytest
 pytest-mock
-tox
 rope
+tox
 wheel
