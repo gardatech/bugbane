@@ -13,9 +13,9 @@ BugBane goals:
 
 BugBane features:
 1. Building applications for fuzz testing with sanitizers and coverage support: AFL++, libFuzzer.
-2. Fuzzing built targets with [AFL++](https://github.com/AFLplusplus/AFLplusplus), [libFuzzer](https://www.llvm.org/docs/LibFuzzer.html), [dvyukov/go-fuzz](https://github.com/dvyukov/go-fuzz), [go test](https://go.dev/security/fuzz) using a given number of CPU cores until a given stop condition is met.
+2. Fuzzing built targets with [AFL++](https://github.com/AFLplusplus/AFLplusplus), [libFuzzer](https://www.llvm.org/docs/LibFuzzer.html), [dvyukov/go-fuzz](https://github.com/dvyukov/go-fuzz), [go test](https://go.dev/security/fuzz) using a given number of CPU cores until meeting a given stop condition.
 3. Synchronizing test cases between fuzzer and storage directories, including deduplication and minimization with use of fuzzer tools.
-4. Coverage collection of tested application's source code using fuzzer-generated samples, coverage reports creation.
+4. Coverage collection of tested app's source code using fuzzer-generated samples, coverage reports creation.
 5. Reproducing of fuzzer-discovered crashes and hangs. Determining location of bugs in the source code.
 6. Submitting reproducible bugs to vulnerability management system: [Defect Dojo](https://github.com/DefectDojo/django-DefectDojo).
 7. Creating screenshots for both fuzzers and coverage reports.
@@ -28,18 +28,18 @@ The BugBane utilities are best used together, though they're also usable on thei
 ## Requirements
 UNIX-like OS<br>
 Python >= 3.6<br><br>
-Deps required by the tools:<br>
+Dependencies required by the tools:<br>
 **bb-build**: fuzzer compilers in PATH (afl-g++-fast, clang, ...).<br>
 **bb-corpus**: fuzzer minimization tools in PATH (afl-cmin, ...).<br>
 **bb-fuzz**: fuzzer binary in PATH (afl-fuzz, go-fuzz, ...).<br>
 **bb-coverage**: coverage tools to be used in PATH (lcov, genhtml, go, ...).<br>
 **bb-reproduce**: `timeout` utility, `gdb` debugger.<br>
 **bb-send**: python library `defectdojo_api`.<br>
-**bb-screenshot**, **bb-report**: python libraries `Jinja2`, `WeasyPrint`, `Selenium`, applications `ansifilter` and `pango-view` in PATH, application `geckodriver` in PATH and Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
+**bb-screenshot**, **bb-report**: python libraries `Jinja2`, `WeasyPrint`, `Selenium`, applications `ansifilter` and `pango-view` in PATH, `geckodriver` in PATH and Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
 Notes:
-- Python libraries will be installed automatically along with BugBane;
+- Python libraries are installed automatically along with BugBane;
 - screenshots of coverage reports look better when created with Selenium rather than with WeasyPrint, though Selenium requires Firefox and geckodriver;
-- Go coverage reports require Selenium to create screenshots, because Go coverage reports heavilty rely on JavaScript;
+- Go coverage reports require Selenium to create screenshots, because Go coverage reports heavily rely on JavaScript;
 - in order to view reports in docker container with utils like `less` it may be required to generate a locale with UTF-8 support and to set the LANG env variable.
 
 ## Installing and uninstalling the package
@@ -67,16 +67,16 @@ There are install groups available other than "all", which allow smaller install
 | all | + | + | + | + | - |
 | dev | + | + | + | + | + |
 
-\* Performing builds, fuzz testing, corpus syncing, coverage collection and bug reproducing.
+\* Performing builds, fuzz testing, corpus syncing, coverage collection, and bug reproducing.
 
-So it is possible to separate fuzz testing and working with its results to different hosts, e.g., worker and reporter:
+Thus, it's possible to separate fuzz testing and working with its results to different hosts, for instance, `worker` and `reporter`:
 ```shell
 pip install .                  # worker
 pip install .[dd,reporting]    # reporter
 ```
-As a result, the worker host won't need report generation dependencies, and the reporter host won't need the environment to run tested applications or fuzzers.
+As a result, the `worker` host doesn't need report generation dependencies, and the `reporter` host doesn't need an environment to run tested applications or fuzzers.
 
-In order to uninstall BugBane use the following command:
+To uninstall BugBane use the following command:
 ```
 pip uninstall bugbane
 ```
@@ -95,9 +95,9 @@ Sequential use of the tools is implied, for example:
 7. bb-send
 8. bb-report
 
-However, step #1 is optional (builds can be done by other means), and steps #7 and #8 can be performed in a separate Docker image or on a separate host.
+However, step #1 is optional, as builds can be done by other means, and steps #7 and #8 can be performed in a separate Docker image or on a separate host.
 
-**Most BugBane tools work with the bugbane.json configuration file**: they get input variables, update their values, add new variables, and append them to the existing config file.<br>
+**Most BugBane tools work with the bugbane.json configuration file**: they get input variables, update their values, and add new variables to existing config file.<br>
 
 <details>
 <summary>
@@ -147,34 +147,34 @@ Example of an input configuration file which is sufficient to run all BugBane to
 
 </details>
 
-The corpus, coverage, reproduce and report utilities support an **alternative run mode (manual run mode)** , the screenshot utility works only in this alternative mode. The manual run mode is intended for more fine-grained control over settings or for using the listed tools separately from the other BugBane tools.<br>
+The corpus, coverage, reproduce, and report utilities support an **alternative run mode (the manual run mode)** , the screenshot utility works only in this alternative mode. The manual run mode gives more fine-grained control over settings and allows using the tools listed separately from the other BugBane tools.<br>
 
 ## bb-build
 Creates multiple builds of a given tested application with use of fuzzer compilers.<br>
-The tool is only suited for C/C++ applications, go-fuzz and go-test targets are not supported.<br>
+The tool is only suited for C/C++ apps, thus, go-fuzz and go-test targets are not supported.<br>
 
 Example usage:
 ```shell
 bb-build -i /src -o /fuzz
 ```
 The /src directory must contain the bugbane.json file.<br>
-As a result, build directories will appear in the /fuzz path, for example: /fuzz/basic, /fuzz/asan, /fuzz/coverage. Also, the /fuzz folder will contain build logs with the commands and the environment variables used to perform builds. 
+As a result, build directories appear in the /fuzz path, for example: /fuzz/basic, /fuzz/asan, /fuzz/coverage. Also, build logs appear in the /fuzz folder, the logs contain the commands and the environment variables used to perform builds.
 
 <details>
 <summary>Details on how bb-build works</summary>
 
 The inputs to the tool are the following:
-1. The source code of the application to be built
+1. The source code of a tested app
 2. A build script or some build-starting command
 3. The bugbane.json configuration file
 
 The bugbane.json should define variables: `builder_type`, `build_cmd`, `build_root`, `sanitizers`.<br>
 
-The `build_cmd` script or command should respect the CC, CXX, LD, CFLAGS, CXXFLAGS, LDFLAGS environment variables and should build the tested application in fuzz testing mode (so it should enable fuzzing entrypoints / harnesses). After one execution of `build_cmd` there should appear one build of the tested app in the `build_root` directory. The `sanitizers` variable should contain list of sanitizers to build the app with. A separate build will be performed for each specified sanitizer.<br>
+The `build_cmd` script or command should respect the CC, CXX, LD, CFLAGS, CXXFLAGS, LDFLAGS environment variables and should build the tested application in fuzz testing mode (so it should enable fuzzing entrypoints / harnesses). After one execution of `build_cmd` there should appear one build of the tested app in the `build_root` directory. The `sanitizers` variable should contain list of sanitizers to build the app with. BugBane performs a separate build for each specified sanitizer.<br>
 
-bb-build sequentially performs multiple builds of the tested app (with different sanitizers + with coverage + with special instrumentation like cmplog or laf), and results of each build is then saved from `build_root` to the directory provided as an argument to the `-o` option. This updates some variables in the bugbane.json file (in particular, `sanitizers` is filled with the names of sanitizers for which the build was successful).<br>
+bb-build sequentially performs multiple builds of the tested app (with different sanitizers + with coverage + with special instrumentation like cmplog or laf), and results of each build are then saved from `build_root` to the directory provided as an argument to the `-o` option. This updates some variables in the bugbane.json file (in particular, `sanitizers` is filled with the names of sanitizers for which the build was successful).<br>
 
-Example of script specified in `build_cmd`:
+Example of a script to specify in `build_cmd`:
 ```bash
 #!/bin/bash
 set -x
@@ -188,7 +188,7 @@ test -e Makefile && make clean
 make -j obj/libre2.a
 $CXX $CXXFLAGS --std=c++11 -I. re2/fuzzing/re2_fuzzer.cc /AFLplusplus/libAFLDriver.a obj/libre2.a -lpthread -o build/re2_fuzzer
 ```
-When using such a script, compilation flags can be controlled externally using environment variables allowing us to get builds with any sanitizers, coverage instrumentation, debug information, etc.
+When using such a script, compilation flags can be controlled externally using environment variables allowing you to get builds with any sanitizers, coverage instrumentation, debug information, etc.
 
 </details>
 
@@ -200,7 +200,7 @@ When using such a script, compilation flags can be controlled externally using e
 |-|-|-|
 | basic | Build for fuzzing. This must be the most performant build: without sanitizers or coverage | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer |
 | gofuzz | Build for fuzzing with dvyukov/go-fuzz (zip archive). Not supported by bb-build, supported by the other BugBane tools | - |
-| gotest | Build for fuzzing compiled with `go test`. Not supported by bb-build, supported by the other BugBane tools | - |
+| gotest | Build for fuzzing, compiled with `go test`. Not supported by bb-build, supported by the other BugBane tools | - |
 | laf | Build for fuzzing, compiled with the AFL_LLVM_LAF_ALL env variable | AFL++LLVM, AFL++LLVM-LTO |
 | cmplog | Build for fuzzing, compiled with the AFL_USE_CMPLOG env variable | AFL++LLVM, AFL++LLVM-LTO |
 | asan | Build for fuzzing with Address Sanitizer | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
@@ -211,11 +211,11 @@ When using such a script, compilation flags can be controlled externally using e
 | msan \* | Build for fuzzing with Memory Sanitizer | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
 | coverage | Build for coverage collection | AFL++GCC, AFL++GCC-PLUGIN, AFL++LLVM, AFL++LLVM-LTO, libFuzzer
 
-\* This was not tested.<br>
+\* This wasn't tested.<br>
 </details>
 
 ### Building without bb-build
-It is not always convenient to perform builds using bb-build, for example, if building and fuzzing is done by different people. Also, bb-build does not support automatic builds for Go targets.<br>
+It's not always convenient to perform builds using bb-build, for example, when different people do building and fuzzing. Also, bb-build doesn't support automatic builds for Go targets.<br>
 
 <details>
 
@@ -225,14 +225,14 @@ It is not always convenient to perform builds using bb-build, for example, if bu
 All builds are recommended to be performed by fuzzer compilers, including coverage builds.<br>
 All builds must be created with debug information containing source lines (`-g` for gcc, `-g` or `-gline-tables-only` for clang).<br>
 All builds must be performed with the flag `-fno-omit-frame-pointer` in order for binaries to provide better stack traces when reproducing bugs or when debugging the binaries manually.<br>
-If the fuzzer we use supports environment variables for enabling sanitizers (AFL_USE_ASAN, etc.), then using these variables is preferred over specifying compilation flags manually.<br>
-The builds should be placed in appropriately named folders. For example, if fuzzing will be launched from the /fuzz directory, then the build with ASAN should be saved under the /fuzz/asan folder. If a build was instrumented with multiple sanitizers, then it is sufficient to save this build in either sanitizer directory. That is, a build with ASAN, UBSAN and CFISAN can be placed in either asan, ubsan, cfisan, lsan, tsan or msan directory - this will not reduce the effectiveness of fuzzing or bugs reproducing. Though, it is *recommended* to create copies or symlinks according to the sanitizers (/fuzz/asan, /fuzz/ubsan, ...).<br>
-If the build process in CI takes time comparable to the fuzz testing time, then it may be worth to just use a single build that simultaneously includes instrumentation of the fuzzer, coverage and sanitizers. This will negatively affect the fuzzing performance and will also create additional disk load, but it still may be preferable to doing multiple builds. So, an application built by the AFL++ compilers with ASAN and coverage should be placed in the /fuzz/asan folder and then copied (or symlinked) to the /fuzz/coverage path.<br>
+If the fuzzer compilers support environment variables for enabling sanitizers (AFL_USE_ASAN, etc.), then using these variables is preferred over specifying compilation flags manually.<br>
+The builds should be placed in appropriately named folders. For example, if fuzzing starts from the /fuzz directory, then an ASAN-instrumented build should be saved under the /fuzz/asan folder. If a build is instrumented with multiple sanitizers, then it's sufficient to save this build in either sanitizer directory. For instance, a build with ASAN, UBSAN, and CFISAN can be placed in either asan, ubsan, cfisan, lsan, tsan, or msan directory - this will not reduce the effectiveness of fuzzing or bugs reproducing. Though, it is *recommended* to create copies or symlinks according to the sanitizers (/fuzz/asan, /fuzz/ubsan, ...).<br>
+If the build process in CI takes time comparable to the fuzz testing time, then it may be worth to just use a single build that simultaneously includes instrumentation of the fuzzer, coverage, and sanitizers. This negatively affects fuzzing performance and creates additional disk load, but it still may be preferable to doing multiple builds. To use a single build of an app, compiled with both ASAN and coverage flags, place the build in the /fuzz/asan folder and then copy (or symlink) it to the /fuzz/coverage path.<br>
 
 #### Go
 
 ##### dvyukov/go-fuzz
-Go to the project folder and execute the following command:
+Go to the folder of a project to test and execute the following command:
 ```shell
 go-fuzz-build
 ```
@@ -240,24 +240,24 @@ More information is available on [the project page](https://github.com/dvyukov/g
 
 ##### go test
 The following instructions are for the built-in fuzzer which was introduced with the release of go1.18.<br>
-Go to the project folder and run the following command:
+Go to the folder of a project to test and run the following command:
 ```shell
 go test . -fuzz=FuzzMyFunc -o fuzz -c -cover
 ```
-Replace FuzzMyFunc with the name of any fuzz test present in the codebase. The function name must start with "Fuzz" (see [the fuzzer documentation](https://go.dev/security/fuzz)).<br>
-The result is the `fuzz` executable file with the ability to run any of the available fuzzing tests. For example, if the code contains the FuzzHttp and the FuzzJson tests, then you can build the app with the option `-fuzz=FuzzHttp`, and as a result, you will be able to run fuzzing with the either option: `-test.fuzz=FuzzHttp` or `-test.fuzz=FuzzJson`.<br>
-The build option `-cover` has no effect yet, because fuzzing and coverage are temporarily incompatible in Go. Using the option is not mandatory, but will allow you to avoid making changes in the future when the Go developers bring back fuzzing and coverage compatibility.<br>
+Replace FuzzMyFunc with the name of any fuzz test present in the code base. The function name must start with "Fuzz" (see [the fuzzer documentation](https://go.dev/security/fuzz)).<br>
+The result is the `fuzz` executable file with an option to run any of the available fuzzing tests. For example, if the code contains the `FuzzHttp` and `FuzzJson` tests, then you can build the app with the option `-fuzz=FuzzHttp`, and as a result, you will be able to run fuzzing with the either option: `-test.fuzz=FuzzHttp` or `-test.fuzz=FuzzJson`.<br>
+The build option `-cover` has no effect yet, because fuzzing and coverage are temporarily incompatible in Go. Using the option isn't mandatory, but allows you to avoid making changes in the future when the Go developers bring back fuzzing and coverage compatibility.<br>
 
 </details>
 
 ## bb-corpus
-Synchronizes test cases between the fuzzer working directory and a storage.<br>
+Synchronizes test cases between a fuzzer's working directory and a storage.<br>
 
 Example of importing input test cases before fuzzing:
 ```shell
 bb-corpus suite /fuzz import-from /storage
 ```
-In this case the /fuzz folder is the fuzzer working directory (containing bugbane.json), the /storage folder is the storage directory, in which there is the samples folder. The /storage/samples directory contains the test case files.
+In this case the /fuzz folder is a fuzzer's working directory (containing bugbane.json), the /storage is a storage directory, in which there is the samples folder. The /storage/samples directory contains test case files.
 
 After fuzzing, new test cases should be added to the storage:
 ```shell
@@ -268,8 +268,8 @@ bb-corpus suite /fuzz export-to /storage
 <summary><b>Support for the built-in Go fuzzer (go test) is limited</b></summary>
 
 Sample exporting works fine, but importing requires using of one of the following options:
-- use `bb-corpus manual` and specify the folder of a specific fuzzing test (e.g., out/FuzzXxx) as the output directory
-- use `bb corpus suite`, but pre-define the variable `fuzz_in_dir` in the config file (similarly: out/FuzzXxx)
+- use `bb-corpus manual` and specify the folder of a specific fuzzing test (for example, out/FuzzXxx) as the output directory
+- use `bb-corpus suite`, but pre-define the variable `fuzz_in_dir` in the config file (similarly: out/FuzzXxx)
 - copy the samples by other means (rsync, cp)
 
 </details>
@@ -277,55 +277,55 @@ Sample exporting works fine, but importing requires using of one of the followin
 <details>
 <summary>Details on how bb-corpus works</summary>
 
-The tool supports importing test cases from the storage to the fuzzer working directory, and exporting them from the fuzzer working directory back to the storage.<br>
+The tool supports importing test cases from the storage to the fuzzer working directory and exporting them from the fuzzer working directory back to the storage.<br>
 The storage is just a mounted directory, which can in turn be some Samba share, an NFS drive, etc.<br>
 
 Synchronization occurs in two stages:
 1. Copying samples (if importing) or moving them (if exporting) from a source directory to a temporary folder without creating duplicates (SHA1 hash sum checks are in place).
-2. Minimizing the samples in the temporary folder, saving results to a destination directory using fuzzer tools (e.g., afl-cmin)
+2. Minimizing the samples in the temporary folder, saving results to a destination directory using fuzzer tools (such as afl-cmin)
 
 The variable `fuzzer_type` must be defined in the configuration file bugbane.json.<br>
-For afl-cmin minimization there must be builds of the tested application on disk. The most preferred build for minimizing samples is the one in the laf folder, as it "distinguishes" more execution paths, though, if this build is missing, the other ones will be used for minimization.
+For afl-cmin minimization there must be builds of a tested app on disk. The most preferred build for minimizing samples is the one in the `laf` folder, as it "distinguishes" more execution paths, though, if this build is missing, bb-corpus uses the other builds for minimization.
 
-The names of resulting files will contain the SHA1 hash sum of their contents. If the destination directory already contains files with the matching names, no file overwriting occurs.
+The names of resulting files contain the SHA1 hash sum of their contents. If the destination directory already contains files with the matching names, no file overwriting occurs.
 
 </details>
 
 ## bb-fuzz
-Launches fuzzing of the tested application using the specified number of CPU cores, stops fuzzing when the specified stop condition occurs.<br>
+Launches fuzzing of an app under test using a specified number of CPU cores, stops fuzzing when a specified stop condition occurs.<br>
 
 Example usage:
 ```shell
 FUZZ_DURATION=1800 bb-fuzz --max-cpus $(nproc) suite /fuzz
 ```
-As a result, multiple fuzzer instances will be started in a tmux session.<br>
-The bb-fuzz tool will periodically print the fuzzer run statistics until it detects the occurence of a stop condition, in this case, until the duration of 1800 seconds (30 minutes) has passed.<br>
-Then the fuzzer screen dumps (text representations) will be saved to the /fuzz/screens directory. The dumps are to be used in the next stages by the bb-report or the bb-screenshot tools.<br>
-**Warning: after saving the dumps ALL afl-fuzz and tmux processes in the whole operating system will be terminated.**<br>
+As a result, multiple fuzzer instances start running in a tmux session.<br>
+The bb-fuzz tool will periodically print run statistics of the fuzzer until it detects the occurrence of a stop condition, in this case, until the duration of 1800 seconds (30 minutes) has passed.<br>
+Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/screens directory. The dumps are for the bb-report or bb-screenshot tools to create screenshots from in the next stages.<br>
+**Warning: after saving the dumps ALL afl-fuzz and tmux processes in the whole operating system are terminated.**<br>
 
 <details>
 <summary>Details on how bb-fuzz works</summary>
 
-The tool detects builds of the tested application on disk and distributes them across different processor cores.<br>
+The tool detects builds of a tested app on disk and distributes them across different processor cores.<br>
 The distribution algorithm for C/C++ builds relies on the following rules:
 * builds with sanitizers are allocated one core each;
 * auxiliary builds (AFL_LLVM_LAF_ALL, AFL_USE_CMPLOG) are assigned to a certain proportion of the available cores;
 * the basic build (without sanitizers) occupies the remaining cores;
 * builds for source code coverage collection do not participate in fuzz testing (see bb-coverage).
 
-When fuzzing Go applications, there's only one build (in either gofuzz or gotest folder) which is allocated to all available cores.<br>
+When fuzzing Go applications, there's only one build (in either `gofuzz` or `gotest` folder) which is allocated to all available cores.<br>
 For the built-in Go fuzzer (go test) bb-fuzz exits on the first bug discovered. This is caused by the way the fuzzer works. If there are no detected bugs, the work continues as usual until a stop condition occurs.<br>
 
-The bugbane.json configuration file must define the variables `fuzzer_type`, `tested_binary_path`, `fuzz_cores`, `src_root`, `run_args`, `run_env` and `timeout`. The variable `timeout` is specified in milliseconds.<br>
-The builds of the application must exist on disk in folders corresponding to the build type, just as the bb-build tool places them.<br>
-There may also be dictionary files with the ".dict" extension in the dictionaries folder. They will be merged into one dictionary, which will be provided for the fuzzer to use, subject to the support from the fuzzer.
+The bugbane.json configuration file must define the variables `fuzzer_type`, `tested_binary_path`, `fuzz_cores`, `src_root`, `run_args`, `run_env`, and `timeout`. The variable `timeout` is specified in milliseconds.<br>
+The builds of the app to test must exist on disk in folders corresponding to the build type, just as the bb-build tool places them.<br>
+There may also be dictionary files with the ".dict" extension in the "dictionaries" folder. They are merged into one dictionary, which is provided for the fuzzer to use, subject to the support from the fuzzer.
 
 The values available for the variable `fuzzer_type`: AFL++, libFuzzer, go-fuzz, go-test.<br>
-The variable `tested_binary_path` holds the path to the tested application's binary relative to an input directory (where builds will be searched for). Example: imagine, there's a folder named "build" with the build results, executable is named "app" and is saved as build/test/app, the bb-build tool performed several builds each time copying the "build" folder to path /fuzz, i.e. now there are paths /fuzz/basic/test/app, /fuzz/coverage/test/app, etc. In this case the `tested_binary_path` should be "test/app".<br>
-The variable `src_root` is not used directly, but other BugBane tools running after bb-fuzz would fail if the variable would be missing.<br>
-The `run_args` variable holds a string containing run arguments for the tested application. The variable may include the "@@" sequence, through which the fuzzer will provide input samples.<br>
-For the built-in Go fuzzer the variable `run_args` must contain the `-test.fuzz` launch option with a specific fuzz test, e.g., `-test.fuzz=FuzzHttp`.
-The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD_PRELOAD will be automatically converted to a corresponding fuzzer variable (e.g., AFL_PRELOAD for AFL++).<br>
+The variable `tested_binary_path` holds the path to the tested app's binary relative to an input directory (where builds will be searched for). Example: imagine, there's a folder named "build" with the build results, executable is named "app" and is saved as build/test/app, the bb-build tool performed several builds each time copying the "build" folder to path /fuzz, that is, now there are paths /fuzz/basic/test/app, /fuzz/coverage/test/app, etc. In this case the `tested_binary_path` should be "test/app".<br>
+The variable `src_root` is not used directly, but other BugBane tools running after bb-fuzz fail if the variable is missing.<br>
+The `run_args` variable holds a string containing run arguments for the tested app. The variable may include the "@@" sequence, through which the fuzzer may provide input samples for the app.<br>
+For the built-in Go fuzzer the variable `run_args` must contain the `-test.fuzz` launch option with a specific fuzz test, for instance, `-test.fuzz=FuzzHttp`.<br>
+The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD_PRELOAD is automatically converted to a corresponding fuzzer variable (such as AFL_PRELOAD for AFL++).<br>
 Example of the `run_env` variable in the configuration file:
 ```json
 "run_env": {
@@ -355,20 +355,20 @@ Thus, the number of processor cores is limited by both the author of the bugbane
 </details>
 
 ## bb-coverage
-Collects coverage of the tested application using the test cases, generated during fuzz testing.<br>
+Collects coverage of a tested app using the test cases, generated during fuzz testing.<br>
 
 Example usage:
 ```shell
 bb-coverage suite /fuzz
 ```
-As a result, coverage report files should appear under the /fuzz/coverage_report directory, with the /fuzz/coverage_report/index.html being the main page of the coverage report.<br>
+As a result, coverage report files appear under the /fuzz/coverage_report directory, with the /fuzz/coverage_report/index.html being the main page of the report.<br>
 **The tool does not work for the built-in Go fuzzer (go test).** This is due to the way the fuzzer works.
 
 <details>
 <summary>Details on how bb-coverage works</summary>
 
 For C/C++ apps the tool does the following:
-1. Runs the app under test on samples in a fuzzer's sync directory
+1. Runs an app under test on samples in the sync directory of a fuzzer
 2. Generates a coverage report
 
 For Go apps, the tool works differently:
@@ -377,15 +377,15 @@ For Go apps, the tool works differently:
 
 \* bb-fuzz uses this option.
 
-The configuration file bugbane.json should define the variables `tested_binary_path`, `run_args`, `run_env`, `coverage_type`, `fuzzer_type`, `fuzz_sync_dir` and `src_root`.<br>
+The configuration file bugbane.json should define the variables `tested_binary_path`, `run_args`, `run_env`, `coverage_type`, `fuzzer_type`, `fuzz_sync_dir`, and `src_root`.<br>
 The `coverage_type` variable gets set by bb-build and matches the builder type used there.<br>
-The `src_root` variable holds the path to the source code of the tested application which existed during the build process; does not have to actually exist on the file system during coverage collection: if the directory does not exist, then coverage report will display coverage percentages, but not the code itself.
+The `src_root` variable holds the path to the source code of the tested app, which existed during the build process; the path does not have to actually exist on the file system during coverage collection: if the directory doesn't exist, then resulting coverage report shows coverage percentages, but not the code itself.
 
 Possible values of the `coverage_type` variable
 | coverage_type | Description |
 |-|-|
-| lcov | For targets, built with GCC compilers and the `--coverage` flag |
-| lcov-llvm | For targets, built with LLVM compilers and the `--coverage` flag |
+| lcov | For targets built with GCC compilers and the `--coverage` flag |
+| lcov-llvm | For targets built with LLVM compilers and the `--coverage` flag |
 | go-tool-cover | For Go targets |
 
 </details>
@@ -398,7 +398,7 @@ Example usage:
 bb-reproduce suite /fuzz
 ```
 
-This will generate the file /fuzz/bb_results.json, containing the fuzzer statistics and information about reproducible bugs. Test cases for the bugs reproduced will be saved under the /fuzz/bug_samples directory.<br>
+This generates the file /fuzz/bb_results.json, containing the fuzzer statistics and information about reproducible bugs. Test cases for the bugs reproduced are saved under the /fuzz/bug_samples directory.<br>
 
 <details>
 <summary>Details on how bb-reproduce works</summary>
@@ -407,16 +407,16 @@ The bb-reproduce tool does the following:
 1. Collects the overall statistics of fuzzers' operation
 2. Minimizes crashes and hangs by reproducing them
 3. Records information about each unique reproducible bug
-4. Generates a JSON file with the above data
+4. Generates a JSON file with the stats and the bugs data
 5. Saves test cases resulting in reproducible crashes and hangs to disk
 
-The data saved for each reproducible bug includes the issue/bug title, the location of the bug in the source code, the run command with a particular test sample, the application output (stdout+stderr), the environment variables, etc.<br>
-The targets instrumented with [SharpFuzz](https://github.com/Metalnem/sharpfuzz) are also supported by the tool.
+The data saved for each reproducible bug includes the issue/bug title, the location of the bug in the source code, the run command with a particular test sample, the app output (stdout+stderr), the environment variables, etc.<br>
+Targets instrumented with [SharpFuzz](https://github.com/Metalnem/sharpfuzz) are also supported by the tool.
 
-The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `fuzzer_type`, `reproduce_specs`, `run_args` and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
+The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `fuzzer_type`, `reproduce_specs`, `run_args`, and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
 The `fuzz_sync_dir` contains the path to the fuzzer synchronization directory; bb-fuzz uses the "out" directory.<br>
-The `src_root` is the root directory of the tested application's source code as it was at the time of build; the path does not have to exist on the file system as the variable is only used for better precision when locating the crashing/hanging line in the source code.<br>
-The `reproduce_specs` is a JSON dictionary, specifying the fuzzer type, and mapping the builds of the tested application to the folders, on which to reproduce bugs:
+The `src_root` is the root directory of the tested app's source code as it was at the time of build; the path does not have to exist on the file system as the variable is only used for better precision when locating the crashing/hanging line in the source code.<br>
+The `reproduce_specs` is a JSON dictionary, specifying the fuzzer type and mapping the builds of the tested app to the folders, on which to reproduce bugs:
 ```json
 "fuzz_sync_dir": "/fuzz/out",
 "reproduce_specs": {
@@ -431,19 +431,19 @@ The `reproduce_specs` is a JSON dictionary, specifying the fuzzer type, and mapp
     }
 }
 ```
-In the above example the basic build (/fuzz/basic/app) will be run with the samples matching the pattern `/fuzz/out/test1/{crashes,hangs}/id*`, and for the ubsan build (/fuzz/ubsan/app) the pattern will be `/fuzz/out/test{2,3}/{crashes,hangs}/id*`.<br>
+In the above example the `basic` build (/fuzz/basic/app) will be run with the samples matching the pattern `/fuzz/out/test1/{crashes,hangs}/id*`, and for the `ubsan` build (/fuzz/ubsan/app) the pattern will be `/fuzz/out/test{2,3}/{crashes,hangs}/id*`.<br>
 
-The output of the tested app is analyzed on each reproduce try, for example, the tool searches for sanitizer messages. Each bug sample is tried until a successful bug detection, but not more than N times. The number N is defined by the `--num-reruns` argument of bb-reproduce (the default value is 3). When trying a crashing sample, if the app does not produce the stack trace, then the app is ran under the gdb debugger. Hangs are always reproduced under the gdb.<br>
+The output of the tested app is analyzed on each reproduce try, for example, the tool searches for sanitizer messages. Each bug sample is tried until a successful bug detection, but not more than N times. The number N is defined by the `--num-reruns` argument of bb-reproduce (the default value is 3). When trying a crashing sample, if the app does not produce the stack trace, then the app is ran under the gdb debugger. Hangs are always reproduced under gdb.<br>
 
 </details>
 
 ### Viewing the bugs information
 Information about the bugs discovered may be displayed in the terminal with the jq utility (installed separately).<br>
-This allows us to view and report bugs manually, e.g., if we don't use Defect Dojo or the bb-send tool.<br>
+This allows you to view and report bugs manually, for example, if you don't use Defect Dojo or the bb-send tool.<br>
 
 To get a simple text representation for viewing in the terminal use the command:
 ```shell
-jq '.issue_cards[] | "-" * 79, .title, .reproduce_cmd, .output, "Sample saved as:", .sample, ""' -rM bb_results.json
+jq '.issue_cards[] | "-" * 79, .title, .reproduce_cmd, .output, "Saved sample name", .sample, ""' -rM bb_results.json
 ```
 
 To get an issue text ready for GitHub use the following:
@@ -456,12 +456,12 @@ To get an issue text ready for Jira use this:
 jq '.issue_cards[] | "h1. \(.title)", "Originally reproduced by executing: \n{noformat}\n\(.reproduce_cmd)\n{noformat}", "Output:\n{noformat}\n\(.output){noformat}", "Saved sample name: \(.sample)", ""' -rM bb_results.json
 ````
 
-It is recommended to create an issue for each separate bug, as the bugs have already been deduplicated by the bb-reproduce and already are unique with high probability.<br>
-If it is preferred to create a single issue for all discovered bugs, then it is sufficient to attach to it an archive with the bug_samples directory.<br>
+It's recommended to create an issue for each separate bug, as the bugs have already been deduplicated by bb-reproduce and are already unique with high probability.<br>
+If it's preferred to create a single issue for all discovered bugs, then it's sufficient to attach to it an archive with the `bug_samples` directory.<br>
 
 ## bb-send
-Creates reproducible bugs in Defect Dojo vulnerability management system.<br>
-The input data is taken from the bb_results.json, created by the bb-reproduce tool.<br>
+Puts reproducible bugs in the Defect Dojo vulnerability management system.<br>
+The input data is taken from the bb_results.json file, created by the bb-reproduce tool.<br>
 The bugbane.json file is not used.<br>
 
 Example usage:
@@ -472,7 +472,7 @@ bb-send --host https://dojo.local \
     --engagement 1 --test-type 141 \
     --results-file bb_results.json
 ```
-As a result, on the Defect Dojo server hosted at `https://dojo.local` there will be new test created with the test type 141 in the engagement having the id 1. Each bug will be created separately from the other ones in this new test.
+As a result, a new test appears with the test type 141 in the engagement having the id 1 on the Defect Dojo server hosted at `https://dojo.local`. Each bug is created separately from the other ones in this new test.
 
 <details>
 <summary>Details on some of the bb-send run options</summary>
@@ -481,7 +481,7 @@ Hereinafter `https://dojo.local` is used as the address of the Defect Dojo serve
 `--user-id`: id of the user specified in the `--user-name` option; may be taken from the Defect Dojo's url, while desired user is selected on the page `https://dojo.local/user`.<br>
 `--engagement`: engagement id; may also be taken from the engagement url (select one on the page `https://dojo.local/engagement`).<br>
 `--test-type`: test type id; also comes from the url (select required test type on the page `https://dojo.local/test_type`).<br>
-`--token`: API key; copied from the page `https://dojo.local/api/key-v2` (the user needs to be authorized with name specified in the `--user-name` option, the API key should be taken from the part, starting with "Your current API key is ....").<br>
+`--token`: API key; copied from the page `https://dojo.local/api/key-v2` (you need to be authorized with the name specified in the `--user-name` option, you need the API key from the part, starting with "Your current API key is ....").<br>
 
 If the authenticity of the Defect Dojo server certificate cannot be verified, the `--no-ssl` option should be added.
 
@@ -489,14 +489,14 @@ If the authenticity of the Defect Dojo server certificate cannot be verified, th
 
 ## bb-report
 Generates a Markdown fuzz test report based on a specified Jinja2 template.<br>
-The default template contains textual description of the fuzzing process in Russian and includes the commands used to start fuzzers, the fuzzer screenshots, some of the stats etc.<br>
+The default template contains textual description of the fuzzing process in Russian and includes the commands used to start fuzzers, the fuzzer screenshots, some of the stats, etc.<br>
 
 The tool creates screenshots of the following:
 1. the fuzzer - made from the tmux dumps, saved by the bb-fuzz tool
-2. the main page of the coverage report
+2. the main page of the coverage report, which was generated by the bb-coverage tool
 
 The screenshots are saved to the "screenshots" folder and inserted into the report as links.<br>
-The configuration file bugbane.json should define the variables `fuzzer_type`, `coverage_type` and `fuzz_sync_dir`.<br>
+The configuration file bugbane.json should define the variables `fuzzer_type`, `coverage_type`, and `fuzz_sync_dir`.<br>
 
 Example usage:
 ```shell
@@ -508,15 +508,15 @@ Example usage with Selenium:
 bb-report --html-screener selenium --name myapp_fuzz suite /fuzz
 ```
 
-As a result, the screenshots folder will appear in the /fuzz directory with the images and the report file `myapp_fuzz.md`.<br>
+As a result, the screenshots folder appears in the /fuzz directory with the images and the report file `myapp_fuzz.md`.<br>
 
-In order to create a report in the DOCX format we can use the pandoc tool (installed separately):
+In order to create a report in the DOCX format you can use the pandoc tool (installed separately):
 ```shell
 pandoc -f markdown -t docx myapp_fuzz.md -o myapp_fuzz.docx
 ```
 
 ## bb-screenshot
-Utility to manually create images from the HTML files, simple text files or files containing ANSI sequences. The images are made in the same way, as in the bb-report tool, but the user may specify input and output paths.<br>
+Creates images from a user-provided HTML files, simple text files, or files containing ANSI sequences. The images are made in the same way, as in the bb-report tool, but the user may specify input and output paths.<br>
 
 Usage examples:
 ```shell
@@ -550,4 +550,4 @@ pytest
 Thank you to everyone involved in the project!
 
 Special thanks:
-- [Ilya Urazbakhtin](https://github.com/donyshow): ideas, consulations, mentoring.
+- [Ilya Urazbakhtin](https://github.com/donyshow): ideas, consultations, mentoring.
