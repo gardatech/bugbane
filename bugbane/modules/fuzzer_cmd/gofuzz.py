@@ -73,7 +73,6 @@ class GoFuzzCmd(LibFuzzerCmd):
     def generate_one(
         self, input_corpus: str, output_corpus: str, run_env: Dict[str, str]
     ) -> str:
-
         # generate command like this:
         # go-fuzz -bin=fuzz.zip -dumpcover -workdir=out 2>&1 | tee go-fuzz.log
         cmd = ""

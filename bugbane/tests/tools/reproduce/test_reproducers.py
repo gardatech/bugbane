@@ -74,6 +74,6 @@ def test_gotest_make_reproduce_cmd():
         ),
     ]
 
-    for (inp, exp) in inp_exp:
+    for inp, exp in inp_exp:
         print(f"{inp=}, {exp=}")
         assert r.prep_run_args(sample_path=inp) == exp

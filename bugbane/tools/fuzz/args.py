@@ -69,7 +69,6 @@ def create_argument_parser():
 
 
 def exit_on_bad_args(args: Namespace):
-
     if not os.path.isdir(args.suite):
         sys.exit(f"ERROR: suite directory '{args.suite}' doesn't exist")
 

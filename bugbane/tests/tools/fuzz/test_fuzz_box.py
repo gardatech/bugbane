@@ -37,7 +37,7 @@ def test_limit_cpu_cores(mocker: MockerFixture):
         ((100, 256, 512), 100),
     ]
 
-    for (inp, expected) in in_out:
+    for inp, expected in in_out:
         from_config, max_cpus, cpu_count = inp
         mocker.patch("bugbane.tools.fuzz.fuzz_box.os.cpu_count", return_value=cpu_count)
         limited = limit_cpu_cores(from_config=from_config, max_from_args=max_cpus)

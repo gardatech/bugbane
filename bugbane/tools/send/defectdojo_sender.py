@@ -131,7 +131,6 @@ class DefectDojoSender:
         return finding_id
 
     def __make_finding_description(self, issue_card):
-
         if not issue_card:
             return "<<-- No description -->>"
 

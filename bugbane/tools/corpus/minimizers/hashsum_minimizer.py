@@ -25,6 +25,7 @@ log = getLogger(__name__)
 
 from .minimizer import Minimizer, MinimizerError
 
+
 # intentionally not registered in MinimizerFactory
 class HashSumMinimizer(Minimizer):
     """Minimizer based on SHA1 hashes of files"""

@@ -25,5 +25,4 @@ from .abc import DefectDojoAPI
 
 
 class DefectDojoAPIFactory(Factory):
-
     registry: Dict[str, DefectDojoAPI] = {}

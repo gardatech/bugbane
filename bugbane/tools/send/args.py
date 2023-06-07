@@ -108,7 +108,6 @@ def parse_args(argv):
 
 
 def exit_on_bad_args(args):
-
     if args.user_id < 1:
         sys.exit(f"ERROR in --user-id: bad user id '{args.user_id}'")
 

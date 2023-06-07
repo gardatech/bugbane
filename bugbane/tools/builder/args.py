@@ -65,6 +65,5 @@ def create_argument_parser():
 
 
 def exit_on_bad_args(args: Namespace):
-
     if not os.path.isdir(args.input):
         sys.exit(f"ERROR in --input: directory '{args.input}' doesn't exist")

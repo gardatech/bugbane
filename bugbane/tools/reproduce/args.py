@@ -120,7 +120,6 @@ def parse_args(argv):
 
 
 def exit_on_bad_args(args):
-
     if args.num_reruns <= 0:
         print(
             f"NOTE in --num-reruns: corrected value from {args.num_reruns} to 1",
@@ -140,7 +139,6 @@ def exit_on_bad_args(args):
 
     # TODO: move specs checking to harvester class
     for fuzzer_dir_and_builds in args.spec:
-
         if len(fuzzer_dir_and_builds) < 2:
             sys.exit(
                 f"ERROR in --spec {fuzzer_dir_and_builds}: at least two values required"

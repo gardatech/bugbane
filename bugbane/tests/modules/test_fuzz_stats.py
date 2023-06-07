@@ -187,13 +187,13 @@ INFO: -fork=5: 115 seed inputs, starting to fuzz in /tmp/libFuzzerTemp.FuzzWithF
     assert res["start_time"] == 100 - 50
 
 
-def test_fuzzer_type_consistent():
+@pytest.mark.parametrize("fuzzer_type", FuzzStatsFactory.registry)
+def test_fuzzer_type_consistent(fuzzer_type: str):
     """
     FuzzStats return fuzzer_type by which they are registered in FuzzStatsFactory
     """
-    for fuzzer_type in FuzzStatsFactory.registry:
-        fuzz_stats: FuzzStats = FuzzStatsFactory.create(fuzzer_type)
-        assert fuzzer_type == fuzz_stats.fuzzer_type()
+    fuzz_stats: FuzzStats = FuzzStatsFactory.create(fuzzer_type)
+    assert fuzzer_type == fuzz_stats.fuzzer_type()
 
 
 def test_gofuzz(mocker: MockerFixture):

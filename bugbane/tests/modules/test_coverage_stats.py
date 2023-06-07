@@ -24,7 +24,6 @@ from bugbane.modules.stats.coverage.coverage_stats import CoverageStatsError
 
 
 def test_coverage_parse_llvm():
-
     stats = """
 Filename                      Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,7 +48,6 @@ TOTAL                              36                 8    77.78%           6   
 
 
 def test_coverage_parse_llvm_truncated():
-
     stats = """
 Filename                      Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -64,7 +62,6 @@ src/fuzzable_app.cpp               33                 6    81.82%           3   
 
 
 def test_coverage_parse_llvm_bad_file():
-
     stats = """Some unknown file
 with some unknown data
 """
@@ -169,7 +166,6 @@ def test_llvm_coverage_sum():
 
 
 def test_coverage_parse_lcov():
-
     stats = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <html lang="en">
