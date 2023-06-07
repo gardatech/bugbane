@@ -274,9 +274,7 @@ def test_aflpp_select_default_build_type():
     cmdgen = AFLplusplusCmd()
 
     # no builds known to AFL++ cmd gen, select first one as default
-    builds = [
-        BuildType.GOFUZZ,
-    ]
+    builds = [BuildType.GOFUZZ, BuildType.GOTEST]
     assert cmdgen._select_default_build_type(builds) == BuildType.GOFUZZ
 
 
@@ -558,30 +556,31 @@ def test_gotest_generate():
     helper_check_cmds(cmds, builds)
 
 
-def test_gotest_generate_bad_run_args():
-    cmdgen = GoTestCmd()
-    builds = {
-        BuildType.GOTEST: "./gotest/fuzz",
-    }
-
-    bad_args = [
+@pytest.mark.parametrize(
+    "bad_args",
+    [
         "@@",
         "-test.run=FuzzParse/samplename",
         "-test.fuzz=Parse",
         "",
         None,
-    ]
+    ],
+)
+def test_gotest_generate_bad_run_args(bad_args: str):
+    cmdgen = GoTestCmd()
+    builds = {
+        BuildType.GOTEST: "./gotest/fuzz",
+    }
 
-    for ba in bad_args:
-        with pytest.raises(FuzzerCmdError):
-            cmdgen.generate(
-                run_args=ba,
-                run_env={},
-                input_corpus="in",
-                output_corpus="out",
-                count=8,
-                builds=builds,
-            )
+    with pytest.raises(FuzzerCmdError):
+        cmdgen.generate(
+            run_args=bad_args,
+            run_env={},
+            input_corpus="in",
+            output_corpus="out",
+            count=8,
+            builds=builds,
+        )
 
 
 def test_gofuzz_generate():
@@ -739,17 +738,17 @@ def test_make_tmux_commands():
         assert all((cmd.startswith("tmux") for cmd in tmux_cmds))
 
 
-def test_make_one_tmux_capture_pane_cmds():
+@pytest.mark.parametrize("gen_name", FuzzerCmdFactory.registry)
+def test_make_one_tmux_capture_pane_cmds(gen_name: str):
     sess_name = "fuzz"
     index = 3
 
-    for gen_name in FuzzerCmdFactory.registry:
-        cmdgen = FuzzerCmdFactory.create(gen_name)
-        cmd = cmdgen.make_one_tmux_capture_pane_cmd(sess_name, index)
-        assert cmd.startswith("tmux capture-pane ")
-        assert "fuzz:3" in cmd
-        assert "-e" in cmd
-        assert "-p" in cmd
+    cmdgen = FuzzerCmdFactory.create(gen_name)
+    cmd = cmdgen.make_one_tmux_capture_pane_cmd(sess_name, index)
+    assert cmd.startswith("tmux capture-pane ")
+    assert "fuzz:3" in cmd
+    assert "-e" in cmd
+    assert "-p" in cmd
 
 
 def test_make_tmux_screen_capture_cmds():
@@ -760,10 +759,17 @@ def test_make_tmux_screen_capture_cmds():
     assert len(cmds) == 33
 
 
-def test_generate_combos_c_cxx():
+@pytest.mark.parametrize("gen_name", FuzzerCmdFactory.registry)
+@pytest.mark.parametrize("num_cores", range(1, 8))
+def test_generate_combos_c_cxx(gen_name: str, num_cores: int):
     """
     Each generator shouln't fail with any valid number of cores
     """
+
+    # skip go-fuzz and go-test here
+    if gen_name in ("go-fuzz", "go-test"):
+        return
+
     build_collections = {
         "basic & coverage": {
             BuildType.BASIC: "./basic/app",
@@ -779,27 +785,24 @@ def test_generate_combos_c_cxx():
             BuildType.COVERAGE: "./coverage/app",
         },
     }
-    for name in FuzzerCmdFactory.registry:
-        # skip go-fuzz and go-test here
-        if name in ("go-fuzz", "go-test"):
-            continue
-        cmdgen: FuzzerCmd = FuzzerCmdFactory.create(name)
-        for num_cores in range(1, 8):
-            for builds_title, builds in build_collections.items():
-                print(
-                    f"Generator: {cmdgen.__class__.__name__}. Cores: {num_cores}. Builds: {builds_title}"
-                )
-                cmdgen.generate(
-                    run_args="@@",
-                    run_env={},
-                    input_corpus="./in",
-                    output_corpus="./out",
-                    count=num_cores,
-                    builds=builds,
-                )
+
+    cmdgen: FuzzerCmd = FuzzerCmdFactory.create(gen_name)
+    for builds_title, builds in build_collections.items():
+        print(
+            f"Generator: {cmdgen.__class__.__name__}. Cores: {num_cores}. Builds: {builds_title}"
+        )
+        cmdgen.generate(
+            run_args="@@",
+            run_env={},
+            input_corpus="./in",
+            output_corpus="./out",
+            count=num_cores,
+            builds=builds,
+        )
 
 
-def test_generate_combos_gofuzz():
+@pytest.mark.parametrize("num_cores", range(1, 8))
+def test_generate_combos_gofuzz(num_cores: int):
     """
     go-fuzz generator shouln't fail with any valid number of cores
     """
@@ -809,16 +812,15 @@ def test_generate_combos_gofuzz():
         },
     }
     cmdgen: FuzzerCmd = FuzzerCmdFactory.create("go-fuzz")
-    for num_cores in range(1, 8):
-        for builds_title, builds in build_collections.items():
-            print(
-                f"Generator: {cmdgen.__class__.__name__}. Cores: {num_cores}. Builds: {builds_title}"
-            )
-            cmdgen.generate(
-                run_args="-func=TestFuzzFunc",
-                run_env={},
-                input_corpus="./in",
-                output_corpus="./out",
-                count=num_cores,
-                builds=builds,
-            )
+    for builds_title, builds in build_collections.items():
+        print(
+            f"Generator: {cmdgen.__class__.__name__}. Cores: {num_cores}. Builds: {builds_title}"
+        )
+        cmdgen.generate(
+            run_args="-func=TestFuzzFunc",
+            run_env={},
+            input_corpus="./in",
+            output_corpus="./out",
+            count=num_cores,
+            builds=builds,
+        )

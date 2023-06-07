@@ -14,20 +14,20 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
+import pytest
 
 from bugbane.tools.reproduce.bugsamplesaver import BugSampleSaver, BugSampleSaverError
 
 
-def test_title_to_sample_name():
-    in_out = [
+@pytest.mark.parametrize(
+    "issue_title, sample_file_name",
+    [
         (
             "Crash in LibName::Method at /opt/libname/src/parse.cpp:432",
             "crash_in_libname_method_at_opt_libname_src_parse_cpp_432",
         ),
-    ]
-
+    ],
+)
+def test_title_to_sample_name(issue_title: str, sample_file_name: str):
     bss = BugSampleSaver()
-
-    for inp, exp in in_out:
-        assert bss.title_to_sample_name(inp) == exp
+    assert bss.title_to_sample_name(issue_title) == sample_file_name

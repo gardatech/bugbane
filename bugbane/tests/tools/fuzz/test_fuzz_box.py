@@ -14,31 +14,39 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Optional
+
 import pytest
 from pytest_mock import MockerFixture
 
 from bugbane.tools.fuzz.fuzz_box import limit_cpu_cores
 
+DEFAULT_FOR_EMPTY = 8
 
-def test_limit_cpu_cores(mocker: MockerFixture):
-    default_for_empty = 8
-    in_out = [
-        # (from_config, --max-cpus, cpu_count), expected result
-        ((None, 16, 4), 4),
-        ((None, 16, 9), default_for_empty),
-        ((1, 16, 4), 1),
-        ((1, 16, 32), 1),
-        ((1, 16, 1), 1),
-        ((1, 1, 16), 1),
-        ((2, 1, 16), 1),
-        ((2, 16, 1), 1),
-        ((2, 16, 16), 2),
-        ((17, 16, 16), 16),
-        ((100, 256, 512), 100),
-    ]
 
-    for inp, expected in in_out:
-        from_config, max_cpus, cpu_count = inp
-        mocker.patch("bugbane.tools.fuzz.fuzz_box.os.cpu_count", return_value=cpu_count)
-        limited = limit_cpu_cores(from_config=from_config, max_from_args=max_cpus)
-        assert limited == expected
+@pytest.mark.parametrize(
+    "from_config, max_cpus_arg, os_cpu_count, expected",
+    [
+        (None, 16, 4, 4),
+        (None, 16, 9, DEFAULT_FOR_EMPTY),
+        (1, 16, 4, 1),
+        (1, 16, 32, 1),
+        (1, 16, 1, 1),
+        (1, 1, 16, 1),
+        (2, 1, 16, 1),
+        (2, 16, 1, 1),
+        (2, 16, 16, 2),
+        (17, 16, 16, 16),
+        (100, 256, 512, 100),
+    ],
+)
+def test_limit_cpu_cores(
+    mocker: MockerFixture,
+    from_config: Optional[int],
+    max_cpus_arg: int,
+    os_cpu_count: int,
+    expected: int,
+):
+    mocker.patch("bugbane.tools.fuzz.fuzz_box.os.cpu_count", return_value=os_cpu_count)
+    limited = limit_cpu_cores(from_config=from_config, max_from_args=max_cpus_arg)
+    assert limited == expected

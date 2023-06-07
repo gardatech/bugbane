@@ -46,7 +46,7 @@ class BuildType(Enum):
                 return bt
 
         raise RuntimeError(
-            f"bad build type {s} (supported types: {', '.join(bt.name.upper() for bt in cls)})"
+            f"bad build type '{s}' (supported types: {', '.join(bt.name.upper() for bt in cls)})"
         )
 
     def dirname(self):

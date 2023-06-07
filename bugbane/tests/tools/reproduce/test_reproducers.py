@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Type
 
 import pytest
 from pytest_mock import MockerFixture
@@ -26,11 +26,17 @@ from bugbane.tools.reproduce.reproducers.gofuzz import GoFuzzReproducer
 from bugbane.tools.reproduce.reproducers.gotest import GoTestReproducer
 
 
-def test_factory():
-    assert ReproducerFactory.create("AFL++").__class__ is DefaultReproducer
-    assert ReproducerFactory.create("libFuzzer").__class__ is DefaultReproducer
-    assert ReproducerFactory.create("go-fuzz").__class__ is GoFuzzReproducer
-    assert ReproducerFactory.create("go-test").__class__ is GoTestReproducer
+@pytest.mark.parametrize(
+    "fuzzer_type, reproducer_class",
+    [
+        ("AFL++", DefaultReproducer),
+        ("libFuzzer", DefaultReproducer),
+        ("go-fuzz", GoFuzzReproducer),
+        ("go-test", GoTestReproducer),
+    ],
+)
+def test_factory(fuzzer_type: str, reproducer_class: Type[Reproducer]):
+    assert ReproducerFactory.create(fuzzer_type).__class__ is reproducer_class
 
 
 def test_factory_bad(mocker: MockerFixture):
@@ -60,10 +66,9 @@ def test_factory_overwrite():
     assert ReproducerFactoryChild.default is SomeClass2
 
 
-def test_gotest_make_reproduce_cmd():
-    r = GoTestReproducer()
-
-    inp_exp = [
+@pytest.mark.parametrize(
+    "samples_path, expected_run_args",
+    [
         (
             "testdata/fuzz/FuzzParse/beefbeefbeef",
             "-test.run=FuzzParse/beefbeefbeef",
@@ -72,8 +77,9 @@ def test_gotest_make_reproduce_cmd():
             "/fuzz/myapp/testdata/fuzz/FuzzSimpleParse/beefbeefbeef",
             "-test.run=FuzzSimpleParse/beefbeefbeef",
         ),
-    ]
-
-    for inp, exp in inp_exp:
-        print(f"{inp=}, {exp=}")
-        assert r.prep_run_args(sample_path=inp) == exp
+    ],
+)
+def test_gotest_make_reproduce_cmd(samples_path: str, expected_run_args: str):
+    r = GoTestReproducer()
+    print(f"{samples_path=}, {expected_run_args=}")
+    assert r.prep_run_args(sample_path=samples_path) == expected_run_args

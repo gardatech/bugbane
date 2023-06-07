@@ -15,6 +15,7 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 import pytest
+
 from bugbane.modules.build_type import BuildType
 from bugbane.tools.builder.builders.aflplusplus import AFLplusplusLLVMBuilder
 from bugbane.tools.builder.builders.base_builders import Builder
@@ -22,23 +23,24 @@ from bugbane.tools.builder.builders.factory import FuzzBuilderFactory
 from bugbane.tools.coverage.collector.factory import CoverageCollectorFactory
 
 
-def test_build_type_from_str():
-    mappings = {
-        "basic": BuildType.BASIC,
-        "LAF": BuildType.LAF,
-        "cmplog": BuildType.CMPLOG,
-        "Asan": BuildType.ASAN,
-        "UBSAN": BuildType.UBSAN,
-        "cfisAN": BuildType.CFISAN,
-        "TSAN": BuildType.TSAN,
-        "LSAN": BuildType.LSAN,
-        "MSAN": BuildType.MSAN,
-        "COvErAGE": BuildType.COVERAGE,
-        "cov": BuildType.COVERAGE,
-    }
-
-    for k, v in mappings.items():
-        assert v == BuildType.from_str(k)
+@pytest.mark.parametrize(
+    "value, build_type",
+    [
+        ("basic", BuildType.BASIC),
+        ("LAF", BuildType.LAF),
+        ("cmplog", BuildType.CMPLOG),
+        ("Asan", BuildType.ASAN),
+        ("UBSAN", BuildType.UBSAN),
+        ("cfisAN", BuildType.CFISAN),
+        ("TSAN", BuildType.TSAN),
+        ("LSAN", BuildType.LSAN),
+        ("MSAN", BuildType.MSAN),
+        ("COvErAGE", BuildType.COVERAGE),
+        ("cov", BuildType.COVERAGE),
+    ],
+)
+def test_build_type_from_str(value: str, build_type: BuildType):
+    assert build_type == BuildType.from_str(value)
 
 
 def test_build_type_empty():
@@ -46,17 +48,18 @@ def test_build_type_empty():
     assert BuildType.from_str(None) == BuildType.BASIC
 
 
-def test_build_type_bad():
+@pytest.mark.parametrize(
+    "invalid_build_name",
+    [
+        "!!! unknown !!!",
+        "ASAN ",
+        " UBSAN",
+        " CFISAN ",
+    ],
+)
+def test_build_type_bad(invalid_build_name: str):
     with pytest.raises(RuntimeError):
-        BuildType.from_str("!!! unknown !!!")
-
-    # surplus space tests:
-    with pytest.raises(RuntimeError):
-        BuildType.from_str("ASAN ")
-    with pytest.raises(RuntimeError):
-        BuildType.from_str(" UBSAN")
-    with pytest.raises(RuntimeError):
-        BuildType.from_str(" CFISAN ")
+        BuildType.from_str(invalid_build_name)
 
 
 def test_build_type_dirname():
@@ -180,11 +183,11 @@ def test_ensure_build_types():
     ]
 
 
-def test_builder_coverage_type():
+@pytest.mark.parametrize("builder_type", FuzzBuilderFactory.registry)
+def test_builder_coverage_type(builder_type: str):
     """
     Check that each registered builder returns registered coverage type
     """
-    for builder_type in FuzzBuilderFactory.registry:
-        builder: Builder = FuzzBuilderFactory.create(builder_type)
-        print(f"Checking {builder.__class__.__name__}")
-        assert builder.get_coverage_type() in CoverageCollectorFactory.registry
+    builder: Builder = FuzzBuilderFactory.create(builder_type)
+    print(f"Checking {builder.__class__.__name__}")
+    assert builder.get_coverage_type() in CoverageCollectorFactory.registry
