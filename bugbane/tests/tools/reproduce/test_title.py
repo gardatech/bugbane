@@ -355,6 +355,15 @@ exit status 2"""
     assert card.title == "Hang in go.Parse at /src/go/fuzzable.go:48"
 
 
+def test_go_hang_no_stack_trace():
+    output = """program hanged (timeout 10 seconds)
+
+signal: killed
+"""
+    card = helper_make_card(output, exit_code=2, is_hang=None, src_path="/src/go")
+    assert card.title == "Hang"
+
+
 def test_go_segfault():
     output = """panic: runtime error: invalid memory address or nil pointer dereference
 [signal SIGSEGV: segmentation violation code=0x1 addr=0x0 pc=0x459c81]
@@ -371,6 +380,49 @@ main.main()
 exit status 2"""
     card = helper_make_card(output, exit_code=2, is_hang=None, src_path="/src")
     assert card.title == "Crash in go.Parse at /src/go/fuzzable.go:9"
+
+
+def test_go_out_of_memory():
+    output = """fatal error: runtime: out of memory
+
+runtime stack:
+runtime.throw({0x7ac6ea?, 0x57b8c00000?})
+        runtime/panic.go:992 +0x71
+runtime.sysMap(0xc000400000, 0x7fffffffea60?, 0x7fffffffeac8?)
+        runtime/mem_linux.go:189 +0x11b
+runtime.systemstack()
+        runtime/asm_amd64.s:469 +0x49
+
+goroutine 1 [running]:
+runtime.systemstack_switch()
+        runtime/asm_amd64.s:436 fp=0xc0000e1500 sp=0xc0000e14f8 pc=0x461f60
+reflect.unsafe_NewArray(0x4?, 0x4?)
+        runtime/malloc.go:1296 +0x19 fp=0xc0000e1658 sp=0xc0000e1638 pc=0x45e579
+reflect.MakeSlice({0x808870, 0x74a080}, 0xff303030, 0xff303030)
+        /usr/local/go/src/reflect/value.go:2911 +0x17c fp=0xc0000e1688 sp=0xc0000e1658 pc=0x4cdd1c
+construct/v1.Unpack({0x7fffcadfe000, 0x8, 0x8}, {0xc0000e1958, 0x1, 0x38?})
+        /src/go/ctl.go:360 +0x26a fp=0xc0000e1928 sp=0xc0000e18e8 pc=0x7185aa
+handler.(*Request).GetRequest(...)
+        /src/go/request.go:33
+go-fuzz-dep.Main({0xc0000e1f68, 0x1, 0x74c860?})
+        go-fuzz-dep/main.go:36 +0x15a fp=0xc0000e1f50 sp=0xc0000e1ea8 pc=0x489fda
+main.main()
+        abc/def/command/go.fuzz.main/main.go:15 +0x3b fp=0xc0000e1f80 sp=0xc0000e1f50 pc=0x72de5b
+runtime.main()
+        runtime/proc.go:250 +0x212 fp=0xc0000e1fe0 sp=0xc0000e1f80 pc=0x437b72
+runtime.goexit()
+        runtime/asm_amd64.s:1571 +0x1 fp=0xc0000e1fe8 sp=0xc0000e1fe0 pc=0x464181
+exit status 2
+"""
+    card = helper_make_card(output, exit_code=2, is_hang=None, src_path="/src/go")
+    assert card.title == "Out of memory in v1.Unpack at /src/go/ctl.go:360"
+
+
+def test_go_out_of_memory_no_stack_trace():
+    output = """fatal error: runtime: out of memory
+"""
+    card = helper_make_card(output, exit_code=2, is_hang=None, src_path="/src/go")
+    assert card.title == "Out of memory"
 
 
 def test_csharp_unhandled_exception():

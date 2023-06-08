@@ -38,6 +38,7 @@ class Verdict(Enum):
     CRASH_STACK_OVERFLOW = (2048, "Stack overflow")
     CRASH_PANIC = (4096, "Panic")
     CRASH_UNHANDLED_EXCEPTION = (8192, "Unhandled exception")
+    CRASH_OUT_OF_MEMORY = (16384, "Out of memory")
 
     def __init__(self, value, description):
         self._id = value
@@ -61,6 +62,9 @@ class Verdict(Enum):
 
         if "program hanged (timeout" in output:
             return cls.HANG
+
+        if "fatal error: runtime: out of memory" in output:
+            return cls.CRASH_OUT_OF_MEMORY
 
         if "fatal error: stack overflow" in output:
             return cls.CRASH_STACK_OVERFLOW
