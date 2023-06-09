@@ -81,5 +81,5 @@ def test_factory_overwrite():
 )
 def test_gotest_make_reproduce_cmd(samples_path: str, expected_run_args: str):
     r = GoTestReproducer()
-    print(f"{samples_path=}, {expected_run_args=}")
+    print(f"samples_path={samples_path}, expected_run_args={expected_run_args}")
     assert r.prep_run_args(sample_path=samples_path) == expected_run_args
