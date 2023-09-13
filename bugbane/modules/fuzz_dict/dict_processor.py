@@ -118,13 +118,14 @@ class DictProcessor:
             return ""
 
         # remove comment after token
+        # XXX: of course this means there is no support for tokens like "#" or "ABC#DEF"
         if "#" in t:
-            t = t.split("#")[0]
+            t = t.split("#")[0].strip()
 
         if "=" not in t:
             return t
 
-        t = t.split("=")[1]
+        t = t.rsplit("=", 1)[1]
         return t.strip()
 
     def _is_token_valid(self, token: str) -> bool:

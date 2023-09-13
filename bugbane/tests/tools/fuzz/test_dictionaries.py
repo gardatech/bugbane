@@ -158,3 +158,16 @@ def test_save_to_file_write_error(mocker: MockerFixture):
     d.tokens = {'"tok3"', '"tok1"', '"tok2"'}
     with pytest.raises(DictProcessorException):
         d.save_to_file("nonexistent")
+
+@pytest.mark.parametrize(
+    "line, token",
+    [
+        ('"1"', '"1"'),
+        ('" "', '" "'),
+        ('"Some Token" # with comment!', '"Some Token"'),
+        ('token1=" &"', '" &"'),
+    ]
+)
+def test_extract_token_from_line(line: str, token: str):
+    d = DictProcessor()
+    assert d._extract_token_from_one_line(line) == token
