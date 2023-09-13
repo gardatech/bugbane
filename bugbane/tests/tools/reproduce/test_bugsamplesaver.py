@@ -28,6 +28,40 @@ from bugbane.tools.reproduce.bugsamplesaver import BugSampleSaver, BugSampleSave
         ),
     ],
 )
-def test_title_to_sample_name(issue_title: str, sample_file_name: str):
-    bss = BugSampleSaver()
+def test_title_to_sample_name(issue_title: str, sample_file_name: str) -> None:
+    bss = BugSampleSaver(max_file_name_len=255)
     assert bss.title_to_sample_name(issue_title) == sample_file_name
+
+
+def test_file_len_limit_too_low() -> None:
+    with pytest.raises(BugSampleSaverError):
+        BugSampleSaver(max_file_name_len=14)
+
+
+@pytest.mark.parametrize(
+    "long_name, mid_part, max_len, shortened",
+    [
+        ("12345", "*", 5, "12345"),
+        ("12345", "**", 5, "12345"),
+        ("12345", "*", 6, "12345"),
+        ("12345", "**", 10, "12345"),
+        ("12345", "*", 4, "12*5"),
+        ("12345", "**", 4, "1**5"),
+        ("12345", "*", 3, "1*5"),
+        ("123456", "*", 3, "1*6"),
+        ("123456", "*", 4, "12*6"),
+        ("01234567890abcdefghijk", "_-_-_", 10, "012_-_-_jk"),
+        ("01234567890abcdefghijk", "_-_-_", 11, "012_-_-_ijk"),
+        ("01234567890abcdefghijkl", "_-_-_", 10, "012_-_-_kl"),
+        ("01234567890abcdefghijkl", "_-_-_", 11, "012_-_-_jkl"),
+    ],
+)
+def test_shorten_sample_name(
+    long_name: str, mid_part: str, max_len: int, shortened: str
+) -> None:
+    assert (
+        BugSampleSaver.shorten_sample_name(
+            long_name, new_mid_part=mid_part, max_len=max_len
+        )
+        == shortened
+    )

@@ -60,6 +60,13 @@ def parse_args(argv):
         help="use absolute paths for tested binaries and testcase files while reproducing",
         action="store_true",
     )
+    app_options.add_argument(
+        "--max-file-name-len",
+        help="limit the length of bug sample file names to LEN (default: 255)",
+        type=int,
+        metavar="LEN",
+        default=255,
+    )
 
     supbarsers = parser.add_subparsers(help="run mode", dest="run_mode")
 

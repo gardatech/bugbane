@@ -34,9 +34,12 @@ class BugSampleSaver:
     Empty issue_cards field in results dictionary is not considered an error.
     """
 
-    def __init__(self):
+    def __init__(self, max_file_name_len: int):
         self.re_bad_filename_chars = re.compile(r"[^_0-9a-z]+")
         self.re_multiple_underscores = re.compile(r"_{2,}")
+        self.max_file_name_len = max_file_name_len - 5
+        if self.max_file_name_len < 10:
+            raise BugSampleSaverError("too low value for max file name length, use 15 or more")
 
     def save_bug_samples(
         self,
@@ -78,6 +81,8 @@ class BugSampleSaver:
         save_name = self.title_to_sample_name(str(title))
         save_path = os.path.join(output_dir, save_name)
 
+        save_path = self.get_next_free_file_name(save_path)
+
         try:
             shutil.copyfile(str(sample_path), save_path)
         except OSError as e:
@@ -95,4 +100,34 @@ class BugSampleSaver:
         lowered_title = issue_title.lower()
         filtered = self.re_bad_filename_chars.sub("_", lowered_title)
         normalized = self.re_multiple_underscores.sub("_", filtered)
-        return normalized
+        shortened = self.shorten_sample_name(
+            normalized, new_mid_part="_-_-_", max_len=self.max_file_name_len
+        )
+        return shortened
+
+    @staticmethod
+    def shorten_sample_name(sample_name: str, new_mid_part: str, max_len: int) -> str:
+        """
+        Return shortened variant of the `sample_name` string by replacing the middle part
+        of the `sample_name` with `new_mid_part`.
+        If `sample_name` is already not longer than `max_len`, then it's returned without
+        changes.
+        """
+        if len(sample_name) <= max_len:
+            return sample_name
+
+        num_orig_chars = max_len - len(new_mid_part)
+
+        half, offset = divmod(num_orig_chars, 2)
+        return sample_name[: half + offset] + new_mid_part + sample_name[-half:]
+
+    @staticmethod
+    def get_next_free_file_name(wanted_path: str) -> str:
+        """
+        Generate the next available file name if `wanted_path` already exists.
+        """
+        number = 1
+        orig_wanted_path = wanted_path
+        while os.path.exists(wanted_path):
+            wanted_path = orig_wanted_path + "%04d" % number
+        return wanted_path

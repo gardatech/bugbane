@@ -170,8 +170,8 @@ def main(argv=None):
         log.error("during reproduce: %s", e)
         return 1
 
-    bss = BugSampleSaver()
     try:
+        bss = BugSampleSaver(max_file_name_len=args.max_file_name_len)
         bss.save_bug_samples(results, bug_samples_dir)
     except BugSampleSaverError as e:
         log.error("while saving bug samples: %s", e)
