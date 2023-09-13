@@ -130,4 +130,5 @@ class BugSampleSaver:
         orig_wanted_path = wanted_path
         while os.path.exists(wanted_path):
             wanted_path = orig_wanted_path + "%04d" % number
+            number += 1
         return wanted_path
