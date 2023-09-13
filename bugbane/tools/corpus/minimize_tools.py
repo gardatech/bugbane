@@ -70,10 +70,11 @@ def deduplicate_by_tool(
     return count
 
 
-def sync_files_by_names(src_dir: str, dst_dir: str) -> int:
+def sync_files_by_names(src_dir: str, dst_dir: str, max_sample_size: int) -> int:
     """
     Copies files from source to destination if destination doesn't already
     contain same file names.
+    Skips files bigger than `max_sample_size` (specified in bytes).
     Returns number of newly copied files.
     NOTE: Destination directory must exist.
     NOTE: This method is not recursive.
@@ -89,14 +90,22 @@ def sync_files_by_names(src_dir: str, dst_dir: str) -> int:
         "Have %d entries to synchronize from %s to %s", len(src_files), src_dir, dst_dir
     )
 
+    if max_sample_size > 0:
+        bail_on_bad_size = lambda p: os.stat(p).st_size > max_sample_size
+    else:
+        bail_on_bad_size = lambda _: False
+
     count = 0
     for src_name in src_files:
+        src_file = os.path.join(src_dir, src_name)
+        if not os.path.isfile(src_file):
+            continue
+
         dst_file = os.path.join(dst_dir, src_name)
         if os.path.exists(dst_file):
             continue
 
-        src_file = os.path.join(src_dir, src_name)
-        if not os.path.isfile(src_file):
+        if bail_on_bad_size(src_file):
             continue
 
         shutil.copyfile(src_file, dst_file, follow_symlinks=True)

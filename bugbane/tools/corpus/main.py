@@ -187,7 +187,9 @@ def main(argv=None):
         os.makedirs(dst)
 
     log.verbose1("Sychronizing samples from directory %s to %s", tmpdir, dst)
-    num_copied = sync_files_by_names(src_dir=tmpdir, dst_dir=dst)
+    num_copied = sync_files_by_names(
+        src_dir=tmpdir, dst_dir=dst, max_sample_size=args.max_sample_size
+    )
     log.info("Added %d samples to %s", num_copied, dst)
 
     log.verbose2("Removing temporary directory %s", tmpdir)

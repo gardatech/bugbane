@@ -159,6 +159,7 @@ def test_save_to_file_write_error(mocker: MockerFixture):
     with pytest.raises(DictProcessorException):
         d.save_to_file("nonexistent")
 
+
 @pytest.mark.parametrize(
     "line, token",
     [
@@ -166,7 +167,7 @@ def test_save_to_file_write_error(mocker: MockerFixture):
         ('" "', '" "'),
         ('"Some Token" # with comment!', '"Some Token"'),
         ('token1=" &"', '" &"'),
-    ]
+    ],
 )
 def test_extract_token_from_line(line: str, token: str):
     d = DictProcessor()

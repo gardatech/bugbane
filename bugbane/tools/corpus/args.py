@@ -47,6 +47,13 @@ def create_argument_parser():
         action="count",
         default=0,
     )
+    parser.add_argument(
+        "--max-sample-size",
+        help="don't synchronize files bigger than SIZE bytes (default: synchronize all files)",
+        metavar="SIZE",
+        type=int,
+        default=0,
+    )
 
     supbarsers = parser.add_subparsers(help="run mode", dest="run_mode")
 

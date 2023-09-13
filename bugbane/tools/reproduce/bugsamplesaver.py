@@ -39,7 +39,9 @@ class BugSampleSaver:
         self.re_multiple_underscores = re.compile(r"_{2,}")
         self.max_file_name_len = max_file_name_len - 5
         if self.max_file_name_len < 10:
-            raise BugSampleSaverError("too low value for max file name length, use 15 or more")
+            raise BugSampleSaverError(
+                "too low value for max file name length, use 15 or more"
+            )
 
     def save_bug_samples(
         self,
