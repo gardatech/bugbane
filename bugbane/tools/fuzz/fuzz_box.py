@@ -141,7 +141,7 @@ class FuzzBox:
                 self.suite.dicts_dir, wanted_dict_path
             )
         except DictMergeError as e:
-            raise FuzzBoxError("wasn't able to prepare dictionary file: {e}") from e
+            raise FuzzBoxError(f"wasn't able to prepare dictionary file: {e}") from e
         return dict_path
 
     def _prepare_input_corpus_dir(self, in_dir: str):
