@@ -149,7 +149,8 @@ class Harvester:
             raise HarvesterError(
                 f"while trying to use fuzzer_type={fuzzer_type}: {e}"
             ) from e
-        reproducer.set_run_args(self.run_args)
+        repro_run_args = fuzzer_info.one_sample_run_args(self.run_args)
+        reproducer.set_run_args(repro_run_args)
         reproducer.set_run_env(self.run_env)
         reproducer.set_num_tries(self.num_reruns)
 

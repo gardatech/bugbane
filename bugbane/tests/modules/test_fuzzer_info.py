@@ -56,6 +56,9 @@ def test_afl():
 
     assert info.can_continue_after_bug() is True
 
+    assert info.one_sample_run_args([]) == []
+    assert info.one_sample_run_args(["--fuzz", "@@"]) == ["--fuzz", "@@"]
+
 
 def test_libfuzzer():
     """
@@ -81,6 +84,9 @@ def test_libfuzzer():
 
     assert info.can_continue_after_bug() is True
 
+    assert info.one_sample_run_args([]) == ["@@"]
+    assert info.one_sample_run_args(["--fuzz", "@@"]) == ["@@"]
+
 
 def test_gofuzz():
     info = GoFuzzInfo()
@@ -102,6 +108,9 @@ def test_gofuzz():
 
     assert info.can_continue_after_bug() is True
 
+    assert info.one_sample_run_args([]) == []
+    assert info.one_sample_run_args(["--fuzz", "@@"]) == ["--fuzz", "@@"]
+
 
 def test_gotest():
     info = GoTestInfo()
@@ -122,3 +131,6 @@ def test_gotest():
     assert info.coverage_dir("out/") == "out/"
 
     assert info.can_continue_after_bug() is False
+
+    assert info.one_sample_run_args([]) == []
+    assert info.one_sample_run_args(["--fuzz", "@@"]) == ["--fuzz", "@@"]

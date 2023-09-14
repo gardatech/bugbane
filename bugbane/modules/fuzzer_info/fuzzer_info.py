@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, List
 from abc import ABC, abstractmethod
 
 
@@ -88,4 +88,11 @@ class FuzzerInfo(ABC):
         """
         Return True if fuzzer continues to work after discovering a bug.
         Return False if fuzzer only works until any bug was found.
+        """
+
+    @abstractmethod
+    def one_sample_run_args(self, input_run_args: List[str]) -> List[str]:
+        """
+        Return run arguments for tested app to run a single sample.
+        The result may include "@@" to indicate sample path.
         """

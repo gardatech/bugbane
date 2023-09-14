@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, List
 
 import os
 
@@ -60,3 +60,6 @@ class GoTestInfo(GoFuzzInfo):
     def can_continue_after_bug(self) -> bool:
         # https://github.com/golang/go/issues/48127
         return False
+
+    def one_sample_run_args(self, input_run_args: List[str]) -> List[str]:
+        return input_run_args

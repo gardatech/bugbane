@@ -134,6 +134,7 @@ def main(argv=None):
             return 1
     else:
         src_path = args.src_path
+        fuzzer_type = ""
         run_args = args.program[1:]  # skip binary itself
         run_env = {}
         reproduce_specs = args.spec
@@ -142,7 +143,9 @@ def main(argv=None):
 
     harvester = Harvester()
     harvester.set_src_path_base(src_path)
-    harvester.set_run_args(run_args)
+
+    repro_run_args = select_reproduce_run_args(fuzzer_type, run_args)
+    harvester.set_run_args(repro_run_args)
     harvester.set_specs(reproduce_specs)
 
     harvester.set_num_reruns(args.num_reruns)
@@ -187,3 +190,13 @@ def main(argv=None):
     log.info("[+] Reproducing complete")
 
     return 0
+
+
+def select_reproduce_run_args(fuzzer_type: str, input_run_args: List[str]) -> List[str]:
+    """
+    LibFuzzer has to have "@@" as run args when running a single sample.
+    Returns either that, or `input_run_args` for other fuzzers.
+    """
+    if fuzzer_type == "libFuzzer":
+        return ["@@"]
+    return input_run_args

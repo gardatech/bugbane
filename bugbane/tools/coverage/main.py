@@ -75,6 +75,7 @@ def main(argv=None):
 
             fuzzer_info: FuzzerInfo = FuzzerInfoFactory.create(fuzzer_type)
             sample_masks = [fuzzer_info.sample_mask(fuzz_sync_dir, "*1")]
+            run_args = fuzzer_info.one_sample_run_args(run_args)
 
             src_root = bane_vars.get("src_root")
             if not src_root:

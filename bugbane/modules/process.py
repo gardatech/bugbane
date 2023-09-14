@@ -193,8 +193,8 @@ def prepare_run_args_for_shell(run_args: List[str], sample_path: str) -> str:
     If @@ is found in run_args, return run_args with quoted sample path instead of @@.
     If @@ is not found in run_args, return run_args with input redirected from quoted sample path.
     """
-    run_args = " ".join(run_args)
+    str_args = " ".join(run_args)
 
-    if "@@" in run_args:
-        return run_args.replace("@@", f'"{sample_path}"')
-    return run_args + f' < "{sample_path}"'
+    if "@@" in str_args:
+        return str_args.replace("@@", f'"{sample_path}"')
+    return str_args + f' < "{sample_path}"'
