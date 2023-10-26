@@ -31,8 +31,6 @@ def test_is_glob_mask():
 
 
 def test_replace_part_in_str_list():
-    tested_func = string_utils.replace_part_in_str_list
-
     cmds = [
         "./basic/app --arg $arg @@",
         "./asan/app --arg $arg @@",
@@ -45,6 +43,33 @@ def test_replace_part_in_str_list():
     ]
     last = len(cmds) - 1
     cmds_copy = copy(cmds)
-    tested_func(cmds_copy, "$arg", "runtime", -1, 0, last)
+    string_utils.replace_part_in_str_list(cmds_copy, "$arg", "runtime", -1, 0, last)
     print(cmds_copy)
     assert cmds_copy == expected
+
+
+@pytest.mark.parametrize(
+    "long_name, mid_part, max_len, shortened",
+    [
+        ("12345", "*", 5, "12345"),
+        ("12345", "**", 5, "12345"),
+        ("12345", "*", 6, "12345"),
+        ("12345", "**", 10, "12345"),
+        ("12345", "*", 4, "12*5"),
+        ("12345", "**", 4, "1**5"),
+        ("12345", "*", 3, "1*5"),
+        ("123456", "*", 3, "1*6"),
+        ("123456", "*", 4, "12*6"),
+        ("01234567890abcdefghijk", "_-_-_", 10, "012_-_-_jk"),
+        ("01234567890abcdefghijk", "_-_-_", 11, "012_-_-_ijk"),
+        ("01234567890abcdefghijkl", "_-_-_", 10, "012_-_-_kl"),
+        ("01234567890abcdefghijkl", "_-_-_", 11, "012_-_-_jkl"),
+    ],
+)
+def test_shorten_string(
+    long_name: str, mid_part: str, max_len: int, shortened: str
+) -> None:
+    assert (
+        string_utils.shorten_string(long_name, new_mid_part=mid_part, max_len=max_len)
+        == shortened
+    )

@@ -92,3 +92,19 @@ def _check_ranges(collection_size: int, start: int, end: int):
         raise IndexError(
             f"end={end} is out of bounds for sequence of size {collection_size} or is less than start index {start}"
         )
+
+
+def shorten_string(long_str: str, new_mid_part: str, max_len: int) -> str:
+    """
+    Return shortened variant of the `sample_name` string by replacing the middle part
+    of the `sample_name` with `new_mid_part`.
+    If `sample_name` is already not longer than `max_len`, then it's returned without
+    changes.
+    """
+    if len(long_str) <= max_len:
+        return long_str
+
+    num_orig_chars = max_len - len(new_mid_part)
+
+    half, offset = divmod(num_orig_chars, 2)
+    return long_str[: half + offset] + new_mid_part + long_str[-half:]

@@ -15,13 +15,18 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 from typing import Dict
+
 import os
 import json
+import random
+import string
 from datetime import datetime
 
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
+
+from bugbane.modules import string_utils
 
 from .dd_api.abc import DefectDojoAPI, DefectDojoAPIError
 
@@ -97,14 +102,13 @@ class DefectDojoSender:
 
             log.info("Created finding: %s", self.api.make_finding_url(finding_id))
 
-            # FIXME: sample uploading
-            # file_title = self.__make_finding_sample_title(finding_id, card["sample"])
-            # upload_ok = self.api.upload_file_for_finding(
-            #     finding_id, file_title, card["sample"]
-            # )
-            # log.verbose2(
-            #     "File upload result:", {False: "FAIL", True: "Success"}[upload_ok]
-            # )
+            file_title = self.__make_finding_sample_title(finding_id, card["sample"])
+            upload_ok = self.api.upload_file_for_finding(
+                finding_id, file_title, card["sample"]
+            )
+            log.info(
+                "File upload result: %s", {False: "FAIL", True: "Success"}[upload_ok]
+            )
 
     def __create_one_dd_finding(self, issue_card):
         """
@@ -182,16 +186,16 @@ class DefectDojoSender:
             )
             return
 
-        if not old or not new:
+        if not old and not new:
             log.warning(
-                "in path translation rule '%s': old or new path is empty - RULE IGNORED",
+                "in path translation rule '%s': both old and new paths are empty - RULE IGNORED",
                 rule,
             )
             return
 
         if old in result_dict:
             log.warning(
-                "in path translation rule '%s': old part '%s' was already defined - RULE IGNORED",
+                "in path translation rule '%s': old part '%s' was previously defined in some other rule - RULE IGNORED",
                 rule,
                 old,
             )
@@ -210,7 +214,7 @@ class DefectDojoSender:
 
         for card in self.issue_cards:
             path = card["sample"]
-            path = self.__translate_sample_path(path)
+            path = self.translate_sample_path(path)
             ignore_file_upload = not os.path.isfile(path)
             card["ignore_file_upload"] = ignore_file_upload
             if ignore_file_upload:
@@ -222,7 +226,7 @@ class DefectDojoSender:
 
             card["sample"] = path
 
-    def __translate_sample_path(self, path):
+    def translate_sample_path(self, path: str) -> str:
         """
         Performs changes in path based on self.sample_path_translation_map
         """
@@ -231,17 +235,34 @@ class DefectDojoSender:
             return path
 
         for old, new in self.sample_path_translation_map.items():
-            path = path.replace(old, new)
+            if len(old) > 0:
+                path = path.replace(old, new)
+            else: # empty old path: just add `new` to the beginning
+                path = new + path
 
         return path
 
-    def __make_finding_sample_title(self, finding_id, file_path):
+    def __make_finding_sample_title(self, finding_id: int, file_path: str) -> str:
         """
         Makes unique title for sample file to be uploaded to Defect Dojo
         """
         if not file_path:
             return file_path
 
-        basename = os.path.basename(file_path)
+        dd_max_file_len = 100  # value from the Defect Dojo API docs
         date_and_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        return "%s__%d__%s" % (date_and_time, finding_id, basename)
+        prefix = "%s__%d__" % (date_and_time, finding_id)
+        max_shortened_len = dd_max_file_len - len(prefix) - 1
+
+        if max_shortened_len > 0:
+            basename = os.path.basename(file_path)
+            shortened = string_utils.shorten_string(
+                long_str=basename, max_len=max_shortened_len, new_mid_part="_-_-_"
+            )
+        else:
+            # our shenanigans didn't work, just make a random name
+            shortened = "".join(
+                random.choices(string.ascii_lowercase + string.digits, k=32)
+            )
+
+        return prefix + shortened

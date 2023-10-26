@@ -44,7 +44,7 @@ def parse_args(argv):
         "--tsp",
         "--translate-sample-paths",
         help="sample path replacement(s) (use if paths in json differ from actual sample paths)",
-        metavar="/old/path->/new/path",
+        metavar="/old->/new",
         nargs="+",
         default=None,
         dest="translate_sample_paths",
@@ -76,11 +76,6 @@ def parse_args(argv):
         "--token",
         help="authorization token for user specified in --user-name",
         required=True,
-    )
-    dd_group.add_argument(
-        "--password",
-        help="user password (for web-based api only)",
-        default=None,
     )
     dd_group.add_argument("--user-id", help="user id (default: 1)", default=1, type=int)
     dd_group.add_argument(

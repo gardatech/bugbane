@@ -14,6 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+import os
 import sys
 import pprint
 from argparse import Namespace
@@ -34,7 +35,7 @@ def create_dd_api_from_args(args: Namespace) -> DefectDojoAPI:
     Instantiate api object based on args and return it.
     """
 
-    api = DefectDojoAPIFactory.create(args.api_type)
+    api: DefectDojoAPI = DefectDojoAPIFactory.create(args.api_type)
     verify_ssl = not args.no_ssl
     debug = args.verbose > 4
     api.instantiate_api(
@@ -43,7 +44,6 @@ def create_dd_api_from_args(args: Namespace) -> DefectDojoAPI:
         user_name=args.user_name,
         user_id=args.user_id,
         user_token=args.token,
-        user_password=args.password,
         engagement_id=args.engagement,
         test_type_id=args.test_type,
         debug=debug,
@@ -77,6 +77,10 @@ def main(argv=None):
     except DefectDojoAPIError as e:
         log.error("during loading of issue cards. Message: %s", e)
         return 1
+
+    bug_samples_dir = "bug_samples"
+    if os.path.isdir(bug_samples_dir):
+        os.chdir(bug_samples_dir)
 
     log.info("Fuzz statistics:")
     log.info(pprint.pformat(sender.fuzz_stats, indent=4))

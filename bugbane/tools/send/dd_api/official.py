@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-# Inherits from original DefectDojoAPI class from
+# The class here inherits from original DefectDojoAPI class from
 # defectdojo_api library which is licensed under the MIT License
 # For more details on defectdojo_api visit https://github.com/DefectDojo/defectdojo_api
 
@@ -25,6 +25,7 @@ import json
 from datetime import datetime
 
 from defectdojo_api.defectdojo_apiv2 import DefectDojoAPIv2 as ddapiv2_official
+import requests
 
 from .abc import DefectDojoAPI, DefectDojoAPIError, DefectDojoResponse
 from .factory import DefectDojoAPIFactory
@@ -47,7 +48,6 @@ class DefectDojoAPI_official(DefectDojoAPI):
         user_name: str,
         user_id: int,
         user_token: str,
-        user_password: str,
         engagement_id: int,
         test_type_id: int,
         debug: bool = False,
@@ -58,7 +58,6 @@ class DefectDojoAPI_official(DefectDojoAPI):
             user_name,
             user_id,
             user_token,
-            user_password,
             engagement_id,
             test_type_id,
             debug,
@@ -204,15 +203,16 @@ class DefectDojoAPI_official(DefectDojoAPI):
             data.update({"endpoints": endpoints})
 
         resp = self.api._request("POST", "findings/", data=data)
-        id = self.__get_id_from_dd_response(resp)
+        finding_id = self.__get_id_from_dd_response(resp)
 
-        return (id, resp)
+        return (finding_id, resp)
 
     def upload_file_for_finding(
         self, finding_id: int, file_title: str, file_path: str
     ) -> bool:
         """
-        Note: file title should be unique across the whole Defect Dojo database
+        Attach a file to a finding.
+        Note: `file_title` should be unique across the whole Defect Dojo database
         """
 
         if not os.path.isfile(file_path):
@@ -222,21 +222,18 @@ class DefectDojoAPI_official(DefectDojoAPI):
 
         try:
             with open(file_path, "rb") as f:
-                filedata = f.read()
-        except OSError as e:
+                files = {
+                    "title": (None, file_title),
+                    "file": f,
+                }
+                resp = requests.post(
+                    f"{self.host}/api/v2/findings/{finding_id}/files/",
+                    headers={"Accept": "application/json", "Authorization": f"Token {self.user_token}"},
+                    files=files,
+                )
+        except (OSError, requests.exceptions.RequestException) as e:
             raise DefectDojoAPIError(
                 f"wasn't able to read file '{file_path}', so it can't be uploaded for finding '{self.make_finding_url(finding_id)}'"
             ) from e
 
-        data = {
-            "title": (None, file_title, "application/json"),
-            "file": (file_title, filedata, "application/octet-stream"),
-        }
-        resp = self.api._request(
-            "POST",
-            f"findings/{finding_id}/files",
-            # f"manage_files/{finding_id}/Finding",
-            files=data,
-        )
-
-        return resp.response_code == 200
+        return resp.status_code == 201

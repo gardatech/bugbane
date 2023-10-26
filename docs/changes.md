@@ -11,7 +11,14 @@ List of significant changes in BugBane.
 - fuzz tool:
     - dictionary merging algorithm now removes token names, thus removing duplicate tokens with different names
 - screenshot tool:
-    - changed default dpi used for pango-view from 180 to 128 to match dpi used by report tool
+    - changed default dpi used for pango-view from 180 to 128 to match dpi used by the report tool
+- send tool:
+    - **(breaking change)** removed "official_customized" Defect Dojo API implementation.<br>
+        Remove the `--api-type official_customized` argument, or change it to `--api-type official`
+    - removed unused cmdline option `--password`
+    - bb-send now uploads bug samples to Defect Dojo
+    - `--translate-sample-paths` now allows empty parts in translation rules,<br>
+        i.e., the rule "a/->" will just remove "a/" from each path, "->b/" will just append "b/" to the beginning of each path, the rule "->" doesn't make sense and won't do anything
 - README is now provided in both Russian and English
 
 ## Version 0.5.0

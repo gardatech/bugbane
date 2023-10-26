@@ -14,4 +14,4 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from . import official, official_customized
+from . import official

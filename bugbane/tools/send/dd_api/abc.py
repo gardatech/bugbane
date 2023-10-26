@@ -44,7 +44,6 @@ class DefectDojoAPI(ABC):
         self.user_name: Optional[str] = None
         self.user_id: Optional[int] = None
         self.user_token: Optional[str] = None
-        self.user_password: Optional[str] = None
         self.product_id: Optional[int] = None
         self.engagement_id: Optional[int] = None
         self.test_type_id: Optional[int] = None
@@ -59,7 +58,6 @@ class DefectDojoAPI(ABC):
         user_name: str,
         user_id: int,
         user_token: str,
-        user_password: str,
         engagement_id: int,
         test_type_id: int,
         debug: bool = False,
@@ -74,7 +72,6 @@ class DefectDojoAPI(ABC):
         self.user_name = user_name
         self.user_id = user_id
         self.user_token = user_token
-        self.user_password = user_password
         self.engagement_id = engagement_id
         self.test_type_id = test_type_id
         self.debug = debug
@@ -135,7 +132,7 @@ class DefectDojoAPI(ABC):
     @abstractmethod
     def load_product_id(self):
         """
-        Set product id instance variable corresponding to previosly saved engagement id.
+        Set product id instance variable corresponding to previously saved engagement id.
         """
 
     def make_finding_url(self, finding_id: int):

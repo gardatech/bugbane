@@ -143,3 +143,6 @@ builds/
 
 # vim tmp files
 *.swp
+
+bb_results.json
+bug_samples/

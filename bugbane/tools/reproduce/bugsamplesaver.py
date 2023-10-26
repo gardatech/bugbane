@@ -20,6 +20,8 @@ import os
 import re
 import shutil
 
+from bugbane.modules import string_utils
+
 
 class BugSampleSaverError(Exception):
     """Exception class for errors that happen in BugSampleSaver class."""
@@ -102,26 +104,10 @@ class BugSampleSaver:
         lowered_title = issue_title.lower()
         filtered = self.re_bad_filename_chars.sub("_", lowered_title)
         normalized = self.re_multiple_underscores.sub("_", filtered)
-        shortened = self.shorten_sample_name(
+        shortened = string_utils.shorten_string(
             normalized, new_mid_part="_-_-_", max_len=self.max_file_name_len
         )
         return shortened
-
-    @staticmethod
-    def shorten_sample_name(sample_name: str, new_mid_part: str, max_len: int) -> str:
-        """
-        Return shortened variant of the `sample_name` string by replacing the middle part
-        of the `sample_name` with `new_mid_part`.
-        If `sample_name` is already not longer than `max_len`, then it's returned without
-        changes.
-        """
-        if len(sample_name) <= max_len:
-            return sample_name
-
-        num_orig_chars = max_len - len(new_mid_part)
-
-        half, offset = divmod(num_orig_chars, 2)
-        return sample_name[: half + offset] + new_mid_part + sample_name[-half:]
 
     @staticmethod
     def get_next_free_file_name(wanted_path: str) -> str:
