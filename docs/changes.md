@@ -15,7 +15,8 @@ List of significant changes in BugBane.
 - send tool:
     - **(breaking change)** removed "official_customized" Defect Dojo API implementation.<br>
         Remove the `--api-type official_customized` argument, or change it to `--api-type official`
-    - removed unused cmdline option `--password`
+    - **(breaking change)** removed unused cmdline option `--password`.<br>
+        Remove the `--password` argument with its value
     - bb-send now uploads bug samples to Defect Dojo
     - `--translate-sample-paths` now allows empty parts in translation rules,<br>
         i.e., the rule "a/->" will just remove "a/" from each path, "->b/" will just append "b/" to the beginning of each path, the rule "->" doesn't make sense and won't do anything
