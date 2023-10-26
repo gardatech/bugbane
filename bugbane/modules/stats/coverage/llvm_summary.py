@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict
 
 import re
 from bugbane.modules.log import getLogger
@@ -43,7 +43,7 @@ class LLVMSummaryCoverageStats(CoverageStats):
     def get_tool_name(self):
         return "LLVM"
 
-    def read_from_str(self, s: str) -> Optional[dict]:
+    def read_from_str(self, s: str) -> Optional[Dict]:
         """
         Parse data previously read from summary.txt file.
         Return coverage stats.
@@ -92,7 +92,7 @@ class LLVMSummaryCoverageStats(CoverageStats):
         if expected_merged_header != got_header:
             raise LLVMSummaryCoverageStatsError("headers mismatch")
 
-    def _totals_to_dict(self, totals: str) -> dict:
+    def _totals_to_dict(self, totals: str) -> Dict:
         cov_stats = re.split(r"\s+", totals)[1:]
 
         num_values = len(cov_stats)

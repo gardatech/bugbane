@@ -14,6 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Dict
 from dataclasses import dataclass
 from time import time
 
@@ -43,7 +44,7 @@ class FuzzStats(Stats):
         self.last_path_timestamp = 0
         self.start_timestamp = int(time())
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict:
         self._ensure_format()
         return {
             "num_instances": self.num_instances,

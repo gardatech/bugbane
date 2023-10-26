@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 import os
 import sys
@@ -26,7 +26,7 @@ from bugbane.modules.log import getLogger
 log = getLogger(__name__)
 
 
-def dump_dict_as_json(filepath: Optional[str], result: dict):
+def dump_dict_as_json(filepath: Optional[str], result: Dict):
     need_print = True
 
     if filepath:
@@ -40,7 +40,7 @@ def dump_dict_as_json(filepath: Optional[str], result: dict):
         print_dict_as_json(result)
 
 
-def save_dict_to_json_file(d: dict, path: str) -> bool:
+def save_dict_to_json_file(d: Dict, path: str) -> bool:
     """Save dict to file in JSON format. Return True on success"""
     try:
         with open(path, "w", encoding="utf-8") as file:
@@ -50,7 +50,7 @@ def save_dict_to_json_file(d: dict, path: str) -> bool:
         return False
 
 
-def print_dict_as_json(d: dict):
+def print_dict_as_json(d: Dict):
     """Dump dictionary to stdout in JSON format"""
     json.dump(d, sys.stdout, ensure_ascii=False, indent=4)
 

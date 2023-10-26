@@ -75,7 +75,7 @@ class GoFuzzFuzzStats(FuzzStats):
                 subdir,
             )
 
-    def read_one(self, file_path: str) -> Optional[dict]:
+    def read_one(self, file_path: str) -> Optional[Dict]:
         """
         Reads go-fuzz log file.
         Returns dict with fuzzer stats.

@@ -187,7 +187,7 @@ class CoverageStats(Stats):
         examples: 'lcov, genhtml' or 'LLVM' or 'Coverage.py'
         """
 
-    def read_one(self, file_path) -> Optional[dict]:
+    def read_one(self, file_path) -> Optional[Dict]:
         """
         Read coverage file.
         Return coverage stats
@@ -207,7 +207,7 @@ class CoverageStats(Stats):
         return stats
 
     @abstractmethod
-    def read_from_str(self, s: str) -> Optional[dict]:
+    def read_from_str(self, s: str) -> Optional[Dict]:
         """
         Read coverage information from string (read from file)
         """

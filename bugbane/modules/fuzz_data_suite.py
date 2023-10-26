@@ -144,7 +144,7 @@ class FuzzDataSuite:
             vars_json_path=vars_json_path,
         )
 
-    def to_data_dict(self) -> dict:
+    def to_data_dict(self) -> Dict:
         data = self.load_vars()
         self._loaded_vars_should_present(data)
         data.update(self._load_data_from_files())
@@ -157,7 +157,7 @@ class FuzzDataSuite:
         )
         return data
 
-    def load_vars(self) -> dict:
+    def load_vars(self) -> Dict:
         """Loads and returns variables from JSON file"""
         if self.vars_json_path is None:
             raise FuzzDataError("no json file in fuzzing data suite")
@@ -199,7 +199,7 @@ class FuzzDataSuite:
                 f"while trying to save json file '{save_path}': {e}"
             ) from e
 
-    def _loaded_vars_should_present(self, d: dict):
+    def _loaded_vars_should_present(self, d: Dict):
         """
         Raise FuzzDataError if some necessary data is missing in input dict
         """
@@ -229,7 +229,7 @@ class FuzzDataSuite:
                 f"variables not defined in input fuzzing suite: {', '.join(not_found)}"
             )
 
-    def _load_data_from_files(self) -> dict:
+    def _load_data_from_files(self) -> Dict:
         """
         Loads all the text data in fuzzing suite and returns it as dict
         """
@@ -239,7 +239,7 @@ class FuzzDataSuite:
         self._add_cov_stats_to_dict(result)
         return result
 
-    def _add_loadables_to_dict(self, result: dict):
+    def _add_loadables_to_dict(self, result: Dict):
         """
         Adds text content read from files to input dict without any processing
         """
@@ -269,7 +269,7 @@ class FuzzDataSuite:
 
         return contents
 
-    def _add_fuzz_stats_to_dict(self, result: dict):
+    def _add_fuzz_stats_to_dict(self, result: Dict):
         """
         Get fuzzer statistics from fuzzer_stats, etc
         """
@@ -307,7 +307,7 @@ class FuzzDataSuite:
             self.fuzz_stats.hangs, "hangs"
         )
 
-    def _add_cov_stats_to_dict(self, result: dict):
+    def _add_cov_stats_to_dict(self, result: Dict):
         """
         Get coverage info from index.html, summary.txt, etc.
         """

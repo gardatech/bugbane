@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict
 
 import os
 import re
@@ -45,7 +45,7 @@ class GoTestFuzzStats(GoFuzzFuzzStats):
     def fuzzer_type(self) -> str:
         return "go-test"
 
-    def read_one(self, file_path: str) -> Optional[dict]:
+    def read_one(self, file_path: str) -> Optional[Dict]:
         """
         Reads `go test` fuzzing log file.
         Returns dict with fuzzer stats.

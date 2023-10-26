@@ -74,7 +74,7 @@ class AFLplusplusFuzzStats(FuzzStats):
                 subdir,
             )
 
-    def read_one(self, file_path: str) -> Optional[dict]:
+    def read_one(self, file_path: str) -> Optional[Dict]:
         """
         For AFL-like fuzzers (AFL, AFL++, WinAFL, ...)
         Returns dict with fuzzer stats.

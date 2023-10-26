@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 import os
 import glob
@@ -34,7 +34,7 @@ class EmitterWithScreenshots(Emitter):
         super().__init__()
         self.ansi_screenshot_maker: Optional[ScreenshotMaker] = None
         self.html_screenshot_maker: Optional[ScreenshotMaker] = None
-        self.screenshot_paths: dict[str, str] = {}
+        self.screenshot_paths: Dict[str, str] = {}
 
     def set_ansi_screenshot_maker(self, screener: ScreenshotMaker):
         """

@@ -108,7 +108,7 @@ class Builder(ABC):
         ...
 
     @abstractmethod
-    def _append_build_log(self, text: str, extra_env: dict):
+    def _append_build_log(self, text: str, extra_env: Dict):
         ...
 
     @abstractmethod
@@ -257,7 +257,7 @@ class GCCBuilder(Builder):
                 f"ERROR: while running '{self.build_cmd}' with extra env {extra_env}:\n{output}"
             )
 
-    def _append_build_log(self, text: str, extra_env: dict):
+    def _append_build_log(self, text: str, extra_env: Dict):
         if not self.build_log_path:
             return
         env_str = make_env_shell_str(extra_env) or ""

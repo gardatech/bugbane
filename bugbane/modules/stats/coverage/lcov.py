@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional
+from typing import Optional, Dict
 
 from bugbane.modules.log import getLogger
 
@@ -40,7 +40,7 @@ class LCOVCoverageStats(CoverageStats):
     def get_tool_name(self):
         return "lcov, genhtml"
 
-    def read_from_str(self, s: str) -> Optional[dict]:
+    def read_from_str(self, s: str) -> Optional[Dict]:
         """
         Parse data previously read from coverage stats file.
         Return coverage stats.

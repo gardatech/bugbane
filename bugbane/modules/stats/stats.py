@@ -40,7 +40,7 @@ class Stats(ABC):
         """Clears all the stats data"""
 
     @abstractmethod
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict:
         """Represents all the stats data as dictionary"""
 
     def load(self, dir_path: str):
@@ -74,7 +74,7 @@ class Stats(ABC):
         log.verbose3("Loaded %d stats from directory %s", len(stats), dir_path)
         self._ensure_format()
 
-    def _read_all(self, dir_path: str) -> dict:
+    def _read_all(self, dir_path: str) -> Dict:
         """
         Template method.
         Returns dict of dicts with stats.
@@ -105,7 +105,7 @@ class Stats(ABC):
         return result
 
     @abstractmethod
-    def read_one(self, file_path: str) -> Optional[dict]:
+    def read_one(self, file_path: str) -> Optional[Dict]:
         """
         Read one stats file,
         return dictionary with stats data

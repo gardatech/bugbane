@@ -102,7 +102,7 @@ class Harvester:
     def set_src_path_base(self, src_path: Optional[str]):
         self.src_path_base = src_path
 
-    def collect_fuzzing_results(self) -> dict:
+    def collect_fuzzing_results(self) -> Dict:
         """
         Loads generic fuzzing stats, reproduces samples on binaries.
         Returns dict consisting of fuzzing stats and issue cards
@@ -213,7 +213,7 @@ class Harvester:
         else:
             self.fuzz_stats.add_stats_from(stats)
 
-    def cards_to_dict(self) -> dict:
+    def cards_to_dict(self) -> Dict:
         """
         Convert self.issue_cards: dict[title: str, card: IssueCard] to dict[issue_key: str, issue_value: str]
         Return resulting dict

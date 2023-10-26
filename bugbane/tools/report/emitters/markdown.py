@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 from bugbane.modules.log import getLogger
 
@@ -64,7 +64,7 @@ class MarkdownEmitter(EmitterWithScreenshots):
         template = self.jinja_env.get_template(self.template_name)
         return template.render(data=self._prepare_data_for_render())
 
-    def _prepare_data_for_render(self) -> dict:
+    def _prepare_data_for_render(self) -> Dict:
         data = self.suite.to_data_dict()
 
         if self.screenshot_paths:
