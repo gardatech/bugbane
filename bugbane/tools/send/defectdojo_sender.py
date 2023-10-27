@@ -237,7 +237,7 @@ class DefectDojoSender:
         for old, new in self.sample_path_translation_map.items():
             if len(old) > 0:
                 path = path.replace(old, new)
-            else: # empty old path: just add `new` to the beginning
+            else:  # empty old path: just add `new` to the beginning
                 path = new + path
 
         return path

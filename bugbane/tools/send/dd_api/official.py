@@ -228,7 +228,10 @@ class DefectDojoAPI_official(DefectDojoAPI):
                 }
                 resp = requests.post(
                     f"{self.host}/api/v2/findings/{finding_id}/files/",
-                    headers={"Accept": "application/json", "Authorization": f"Token {self.user_token}"},
+                    headers={
+                        "Accept": "application/json",
+                        "Authorization": f"Token {self.user_token}",
+                    },
                     files=files,
                 )
         except (OSError, requests.exceptions.RequestException) as e:

@@ -36,4 +36,3 @@ def test_title_to_sample_name(issue_title: str, sample_file_name: str) -> None:
 def test_file_len_limit_too_low() -> None:
     with pytest.raises(BugSampleSaverError):
         BugSampleSaver(max_file_name_len=14)
-
