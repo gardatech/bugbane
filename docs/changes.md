@@ -1,6 +1,8 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.5.2
+
 ## Version 0.5.1
 - build tool:
     - **(breaking change)** bb-build now saves updated configuration file to output directory, initial file is now left intact.<br>
