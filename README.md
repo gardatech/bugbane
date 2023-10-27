@@ -466,9 +466,9 @@ The bugbane.json file is not used.<br>
 
 Example usage:
 ```shell
+export BB_DEFECT_DOJO_SECRET="DD_TOKEN"
 bb-send --host https://dojo.local \
     --user-name ci_fuzz_user --user-id 2 \
-    --token $DD_TOKEN \
     --engagement 1 --test-type 141 \
     --results-file bb_results.json
 ```
@@ -482,6 +482,7 @@ Hereinafter `https://dojo.local` is used as the address of the Defect Dojo serve
 `--engagement`: engagement id; may also be taken from the engagement url (select one on the page `https://dojo.local/engagement`).<br>
 `--test-type`: test type id; also comes from the url (select required test type on the page `https://dojo.local/test_type`).<br>
 `--token`: API key; copied from the page `https://dojo.local/api/key-v2` (you need to be authorized with the name specified in the `--user-name` option, you need the API key from the part, starting with "Your current API key is ....").<br>
+You are advised to use the env variables `BB_DEFECT_DOJO_LOGIN` and `BB_DEFECT_DOJO_SECRET` instead of the args `--user-name` and `--token`.<br>
 
 If the authenticity of the Defect Dojo server certificate cannot be verified, the `--no-ssl` option should be added.
 

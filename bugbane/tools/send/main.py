@@ -19,36 +19,18 @@ import sys
 import pprint
 from argparse import Namespace
 
-from bugbane.modules.log import get_verbose_logger
+from bugbane.modules.log import get_verbose_logger, Logger
+from bugbane.modules.credentials import (
+    Credentials,
+    EmptyLoginException,
+    NoSecretDefinedException,
+)
 
 from .args import parse_args
 
 from .dd_api.abc import DefectDojoAPI, DefectDojoAPIError
 from .dd_api.factory import DefectDojoAPIFactory
 from .defectdojo_sender import DefectDojoSender
-
-
-def create_dd_api_from_args(args: Namespace) -> DefectDojoAPI:
-    """
-    args: result of ArgumentParser.parse_args()
-    Create DefectDojo api object using DefectDojoAPIFactory.
-    Instantiate api object based on args and return it.
-    """
-
-    api: DefectDojoAPI = DefectDojoAPIFactory.create(args.api_type)
-    verify_ssl = not args.no_ssl
-    debug = args.verbose > 4
-    api.instantiate_api(
-        host=args.host,
-        verify_ssl=verify_ssl,
-        user_name=args.user_name,
-        user_id=args.user_id,
-        user_token=args.token,
-        engagement_id=args.engagement,
-        test_type_id=args.test_type,
-        debug=debug,
-    )
-    return api
 
 
 def main(argv=None):
@@ -59,8 +41,8 @@ def main(argv=None):
     log.info("[*] BugBane send tool")
 
     try:
-        dd_api = create_dd_api_from_args(args)
-    except (DefectDojoAPIError, TypeError) as e:
+        dd_api = create_dd_api_from_args(args, log)
+    except CreateAPIException as e:
         log.error("during creation of DefectDojoAPI object: %s", e)
         return 1
 
@@ -88,3 +70,63 @@ def main(argv=None):
     sender.create_dd_findings()
 
     return 0
+
+
+class CreateAPIException(Exception):
+    """Exception: wasn't able to create DD API instance."""
+
+
+def create_dd_api_from_args(args: Namespace, log: Logger) -> DefectDojoAPI:
+    """
+    args: result of ArgumentParser.parse_args()
+    Create DefectDojo api object using DefectDojoAPIFactory.
+    Instantiate api object based on args and return it.
+    """
+
+    verify_ssl = not args.no_ssl
+    debug = args.verbose > 4
+
+    try:
+        api: DefectDojoAPI = DefectDojoAPIFactory.create(args.api_type)
+        creds = get_dojo_creds(args, log)
+        api.instantiate_api(
+            host=args.host,
+            verify_ssl=verify_ssl,
+            user_name=creds.login,  # pyright: ignore (empty login gets fixed in get_dojo_creds)
+            user_id=args.user_id,
+            user_token=creds.secret,
+            engagement_id=args.engagement,
+            test_type_id=args.test_type,
+            debug=debug,
+        )
+        return api
+    except (DefectDojoAPIError, TypeError) as e:
+        raise CreateAPIException(f"API creation error: {e}") from e
+
+
+def get_dojo_creds(args: Namespace, log: Logger) -> Credentials:
+    dojo_creds_name = "DEFECT_DOJO"
+    try:
+        creds = Credentials.from_env(dojo_creds_name)
+        if creds.login is None:
+            creds.login = args.user_name
+            log.info("using Defect Dojo creds: user from --user-name, token from env")
+        else:
+            log.info("using Defect Dojo creds from env")
+
+        if args.token is not None:
+            log.warning(
+                "the argument --token is ignored, as Defect Dojo token was already defined in env variables. Please remove the argument",
+            )
+        return creds
+
+    except EmptyLoginException as e:
+        raise CreateAPIException("empty login was specified in env variables") from e
+
+    except NoSecretDefinedException:
+        log.warning(
+            "using Defect Dojo credentials from cmdline arguments, consider using env variables: BB_%s_LOGIN, BB_%s_SECRET",
+            dojo_creds_name,
+            dojo_creds_name,
+        )
+        return Credentials(login=args.user_name, secret=args.token)

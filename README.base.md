@@ -931,9 +931,9 @@ The bugbane.json file is not used.<br>
 Example usage:
 <!-- [common] -->
 ```shell
+export BB_DEFECT_DOJO_SECRET="DD_TOKEN"
 bb-send --host https://dojo.local \
     --user-name ci_fuzz_user --user-id 2 \
-    --token $DD_TOKEN \
     --engagement 1 --test-type 141 \
     --results-file bb_results.json
 ```
@@ -957,6 +957,7 @@ As a result, a new test appears with the test type 141 in the engagement having 
 `--engagement`: engagement id; также можно посмотреть в адресной строке в браузере (выбрать нужный engagement на странице `https://dojo.local/engagement`).<br>
 `--test-type`: id вида теста; брать также из адресной строки (выбрать нужный тест на странице `https://dojo.local/test_type`).<br>
 `--token`: ключ API; берётся из Defect Dojo по ссылке: `https://dojo.local/api/key-v2` (нужно быть авторизованным от имени, указанного в `--user-name`, ключ нужен из раздела "Your current API key is ....").<br>
+Рекомендуется вместо опций `--user-name` и `--token` использовать переменные окружения `BB_DEFECT_DOJO_LOGIN` и `BB_DEFECT_DOJO_SECRET`.<br>
 
 <!-- [en] -->
 Hereinafter `https://dojo.local` is used as the address of the Defect Dojo server.<br>
@@ -964,6 +965,7 @@ Hereinafter `https://dojo.local` is used as the address of the Defect Dojo serve
 `--engagement`: engagement id; may also be taken from the engagement url (select one on the page `https://dojo.local/engagement`).<br>
 `--test-type`: test type id; also comes from the url (select required test type on the page `https://dojo.local/test_type`).<br>
 `--token`: API key; copied from the page `https://dojo.local/api/key-v2` (you need to be authorized with the name specified in the `--user-name` option, you need the API key from the part, starting with "Your current API key is ....").<br>
+You are advised to use the env variables `BB_DEFECT_DOJO_LOGIN` and `BB_DEFECT_DOJO_SECRET` instead of the args `--user-name` and `--token`.<br>
 
 <!-- [ru] -->
 Если подлинность сертификата сервера Defect Dojo не может быть проверена, то следует добавить аргумент запуска `--no-ssl`.

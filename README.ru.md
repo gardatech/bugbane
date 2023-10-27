@@ -466,9 +466,9 @@ jq '.issue_cards[] | "h1. \(.title)", "Originally reproduced by executing: \n{no
 
 Пример запуска:
 ```shell
+export BB_DEFECT_DOJO_SECRET="DD_TOKEN"
 bb-send --host https://dojo.local \
     --user-name ci_fuzz_user --user-id 2 \
-    --token $DD_TOKEN \
     --engagement 1 --test-type 141 \
     --results-file bb_results.json
 ```
@@ -482,6 +482,7 @@ bb-send --host https://dojo.local \
 `--engagement`: engagement id; также можно посмотреть в адресной строке в браузере (выбрать нужный engagement на странице `https://dojo.local/engagement`).<br>
 `--test-type`: id вида теста; брать также из адресной строки (выбрать нужный тест на странице `https://dojo.local/test_type`).<br>
 `--token`: ключ API; берётся из Defect Dojo по ссылке: `https://dojo.local/api/key-v2` (нужно быть авторизованным от имени, указанного в `--user-name`, ключ нужен из раздела "Your current API key is ....").<br>
+Рекомендуется вместо опций `--user-name` и `--token` использовать переменные окружения `BB_DEFECT_DOJO_LOGIN` и `BB_DEFECT_DOJO_SECRET`.<br>
 
 Если подлинность сертификата сервера Defect Dojo не может быть проверена, то следует добавить аргумент запуска `--no-ssl`.
 

@@ -75,7 +75,6 @@ def parse_args(argv):
     dd_group.add_argument(
         "--token",
         help="authorization token for user specified in --user-name",
-        required=True,
     )
     dd_group.add_argument("--user-id", help="user id (default: 1)", default=1, type=int)
     dd_group.add_argument(
