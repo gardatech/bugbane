@@ -63,10 +63,10 @@ class DefaultReproducer(Reproducer):
         for sample in samples:
             cmd = self.make_basic_run_cmd(binary_path, sample)
             card = self.run(cmd, binary_path, sample, self.one_run_try)
-            if card.verdict.value <= Verdict.CRASH_GENERIC.value:
+            if card.verdict.value[0] <= Verdict.CRASH_GENERIC.value[0]:
                 cmd = self.make_gdb_run_cmd(binary_path, sample)
                 card = self.run(cmd, binary_path, sample, self.one_run_try)
-            if card.verdict.value >= Verdict.HANG.value:
+            if card.verdict.value[0] >= Verdict.HANG.value[0]:
                 cards.append(card)
         return cards
 
@@ -80,7 +80,7 @@ class DefaultReproducer(Reproducer):
                 break
             cmd = self.make_gdb_run_cmd_for_hang(binary_path, sample)
             card = self.run(cmd, binary_path, sample, self.one_run_try_hang)
-            if card.verdict.value >= Verdict.HANG.value:
+            if card.verdict is not None and card.verdict.value[0] >= Verdict.HANG.value[0]:
                 cards.append(card)
         return cards
 
@@ -107,7 +107,7 @@ class DefaultReproducer(Reproducer):
             log.verbose3("%s run: %s (try #%d)", self.__class__.__name__, cmd, try_num)
             verdict, output = run_method(cmd, self.run_env)
 
-            if verdict.value >= Verdict.HANG.value:
+            if verdict.value[0] >= Verdict.HANG.value[0]:
                 break
 
         return IssueCard(

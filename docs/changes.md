@@ -2,6 +2,11 @@
 List of significant changes in BugBane.
 
 ## Version 0.5.2
+- reproduce tool:
+    - ignore false-positive hangs.<br>
+        Previously, bb-reproduce would still keep a hang without a detected source location just in case.<br>
+        Such hangs were saved as just "hang" and were rewritten on disk if there were multiple non-reproducible hangs.<br>
+        Such hangs were not reproducible when tested manually, so it was decided not to save them at all
 
 ## Version 0.5.1
 - build tool:

@@ -34,6 +34,7 @@ from .reproducers.reproducer import Reproducer
 
 from .results import TotalReproduceResult
 from .issue_card import IssueCard
+from .verdict import Verdict
 
 
 class HarvesterError(Exception):
@@ -190,6 +191,8 @@ class Harvester:
             card.load_location_and_set_title(self.src_path_base)
             if card.title is None:
                 continue
+            if card.title == "Hang":
+                continue  # ignore false positive hangs
             if card.title not in self.issue_cards:
                 self.issue_cards[card.title] = card
 
