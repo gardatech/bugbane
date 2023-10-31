@@ -32,7 +32,7 @@ class SeleniumScreenshotMaker(ScreenshotMaker):
 
     def _create_webdriver(self) -> Firefox:
         options = FirefoxOptions()
-        options.headless = True
+        options.add_argument("--headless")
         driver = Firefox(options=options)
         driver.set_window_size(1024, 600)
         return driver

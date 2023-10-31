@@ -34,7 +34,6 @@ from .reproducers.reproducer import Reproducer
 
 from .results import TotalReproduceResult
 from .issue_card import IssueCard
-from .verdict import Verdict
 
 
 class HarvesterError(Exception):
