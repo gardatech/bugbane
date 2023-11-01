@@ -54,6 +54,13 @@ def create_argument_parser():
         type=int,
         default=0,
     )
+    parser.add_argument(
+        "--tool-timeout",
+        help="timeout for minimizing tool, e.g. afl-cmin (default: 3600 seconds)",
+        metavar="SECONDS",
+        type=int,
+        default=3600,
+    )
 
     supbarsers = parser.add_subparsers(help="run mode", dest="run_mode")
 

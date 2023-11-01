@@ -104,7 +104,7 @@ class Minimizer(ABC):
         This method is not recursive.
         """
         if not os.path.isdir(dirpath):
-            raise MinimizerError(f"not a dir: '{dirpath}'")
+            raise MinimizerError(f"not a directory: '{dirpath}'")
 
         return sum(1 for f in os.listdir(dirpath) if os.path.isfile(f))
 
@@ -130,6 +130,7 @@ class MinimizerUsingProgram(Minimizer):
         self.program: Optional[str] = None
         self.run_args: Optional[List[str]] = None
         self.run_env: Optional[Dict[str, str]] = None
+        self.prog_timeout_ms: Optional[int] = None
         self.tool_timeout_sec = 60 * 60
 
     def configure(

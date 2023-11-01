@@ -172,6 +172,7 @@ def main(argv=None):
                 run_args=run_args,
                 run_env=run_env,
                 prog_timeout_ms=prog_timeout,
+                tool_timeout_sec=args.tool_timeout,
             )
         except MinimizerError as e:
             log.error(

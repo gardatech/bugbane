@@ -52,6 +52,7 @@ def deduplicate_by_tool(
     run_args: Optional[List[str]],
     run_env: Optional[Dict[str, str]],
     prog_timeout_ms: Optional[int],
+    tool_timeout_sec: int,
 ) -> Optional[int]:
     try:
         minimizer: MinimizerUsingProgram = MinimizerFactory.create(tool_name)
@@ -65,7 +66,8 @@ def deduplicate_by_tool(
         run_args=run_args,
         run_env=run_env,
         prog_timeout_ms=prog_timeout_ms,
-    )  # use default tool timeout
+        tool_timeout_sec=tool_timeout_sec,
+    )
     count = minimizer.run(masks, dest)
     return count
 
