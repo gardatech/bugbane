@@ -144,5 +144,12 @@ class MinimizerUsingProgram(Minimizer):
         self.program = program
         self.run_args = run_args
         self.run_env = run_env
+
+        if prog_timeout_ms is not None and prog_timeout_ms < 0:
+            raise MinimizerError(f"invalid program timeout: {prog_timeout_ms}")
+
+        if tool_timeout_sec < 0:
+            raise MinimizerError(f"invalid tool timeout: {tool_timeout_sec}")
+
         self.prog_timeout_ms = prog_timeout_ms
         self.tool_timeout_sec = tool_timeout_sec

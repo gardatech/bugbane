@@ -59,8 +59,6 @@ def deduplicate_by_tool(
     except TypeError as e:
         raise MinimizerError(f"wasn't able to create minimizer: {e}") from e
 
-    log.verbose1("Using tool minimizer %s", minimizer.__class__.__name__)
-
     minimizer.configure(
         program=program,
         run_args=run_args,
@@ -68,6 +66,8 @@ def deduplicate_by_tool(
         prog_timeout_ms=prog_timeout_ms,
         tool_timeout_sec=tool_timeout_sec,
     )
+    log.verbose1("Using tool minimizer %s", minimizer.__class__.__name__)
+
     count = minimizer.run(masks, dest)
     return count
 
