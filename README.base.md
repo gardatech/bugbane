@@ -1056,14 +1056,12 @@ bb-screenshot -S selenium -i index.html -o coverage2.png
 
 <!-- [ru] -->
 Планы по улучшению BugBane:
-* поддержка тестирования разных целей в пределах одной сборки
 * поддержка других фаззеров
 * добавление других утилит
 * генерация отчётов в других форматах и по другим шаблонам
 
 <!-- [en] -->
 Future plans for BugBane:
-* add multitarget support
 * add support for more fuzzers
 * add more tools
 * add more report templates and support different reporting formats

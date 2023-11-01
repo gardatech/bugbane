@@ -160,8 +160,16 @@ class LibFuzzerCmd(FuzzerCmd):
         if timeout_ms is None:
             timeout_ms = 10000
 
-        timeout_seconds = max(1, math.ceil(timeout_ms / 1000.0))
+        timeout_seconds = self.ceil_milliseconds_to_seconds(timeout_ms)
         return cmd.replace("$appname ", f"$appname -timeout={timeout_seconds} ", 1)
+
+    @staticmethod
+    def ceil_milliseconds_to_seconds(ms: int) -> int:
+        """
+        Ceil milliseconds to full seconds.
+        Return the full number of seconds.
+        """
+        return max(1, math.ceil(ms / 1000.0))
 
     def make_one_tmux_capture_pane_cmd(
         self, tmux_session_name: str, window_index: int

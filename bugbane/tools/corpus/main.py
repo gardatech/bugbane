@@ -127,10 +127,16 @@ def main(argv=None):
         tmpdir_prefix = os.getcwd()
 
     if (args.run_mode == "manual" and action == "minimize") or args.run_mode == "suite":
-        if fuzzer_type == "AFL++":
-            minimizing_tool = "afl-cmin"
-        else:
-            log.warning("tool based minimization is currently only supported for AFL++")
+        fuzzer_to_cmin_map = {
+            "AFL++": "afl-cmin",
+            "libFuzzer": "libFuzzer",
+        }
+        minimizing_tool = fuzzer_to_cmin_map.get(fuzzer_type)
+        if minimizing_tool is None:
+            log.warning(
+                "tool based minimization is currently only supported for the following fuzzers: %s",
+                ", ".join(fuzzer_to_cmin_map),
+            )
 
     log.info(
         "[*] BugBane corpus tool. Selected action: %s. Source: %s, destination: %s",
@@ -177,22 +183,22 @@ def main(argv=None):
             "Second stage deduplication with tool %s complete",
             minimizing_tool,
         )
-        log.verbose2("Removing temporary directory %s", tmpdir)
+        log.verbose2("Removing temporary directory '%s'", tmpdir)
         shutil.rmtree(tmpdir, ignore_errors=True)
 
         tmpdir = tmpdir_tool
 
     if not os.path.exists(dst):
-        log.verbose1("Creating destination directory %s", dst)
+        log.verbose1("Creating destination directory '%s'", dst)
         os.makedirs(dst)
 
-    log.verbose1("Sychronizing samples from directory %s to %s", tmpdir, dst)
+    log.verbose1("Sychronizing samples from directory '%s' to '%s'", tmpdir, dst)
     num_copied = sync_files_by_names(
         src_dir=tmpdir, dst_dir=dst, max_sample_size=args.max_sample_size
     )
-    log.info("Added %d samples to %s", num_copied, dst)
+    log.info("Added %d samples to '%s'", num_copied, dst)
 
-    log.verbose2("Removing temporary directory %s", tmpdir)
+    log.verbose2("Removing temporary directory '%s'", tmpdir)
     shutil.rmtree(tmpdir, ignore_errors=True)
 
     log.info("[+] Deduplication complete")

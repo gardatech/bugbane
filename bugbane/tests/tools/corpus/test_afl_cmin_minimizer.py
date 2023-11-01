@@ -15,6 +15,7 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 import pytest
+from pytest_mock import MockerFixture
 
 from bugbane.tools.corpus.minimizers.afl_cmin_minimizer import (
     AFL_cmin_Minimizer,
@@ -22,21 +23,51 @@ from bugbane.tools.corpus.minimizers.afl_cmin_minimizer import (
 )
 
 
-def test_post_process_afl_cmin_output():
-    output = """1
+
+afl_cmin_output = """1
 2
 3
 4
 5
 """
-    result = AFL_cmin_Minimizer.post_process_afl_cmin_output(output, display_limit=4)
-    assert result == "1\n2\n<...>\n4\n5\n"
 
-    result = AFL_cmin_Minimizer.post_process_afl_cmin_output(output, display_limit=2)
-    assert result == "1\n<...>\n5\n"
 
+@pytest.mark.parametrize(
+    "display_limit, expected_output",
+    [
+        (4, "1\n2\n<...>\n4\n5\n"),
+        (2, "1\n<...>\n5\n"),
+        (100, "1\n2\n3\n4\n5\n"),
+    ],
+)
+def test_post_process_afl_cmin_output(display_limit: int, expected_output: str) -> None:
+    result = AFL_cmin_Minimizer.post_process_afl_cmin_output(
+        afl_cmin_output, display_limit=display_limit
+    )
+    assert result == expected_output
+
+
+def test_post_process_afl_cmin_output_bad() -> None:
     with pytest.raises(MinimizerError):
-        AFL_cmin_Minimizer.post_process_afl_cmin_output(output, display_limit=1)
+        AFL_cmin_Minimizer.post_process_afl_cmin_output(
+            afl_cmin_output, display_limit=1
+        )
 
-    result = AFL_cmin_Minimizer.post_process_afl_cmin_output(output, display_limit=100)
-    assert result == "1\n2\n3\n4\n5\n"
+
+def test_make_run_cmd() -> None:
+    cmin = AFL_cmin_Minimizer()
+    cmin.program = "./myprog"
+    cmin.prog_timeout_ms = 234
+    assert (
+        cmin._make_run_cmd(input_dir="samples/", dest_dir="minimized")
+        == 'afl-cmin -t 234 -i "samples/" -o "minimized" -m none -- "./myprog"'
+    )
+
+def test_afl_cmin_not_configured_with_program(mocker: MockerFixture) -> None:
+    # prevent running afl-cmin if this test breaks
+    mocker.patch(
+        "bugbane.modules.process.run_shell_cmd", return_value=(None, False, None)
+    )
+    generator = AFL_cmin_Minimizer()
+    with pytest.raises(MinimizerError, match="not configured with program"):
+        generator.run(["1"], "2")

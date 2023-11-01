@@ -17,25 +17,26 @@
 import pytest
 from pytest_mock import MockerFixture
 
-from bugbane.tools.corpus.minimizers.afl_cmin_minimizer import (
-    AFL_cmin_Minimizer,
+from bugbane.tools.corpus.minimizers.libfuzzer_minimizer import (
+    LibFuzzerMinimizer,
     MinimizerError,
 )
 
 
-def test_afl_cmin_not_configured(mocker: MockerFixture):
+def test_make_run_cmd() -> None:
+    cmin = LibFuzzerMinimizer()
+    cmin.program = "./myprog"
+    cmin.prog_timeout_ms = 234
+    assert (
+        cmin._make_run_cmd(input_dir="samples/", dest_dir="minimized")
+        == '"./myprog" -merge=1 -rss_limit_mb=0 -timeout=1 "minimized" "samples/"'
+    )
+
+def test_libfuzzer_not_configured_with_program(mocker: MockerFixture) -> None:
     # prevent running afl-cmin if this test breaks
     mocker.patch(
         "bugbane.modules.process.run_shell_cmd", return_value=(None, False, None)
     )
-    generator = AFL_cmin_Minimizer()
-    with pytest.raises(MinimizerError):
+    generator = LibFuzzerMinimizer()
+    with pytest.raises(MinimizerError, match="not configured with program"):
         generator.run(["1"], "2")
-
-
-def test_afl_cmin_cmd_generator():
-    generator = AFL_cmin_Minimizer()
-    generator.configure(program="./tested", run_args=None, prog_timeout_ms=2763)
-
-    cmd = generator._make_run_cmd(mask="samples", dest="cmin_result")
-    assert cmd == "afl-cmin -t 2763 -i samples -o cmin_result -m none -- ./tested"

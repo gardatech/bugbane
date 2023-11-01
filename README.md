@@ -529,7 +529,6 @@ bb-screenshot -S selenium -i index.html -o coverage2.png
 # Improvements
 
 Future plans for BugBane:
-* add multitarget support
 * add support for more fuzzers
 * add more tools
 * add more report templates and support different reporting formats

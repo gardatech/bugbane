@@ -14,4 +14,4 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from . import afl_cmin_minimizer
+from . import afl_cmin_minimizer, libfuzzer_minimizer

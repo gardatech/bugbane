@@ -83,20 +83,30 @@ class Minimizer(ABC):
 
         return result or None
 
-    def _cleanup_dest_dir(self, dest):
+    def _cleanup_dest_dir(self, dest: str) -> None:
         if not os.path.exists(dest):
             return
-        if not os.listdir(dest):
+        if os.path.isdir(dest) and not os.listdir(dest):
             return
 
-        log.info("NOTE: removing existing destination directory %s", dest)
+        log.info("NOTE: removing existing destination path '%s'", dest)
         try:
             shutil.rmtree(dest)
             os.makedirs(dest)
         except OSError as e:
             raise MinimizerError(
-                f"wasn't able to recreate destination directory {dest}. Message: {e}",
+                f"wasn't able to create destination directory '{dest}'. Message: {e}",
             ) from e
+
+    def count_files_in_dir(self, dirpath: str) -> int:
+        """
+        Return the number of files in directory `dirpath`.
+        This method is not recursive.
+        """
+        if not os.path.isdir(dirpath):
+            raise MinimizerError(f"not a dir: '{dirpath}'")
+
+        return sum(1 for f in os.listdir(dirpath) if os.path.isfile(f))
 
     @abstractmethod
     def run_one(

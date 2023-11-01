@@ -22,14 +22,17 @@ from bugbane.modules.log import getLogger
 log = getLogger(__name__)
 
 from bugbane.modules.process import run_shell_cmd
+from bugbane.modules.fuzzer_cmd.libfuzzer import LibFuzzerCmd
 
 from .factory import MinimizerFactory
 from .minimizer import MinimizerUsingProgram, MinimizerError
 
 
-@MinimizerFactory.register("afl-cmin")
-class AFL_cmin_Minimizer(MinimizerUsingProgram):
-    """Tool-based corpus minimizer using afl-cmin."""
+@MinimizerFactory.register("libFuzzer")
+class LibFuzzerMinimizer(MinimizerUsingProgram):
+    """Tool-based corpus minimizer using libFuzzer."""
+
+    # NOTE: almost the same as afl-cmin, but no need for stdout shortening
 
     def run_one(
         self,
@@ -37,9 +40,6 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
         dest: str,
         _file_action_func: Callable[[str, str], None],
     ) -> Optional[int]:
-        if self.program is None:
-            raise MinimizerError("minimizer not configured with program")
-
         newmask = self._sanitize_mask(mask)
         cmd = self._make_run_cmd(newmask, dest)
         exit_code, is_timeout, output = run_shell_cmd(
@@ -50,43 +50,16 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
 
         if output:
             decoded = output.decode(errors="replace")
-            processed = self.post_process_afl_cmin_output(
-                output=decoded, display_limit=30
-            )
-            log.verbose1(processed)
+            log.verbose1(decoded)
         else:
-            log.warning("afl-cmin generated no output")
+            log.warning("libFuzzer generated no output")
+
         if exit_code != 0:
             raise MinimizerError(
                 f"bad exit code {exit_code} during minimization of samples at {mask}"
             )
 
         return self.count_files_in_dir(dest)
-
-    @staticmethod
-    def post_process_afl_cmin_output(output: str, display_limit: int) -> str:
-        """
-        `display_limit` is number of lines which we allowed to keep
-        """
-
-        if display_limit < 2:
-            raise MinimizerError(
-                f"too small value specified for display_limit argument: '{display_limit}'"
-            )
-
-        if output.count("\n") <= display_limit - 1:
-            return output
-
-        half = display_limit // 2
-
-        head = output[:1000]
-        tail = output[-1000:]
-
-        head_lines = head.split("\n")
-        tail_lines = tail.split("\n")
-
-        processed = head_lines[:half] + ["<...>"] + tail_lines[-half - 1 :]
-        return "\n".join(processed)
 
     @staticmethod
     def _sanitize_mask(mask: str):
@@ -97,17 +70,20 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
 
         if "*" in m:
             raise MinimizerError(
-                f"don't know how to expand mask {mask} for single run of afl-cmin"
+                f'don\'t know how to expand mask {mask} for single run of libFuzzer with "-merge"'
             )
 
         return os.path.normpath(m)
 
     def _make_run_cmd(self, input_dir: str, dest_dir: str):
-        run_args = " ".join(self.run_args or [])
-        cmd = "afl-cmin "
+        if self.program is None:
+            raise MinimizerError("minimizer not configured with program")
+
+        cmd = f'"{self.program}" -merge=1 -rss_limit_mb=0 '
         if self.prog_timeout_ms is not None:
-            # make "dangerously low" timeout values to be at least 50 ms
-            self.prog_timeout_ms = max(self.prog_timeout_ms, 50)
-            cmd += f"-t {self.prog_timeout_ms} "
-        cmd += f'-i "{input_dir}" -o "{dest_dir}" -m none -- "{self.program}" {run_args}'
-        return cmd.strip()
+            self.prog_timeout_ms = LibFuzzerCmd.ceil_milliseconds_to_seconds(
+                self.prog_timeout_ms
+            )
+            cmd += f"-timeout={self.prog_timeout_ms} "
+        cmd += f'"{dest_dir}" "{input_dir}"'
+        return cmd
