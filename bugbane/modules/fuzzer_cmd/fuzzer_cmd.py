@@ -97,30 +97,27 @@ class FuzzerCmd(ABC):
 
     def make_tmux_screen_capture_cmds(
         self,
-        num_fuzz_instances: int,
-        have_stat_instance: bool,
+        num_windows: int,
+        tmux_socket_name: Optional[str] = None,
         tmux_session_name: Optional[str] = None,
     ) -> List[str]:
         """
         Generate shell commands with tmux capture-pane and possible "beautifying" greps
         to capture output of stats utility and fuzzer screens/logs.
         """
-        number_of_windows = num_fuzz_instances
-        if have_stat_instance:
-            number_of_windows += 1
-
+        tmux_socket_name = tmux_socket_name or "fuzz"
         tmux_session_name = tmux_session_name or "fuzz"
 
         cmds = []
-        for i in range(1, number_of_windows + 1):
-            cmd = self.make_one_tmux_capture_pane_cmd(tmux_session_name, i)
+        for i in range(1, num_windows + 1):
+            cmd = self.make_one_tmux_capture_pane_cmd(tmux_socket_name, tmux_session_name, i)
             cmds.append(cmd)
 
         return cmds
 
     @abstractmethod
     def make_one_tmux_capture_pane_cmd(
-        self, tmux_session_name: str, window_index: int
+        self, tmux_socket_name: str, tmux_session_name: str, window_index: int
     ) -> str:
         """
         Generate one tmux capture-pane command with possible "beautifying" greps

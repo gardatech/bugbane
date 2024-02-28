@@ -82,10 +82,9 @@ Python >= 3.6<br><br>
 **bb-fuzz**: используемый фаззер в PATH (afl-fuzz, go-fuzz, ...).<br>
 **bb-coverage**: используемые средства сбора покрытия в PATH (lcov, genhtml, go, ...).<br>
 **bb-reproduce**: утилита `timeout`, отладчик `gdb`.<br>
-**bb-send**: python-библиотека `defectdojo_api`.<br>
-**bb-screenshot**, **bb-report**: python-библиотеки `Jinja2`, `WeasyPrint`, `Selenium`, приложения `ansifilter` и `pango-view` в PATH, приложение `geckodriver` в PATH и браузер Firefox (необязательно, только для Selenium), шрифты `mono` (могут отсутствовать в базовых образах Docker).<br>
+**bb-send**: -.<br>
+**bb-screenshot**, **bb-report**: приложения `ansifilter` и `pango-view` в PATH, приложение `geckodriver` в PATH и браузер Firefox (необязательно, только для Selenium), шрифты `mono` (могут отсутствовать в базовых образах Docker).<br>
 Примечания:
-- Python-библиотеки устанавливаются автоматически при выполнении дальнейших инструкций;
 - скриншоты покрытия с Selenium выглядят лучше, чем с WeasyPrint, но требуют установку браузера Firefox и geckodriver;
 - скриншоты покрытия для Go требуют использовать Selenium, потому что Go встраивает в отчёты JavaScript;
 - для просмотра отчётов непосредственно в образе Docker с помощью утилит типа less может потребоваться установка локали с поддержкой UTF-8 и указание переменной LANG.
@@ -99,11 +98,10 @@ Dependencies required by the tools:<br>
 **bb-corpus**: fuzzer minimization tools in PATH (afl-cmin, ...).<br>
 **bb-fuzz**: fuzzer binary in PATH (afl-fuzz, go-fuzz, ...).<br>
 **bb-coverage**: coverage tools to be used in PATH (lcov, genhtml, go, ...).<br>
-**bb-reproduce**: `timeout` utility, `gdb` debugger.<br>
-**bb-send**: python library `defectdojo_api`.<br>
-**bb-screenshot**, **bb-report**: python libraries `Jinja2`, `WeasyPrint`, `Selenium`, applications `ansifilter` and `pango-view` in PATH, `geckodriver` in PATH and Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
+**bb-reproduce**: the `timeout` utility, the `gdb` debugger.<br>
+**bb-send**: -.<br>
+**bb-screenshot**, **bb-report**: the applications `ansifilter` and `pango-view` in PATH, `geckodriver` in PATH and the Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
 Notes:
-- Python libraries are installed automatically along with BugBane;
 - screenshots of coverage reports look better when created with Selenium rather than with WeasyPrint, though Selenium requires Firefox and geckodriver;
 - Go coverage reports require Selenium to create screenshots, because Go coverage reports heavily rely on JavaScript;
 - in order to view reports in docker container with utils like `less` it may be required to generate a locale with UTF-8 support and to set the LANG env variable.
@@ -576,13 +574,11 @@ FUZZ_DURATION=1800 bb-fuzz --max-cpus $(nproc) suite /fuzz
 В результате запускаются несколько экземпляров фаззера в сессии tmux.<br>
 Инструмент bb-fuzz будет периодически печатать статистику работы фаззера, пока не обнаружит наступление условия остановки, в данном случае, пока не накопится время работы 1800 секунд (30 минут).<br>
 Затем в папку /fuzz/screens будут сохранены дампы (текстовые представления) экранов фаззера. Эти дампы используются на следующих этапах приложениями bb-report или bb-screenshot для создания скриншотов.<br>
-**Внимание: после сохранения дампов завершаются ВСЕ процессы afl-fuzz и tmux в пределах операционной системы.**<br>
 
 <!-- [en] -->
 As a result, multiple fuzzer instances start running in a tmux session.<br>
 The bb-fuzz tool will periodically print run statistics of the fuzzer until it detects the occurrence of a stop condition, in this case, until the duration of 1800 seconds (30 minutes) has passed.<br>
 Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/screens directory. The dumps are for the bb-report or bb-screenshot tools to create screenshots from in the next stages.<br>
-**Warning: after saving the dumps ALL afl-fuzz and tmux processes in the whole operating system are terminated.**<br>
 
 <!-- [common] -->
 <details>

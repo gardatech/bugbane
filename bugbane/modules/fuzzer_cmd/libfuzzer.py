@@ -172,11 +172,11 @@ class LibFuzzerCmd(FuzzerCmd):
         return max(1, math.ceil(ms / 1000.0))
 
     def make_one_tmux_capture_pane_cmd(
-        self, tmux_session_name: str, window_index: int
+        self, tmux_socket_name: str, tmux_session_name: str, window_index: int
     ) -> str:
         """
         Generate one tmux capture-pane command to get fuzzer log on stdout
         """
         return (
-            f"""tmux capture-pane -e -t {tmux_session_name}:{window_index} -S -5 -p"""
+            f"""tmux -L "{tmux_socket_name}" capture-pane -e -t "{tmux_session_name}:{window_index}" -S -5 -p"""
         )

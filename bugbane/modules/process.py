@@ -19,13 +19,19 @@ from typing import Tuple, List, Dict, Optional
 import os
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired, SubprocessError
 
+import psutil
+
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
 
+class ProcessException(Exception):
+    """Exception class for errors in the process module."""
+
+
 def checked_run_shell_cmd(
-    cmd: str, extra_env: Dict[str, str] = None, timeout_sec: int = 120
+    cmd: str, extra_env: Optional[Dict[str, str]] = None, timeout_sec: int = 120
 ) -> bool:
     """
     Return True if run was successfull
@@ -95,7 +101,7 @@ def run_shell_cmd(
         exit_code, output = _get_exitcode_and_output(inst, timeout_total)
 
     except TimeoutExpired:
-        inst.kill()
+        inst.kill() 
         inst.wait(3.0)
 
         try:
@@ -116,7 +122,7 @@ def run_shell_cmd(
 
 
 def run_interactive_shell_cmd(
-    cmd: str, extra_env: Dict[str, str] = None
+    cmd: str, extra_env: Optional[Dict[str, str]] = None
 ) -> Tuple[Optional[int], bytes]:
     """
     Executes shell command with possible pipe and redirect symbols "|><".
@@ -160,7 +166,7 @@ def run_interactive_shell_cmd(
     return (exit_code, output.rstrip(b"\n"))
 
 
-def _get_exitcode_and_output(inst: Popen, timeout_sec: int):
+def _get_exitcode_and_output(inst: Popen, timeout_sec: float):
     output, _ = inst.communicate(timeout=timeout_sec)
     exit_code = inst.returncode
     return (exit_code, output)
@@ -198,3 +204,15 @@ def prepare_run_args_for_shell(run_args: List[str], sample_path: str) -> str:
     if "@@" in str_args:
         return str_args.replace("@@", f'"{sample_path}"')
     return str_args + f' < "{sample_path}"'
+
+def get_process_children(pid: int, recursive: bool = False) -> List[psutil.Process]:
+    """
+    Return list of children `psutil.Process`es for given `pid`.
+    In case of errors raises ProcessException.
+    """
+    try:
+        p = psutil.Process(pid=pid)
+    except psutil.Error as e:
+        raise ProcessException(f"wasn't able to get children pids for pid {pid}") from e
+
+    return p.children(recursive=recursive)

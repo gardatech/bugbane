@@ -40,7 +40,7 @@ class FuzzConfigError(ConfigError):
 class FuzzConfig:
     """
     Holds settings used for to start fuzzing.
-    NOTE: the data validation is only happening in from_dict method.
+    NOTE: the data validation is only happening in the `from_dict` method.
     """
 
     tested_binary_path: str
@@ -51,6 +51,8 @@ class FuzzConfig:
     src_root: str
     fuzzer_type: str
     builds: Dict[BuildType, str]
+    tmux_session_name: str
+    tmux_socket_name: str
 
     @classmethod
     def from_dict(cls, suite_dir: str, config_vars: Dict[str, Any]) -> "FuzzConfig":
@@ -67,6 +69,8 @@ class FuzzConfig:
             run_args = cfg.get("run_args") or ""
             run_env = cfg.get("run_env") or {}
             fuzzer_type = cfg["fuzzer_type"]
+            tmux_session_name = cfg.get("tmux_session_name") or "fuzz"
+            tmux_socket_name = cfg.get("tmux_socket_name") or "fuzz"
 
             if fuzzer_type not in FuzzerCmdFactory.registry:
                 supported = ", ".join(sorted(FuzzerCmdFactory.registry.keys()))
@@ -106,6 +110,8 @@ class FuzzConfig:
             timeout=timeout,
             fuzzer_type=fuzzer_type,
             builds=builds,
+            tmux_session_name=tmux_session_name,
+            tmux_socket_name=tmux_socket_name,
         )
         return config
 

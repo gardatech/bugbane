@@ -65,7 +65,7 @@ def main(argv=None):
     try:
         fuzzer = FuzzBox(fuzz_config=fuzz_config, suite_dir=args.suite, suite=suite)
         fuzzer.start(
-            start_interval=args.start_interval, max_cpus_argument=args.max_cpus
+            start_interval_ms=args.start_interval, max_cpus_argument=args.max_cpus
         )
         fuzzer.wait_until_stop_condition()
     except CannotContinueFuzzingException as e:
@@ -82,6 +82,7 @@ def main(argv=None):
         if fuzzer:
             fuzzer.stop_and_update_vars(bane_vars, interrupted=interrupted)
 
+    log.info("[+] Fuzzing complete, updating configuration file")
     suite.save_vars(bane_vars)
 
     return 0

@@ -10,19 +10,14 @@ ARG local_fuzzme=false
 FROM archlinux AS base
 RUN : \
     && pacman --noconfirm --needed -Syu \
-        vim nano tmux bash-completion python python-pip \
-        base-devel git cmake gdb strace ltrace diffutils \
-        clang llvm lld lib32-gcc-libs \
-        go \
-        lcov cloc \
-        jq moreutils \
-        pango ttf-liberation \
-        geckodriver firefox \
+        base-devel bash-completion clang cloc cmake diffutils firefox gdb \
+        geckodriver git go jq lcov lib32-gcc-libs lld llvm ltrace moreutils \
+        nano pango python python-pip strace tmux ttf-liberation vim \
     && fc-cache \
     && :
 
 RUN : \
-    && sh -c 'echo set encoding=utf-8 > /root/.vimrc' \
+    && echo 'set encoding=utf-8' >> ~/.vimrc \
     && echo '. /usr/share/bash-completion/bash_completion' >> ~/.bashrc \
     && echo "export PS1='"'[bugbane \h] \w \$ '"'" >> ~/.bashrc \
     && git config --global advice.detachedHead false \
@@ -31,23 +26,18 @@ RUN : \
 
 # go-fuzz with deps
 ENV GOPATH /root/go
-ENV GO111MODULE=off
+# ENV GO111MODULE=off
 WORKDIR $GOPATH
 ENV PATH $PATH:/root/.go/bin:$GOPATH/bin
 
-# RUN go version && \
-#     go get -u golang.org/dl/gotip && \
-#     gotip download && gotip version
-
-RUN go get -u \
-    github.com/dvyukov/go-fuzz/go-fuzz \
-    github.com/dvyukov/go-fuzz/go-fuzz-build
+RUN go install \
+    github.com/dvyukov/go-fuzz/go-fuzz@latest \
+    github.com/dvyukov/go-fuzz/go-fuzz-build@latest
 
 
 # AFL++
 ARG GIT_AFLPP_BRANCH="dev"
-# 4.05a+
-ARG GIT_AFLPP_COMMIT="a6a26d8"
+ARG GIT_AFLPP_COMMIT="v4.08c"
 ARG AFLPP_SRC_DIR="/AFLplusplus"
 ENV AFLPP_SRC_DIR=${AFLPP_SRC_DIR}
 RUN : \
@@ -60,11 +50,9 @@ RUN : \
     && sed -i 's|#define FANCY_BOXES|// #define FANCY_BOXES|g' ./include/config.h \
     && sed -i 's|#define STATS_UPDATE_SEC .*$|#define STATS_UPDATE_SEC 5|g' ./include/config.h \
     && export NO_NYX=1 \
-    && export CC=clang CXX=clang++ \
     && make source-only \
     && make install \
     && :
-
 
 ARG GIT_ANSIFILTER_TAG="2.18"
 ARG ANSIFILTER_SRC_DIR="/ansifilter"
@@ -79,9 +67,11 @@ RUN : \
     && :
 
 # cache BugBane deps
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ENV PIP_NO_CACHE_DIR=1
 RUN pip3 install \
         beautifulsoup4 lxml Jinja2 requests selenium WeasyPrint==52.5 build wheel \
-        pytest pytest-mock coverage
+        psutil pytest pytest-mock coverage
 
 ARG SRC="/src"
 ENV SRC=${SRC}
@@ -96,7 +86,8 @@ COPY fuzzme ${SRC}
 
 FROM base AS bugbane_local_fuzzme_false
 ARG BB_PATH="."
-ENV FUZZME_FROM_GIT=1
+RUN git clone --depth=1 https://github.com/gardatech/fuzzme "$SRC"
+
 
 FROM bugbane_local_fuzzme_${local_fuzzme} AS bugbane
 COPY ${BB_PATH} /bugbane
@@ -119,12 +110,12 @@ ENV COVERAGE_RCFILE=/bugbane/setup.cfg
 FROM bugbane AS test
 
 ENV AFL_SKIP_CPUFREQ=1
+ENV AFL_TRY_AFFINITY=1
 
 ENV FUZZ="/fuzz"
 RUN mkdir -p ${FUZZ}/{libFuzzer,aflpp,go-fuzz}
 
 CMD : \
-    && if [ ! -z $FUZZME_FROM_GIT ] ; then git clone https://github.com/gardatech/fuzzme $SRC; fi \
     && : LIBFUZZER : \
     && jq '.fuzzing += { "builder_type": "libFuzzer", "fuzzer_type": "libFuzzer" }' $SRC/cpp/bugbane.json \
         | sponge $SRC/cpp/bugbane.json \
@@ -141,12 +132,12 @@ CMD : \
     && coverage run -a -m bugbane corpus -vv suite ${FUZZ}/libFuzzer export-to /storage/libFuzzer \
     && coverage run -a -m bugbane report -vv --name report_libFuzzer suite ${FUZZ}/libFuzzer \
     && cd ${FUZZ}/libFuzzer \
-    && cp -t /storage/libFuzzer -r \
+    && { cp -t /storage/libFuzzer -r \
         *.md coverage_report \
         screens screenshots \
         *.json *.log \
         bug_samples dictionaries \
-        2>/dev/null || : \
+        2>/dev/null || :; } \
     && cd - \
     && : AFL++ : \
     && jq '.fuzzing += { "builder_type": "AFL++LLVM", "fuzzer_type": "AFL++", "run_args": "@@" }' $SRC/cpp/bugbane.json \
@@ -166,12 +157,12 @@ CMD : \
     && coverage run -a -m bugbane report -vv --html-screener selenium \
         --name report_aflpp suite ${FUZZ}/aflpp \
     && cd ${FUZZ}/aflpp \
-    && cp -t /storage/aflpp -r \
+    && { cp -t /storage/aflpp -r \
         *.md coverage_report \
         screens screenshots \
         *.json *.log \
         bug_samples dictionaries \
-        2>/dev/null || : \
+        2>/dev/null || :; } \
     && cd - \
     && : GO-FUZZ : \
     && export FUZZ_DURATION=30 \
@@ -188,12 +179,12 @@ CMD : \
     && rm -rf /storage/go-fuzz \
     && coverage run -a -m bugbane corpus -vv suite ${FUZZ}/go-fuzz export-to /storage/go-fuzz \
     && cd ${FUZZ}/go-fuzz \
-    && cp -t /storage/go-fuzz -r \
+    && { cp -t /storage/go-fuzz -r \
         *.md coverage_report \
         screens screenshots \
         *.json *.log \
         bug_samples dictionaries \
-        2>/dev/null || : \
+        2>/dev/null || :; } \
     && cd - \
     && : calculate SLOC and COVERAGE : \
     && cloc /bugbane/bugbane \

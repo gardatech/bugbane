@@ -33,11 +33,10 @@ Dependencies required by the tools:<br>
 **bb-corpus**: fuzzer minimization tools in PATH (afl-cmin, ...).<br>
 **bb-fuzz**: fuzzer binary in PATH (afl-fuzz, go-fuzz, ...).<br>
 **bb-coverage**: coverage tools to be used in PATH (lcov, genhtml, go, ...).<br>
-**bb-reproduce**: `timeout` utility, `gdb` debugger.<br>
-**bb-send**: python library `defectdojo_api`.<br>
-**bb-screenshot**, **bb-report**: python libraries `Jinja2`, `WeasyPrint`, `Selenium`, applications `ansifilter` and `pango-view` in PATH, `geckodriver` in PATH and Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
+**bb-reproduce**: the `timeout` utility, the `gdb` debugger.<br>
+**bb-send**: -.<br>
+**bb-screenshot**, **bb-report**: the applications `ansifilter` and `pango-view` in PATH, `geckodriver` in PATH and the Firefox web browser (optional, only for Selenium functionality), any `mono` fonts (may be missing in Docker images).<br>
 Notes:
-- Python libraries are installed automatically along with BugBane;
 - screenshots of coverage reports look better when created with Selenium rather than with WeasyPrint, though Selenium requires Firefox and geckodriver;
 - Go coverage reports require Selenium to create screenshots, because Go coverage reports heavily rely on JavaScript;
 - in order to view reports in docker container with utils like `less` it may be required to generate a locale with UTF-8 support and to set the LANG env variable.
@@ -301,7 +300,6 @@ FUZZ_DURATION=1800 bb-fuzz --max-cpus $(nproc) suite /fuzz
 As a result, multiple fuzzer instances start running in a tmux session.<br>
 The bb-fuzz tool will periodically print run statistics of the fuzzer until it detects the occurrence of a stop condition, in this case, until the duration of 1800 seconds (30 minutes) has passed.<br>
 Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/screens directory. The dumps are for the bb-report or bb-screenshot tools to create screenshots from in the next stages.<br>
-**Warning: after saving the dumps ALL afl-fuzz and tmux processes in the whole operating system are terminated.**<br>
 
 <details>
 <summary>Details on how bb-fuzz works</summary>

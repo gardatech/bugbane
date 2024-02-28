@@ -301,9 +301,9 @@ class AFLplusplusCmd(FuzzerCmd):
         return cmd.replace(" -- ", f" -t {timeout_ms} -- ")
 
     def make_one_tmux_capture_pane_cmd(
-        self, tmux_session_name: str, window_index: int
+        self, tmux_socket_name: str, tmux_session_name: str, window_index: int
     ) -> str:
-        cmd = f"""tmux capture-pane -e -t {tmux_session_name}:{window_index} -S -5 -p \
+        cmd = f"""tmux -L "{tmux_socket_name}" capture-pane -e -t "{tmux_session_name}:{window_index}" -S -5 -p \
                     | uniq \
                     | grep -e 'status check tool' -e 'american fuzzy lop' -A 35 \
                     | grep -E -v '^tput: unknown terminfo' \

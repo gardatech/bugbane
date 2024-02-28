@@ -1,6 +1,7 @@
 beautifulsoup4
 Jinja2
 lxml
+psutil
 requests
 selenium
 WeasyPrint == 52.5

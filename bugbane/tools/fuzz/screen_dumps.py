@@ -32,13 +32,12 @@ def make_tmux_screen_dumps(
     Creates list of tmux commands using provided fuzz cmd generator.
     Makes screen dumps and saves them to screens_dir.
     """
-    have_stats_instance = bool(fuzz_cmd_generator.stats_cmd(sync_dir="anything"))
     log.verbose1("Saving tmux screen dumps to %s...", screens_dir)
 
     os.makedirs(screens_dir, exist_ok=True)
 
     screen_dump_cmds = fuzz_cmd_generator.make_tmux_screen_capture_cmds(
-        num_fuzz_instances, have_stats_instance
+        num_fuzz_instances
     )
     ok_screens = 0
     for i, screen_dump_cmd in enumerate(screen_dump_cmds, start=1):

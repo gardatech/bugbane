@@ -715,9 +715,9 @@ def test_make_tmux_commands():
     }
 
     cmdgen_with_extra_cmds = [
-        (AFLplusplusCmd(), 2),
-        (LibFuzzerCmd(), 1),
-        (GoFuzzCmd(), 1),
+        (AFLplusplusCmd(), 1),
+        (LibFuzzerCmd(), 0),
+        (GoFuzzCmd(), 0),
     ]
 
     for cmdgen, extra_cmds in cmdgen_with_extra_cmds:
@@ -730,22 +730,28 @@ def test_make_tmux_commands():
             builds=builds,
         )
         stats_cmd = cmdgen.stats_cmd("out")
-        tmux_cmds = make_tmux_commands([stats_cmd] + cmds, "test")
+        all_cmds = []
+        if stats_cmd is not None:
+            all_cmds.append(stats_cmd)
+        all_cmds.extend(cmds)
+        cmds_dict = { c: i for i, c in enumerate(all_cmds, start=1) }
+        tmux_cmds = make_tmux_commands(cmds_dict)
 
-        # fuzz cmds + (stats cmd + tmux new-session cmd)
-        assert len(tmux_cmds) == len(cmds) + extra_cmds
+        # tmux new-session cmd [+ extra cmds (stats)] + fuzz cmds
+        assert len(tmux_cmds) == 1 + extra_cmds + len(cmds)
 
         assert all((cmd.startswith("tmux") for cmd in tmux_cmds))
 
 
 @pytest.mark.parametrize("gen_name", FuzzerCmdFactory.registry)
 def test_make_one_tmux_capture_pane_cmds(gen_name: str):
+    sock_name = "sock"
     sess_name = "fuzz"
     index = 3
 
-    cmdgen = FuzzerCmdFactory.create(gen_name)
-    cmd = cmdgen.make_one_tmux_capture_pane_cmd(sess_name, index)
-    assert cmd.startswith("tmux capture-pane ")
+    cmdgen: FuzzerCmd = FuzzerCmdFactory.create(gen_name)
+    cmd = cmdgen.make_one_tmux_capture_pane_cmd(sock_name, sess_name, index)
+    assert cmd.startswith('tmux -L "sock" capture-pane ')
     assert "fuzz:3" in cmd
     assert "-e" in cmd
     assert "-p" in cmd
@@ -754,9 +760,9 @@ def test_make_one_tmux_capture_pane_cmds(gen_name: str):
 def test_make_tmux_screen_capture_cmds():
     cmdgen = AFLplusplusCmd()
     cmds = cmdgen.make_tmux_screen_capture_cmds(
-        num_fuzz_instances=32, have_stat_instance=True
+        num_windows=32
     )
-    assert len(cmds) == 33
+    assert len(cmds) == 32
 
 
 @pytest.mark.parametrize("gen_name", FuzzerCmdFactory.registry)

@@ -17,11 +17,12 @@
 from typing import Optional, List, Any, Dict
 
 import os
+import signal
+import psutil
 from copy import deepcopy
 from time import sleep, time
 
 # TODO: refactor methods of FuzzBox
-# TODO: check if fuzzers are still running -> restart them or stop fuzzing job
 # TODO: check if disk space is OK
 # TODO: calculate progress towards stop condition goal
 
@@ -29,7 +30,11 @@ from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
-from bugbane.modules.process import run_interactive_shell_cmd
+from bugbane.modules.process import (
+    run_interactive_shell_cmd,
+    get_process_children,
+    ProcessException,
+)
 from bugbane.modules.corpus_utils import ensure_initial_corpus_exists
 from bugbane.modules.format_utils import seconds_to_hms
 
@@ -48,7 +53,7 @@ from .stop_conditions import (
 )
 
 from .dict_utils import merge_dictionaries_to_file, DictMergeError
-from .command_utils import make_tmux_commands
+from .command_utils import make_tmux_commands, get_tmux_server_pid, CmdUtilsException
 from .screen_dumps import make_tmux_screen_dumps
 from .fuzz_config import FuzzConfig
 
@@ -66,7 +71,7 @@ def limit_cpu_cores(from_config: Optional[int], max_from_args: int) -> int:
 
 
 class FuzzBoxError(Exception):
-    """Exception class for errors in FuzzBox class."""
+    """Exception class for errors in the `FuzzBox` class."""
 
 
 class CannotContinueFuzzingException(FuzzBoxError):
@@ -108,14 +113,21 @@ class FuzzBox:
         self.suite = suite
         self.fuzz_sync_dir = os.path.join(suite_dir, "out")
 
-    def start(self, start_interval: int, max_cpus_argument: int):
+        self.tmux_server_pid = -1
+        self.num_cmd_restarts: Dict[str, int] = {}
+        self.start_interval_seconds = 0
+        self.fuzz_cmds: Dict[str, int] = {}
+
+    def start(self, start_interval_ms: int, max_cpus_argument: int):
         in_dir = self.info.input_dir(self.fuzz_sync_dir)
         self._prepare_input_corpus_dir(in_dir)
         dict_path = self._merge_dicts()
+        self.start_interval_seconds = start_interval_ms / 1000.0
 
         self._limit_cpu_cores(max_cpus_argument)
         self._run_fuzzers(
-            in_dir=in_dir, dict_path=dict_path, start_interval=start_interval
+            in_dir=in_dir,
+            dict_path=dict_path,
         )
         self._init_stop_condition()
         self.start_timestamp = int(time())
@@ -149,7 +161,9 @@ class FuzzBox:
             ensure_initial_corpus_exists(in_dir)
 
     def _run_fuzzers(
-        self, in_dir: str, dict_path: Optional[str], start_interval: int
+        self,
+        in_dir: str,
+        dict_path: Optional[str],
     ) -> None:
         fuzz_config = self.fuzz_config
         log.info("[*] Using %d cores for fuzzing", fuzz_config.fuzz_cores)
@@ -167,15 +181,17 @@ class FuzzBox:
         except (FuzzerCmdError, IndexError) as e:
             raise FuzzBoxError(f"wasn't able to create fuzz commands: {e}") from e
 
-        self.fuzz_cmds = fuzz_cmds
         self.reproduce_specs = reproduce_specs
 
-        all_cmds: List[Optional[str]] = []
+        all_cmds: List[str] = []
         stats_cmd = self.cmdgen.stats_cmd(self.fuzz_sync_dir)
-        all_cmds.append(stats_cmd)
+        if stats_cmd is not None:
+            all_cmds.append(stats_cmd)
 
         fuzz_cmds = [cmd.strip() for cmd in fuzz_cmds]
         all_cmds.extend(fuzz_cmds)
+
+        self.fuzz_cmds = {cmd: i for i, cmd in enumerate(all_cmds, start=1)}
 
         log.info(
             "[*] Using the following commands:\n\t%s",
@@ -185,27 +201,128 @@ class FuzzBox:
         with open(os.path.join(self.suite_dir, "fuzz.cmds"), "wt") as f:
             print("\n".join(cmd for cmd in all_cmds if cmd is not None), file=f)
 
-        tmux_cmds = make_tmux_commands(all_cmds)
+        self.run_fuzzer_cmds(fuzzer_cmds=self.fuzz_cmds, initial_run=True)
+
+        # commands to be monitored and restarted
+
+        try:
+            self.tmux_server_pid = get_tmux_server_pid(
+                self.fuzz_config.tmux_socket_name
+            )
+        except CmdUtilsException as e:
+            raise FuzzBoxError("tmux process not found") from e
+
+        for cmd in self.fuzz_cmds:
+            self.num_cmd_restarts[cmd] = 0
+
+    def run_fuzzer_cmds(
+        self, fuzzer_cmds: Dict[str, int], initial_run: bool = False
+    ) -> None:
+        tmux_cmds = make_tmux_commands(
+            fuzzer_cmds,
+            create_session=initial_run,
+            tmux_socket_name=self.fuzz_config.tmux_socket_name,
+            tmux_session_name=self.fuzz_config.tmux_session_name,
+        )
+
         log.verbose2(
             "[*] Running the following TMUX commands:\n\t%s",
             "\n\t".join(tmux_cmds),
         )
-
         extra_env = {
             "AFL_PIZZA_MODE": "0",  # disable AFL++ 1st april joke
         }
 
-        start_interval_seconds = start_interval / 1000.0
         for tmux_cmd in tmux_cmds:
             # all the tmux commands actually use -d arg (detached mode)
             exit_code, output = run_interactive_shell_cmd(tmux_cmd, extra_env=extra_env)
             if exit_code != 0:
+                output = output.decode("utf-8", errors="replace")
                 raise FuzzBoxError(
                     f"failed to run command '{tmux_cmd}'. Output follows:\n{output}"
                 )
 
-            if start_interval > 0:
-                sleep(start_interval_seconds)
+            if self.start_interval_seconds > 0.0:
+                sleep(self.start_interval_seconds)
+
+    def check_and_restart_fuzzers(self) -> None:
+        """
+        Check whether the fuzzers are still running.
+        Try restarting them.
+        """
+
+        try:
+            children_procs = get_process_children(self.tmux_server_pid, recursive=True)
+        except ProcessException as e:
+            raise FuzzBoxError("tmux process not found") from e
+
+        cmds_found: List[str] = []
+        cmds_to_restart: List[str] = []
+
+        try_restart_times = 3
+
+        for proc in children_procs:
+            if not proc.is_running():
+                continue
+
+            try:
+                cmdline = " ".join(proc.cmdline())
+            except psutil.Error:
+                continue
+
+            for expected_cmd in self.fuzz_cmds:
+                if expected_cmd is None:
+                    continue
+
+                if expected_cmd in cmds_found:
+                    continue
+
+                if expected_cmd.startswith(cmdline):
+                    log.trace("Fuzzer cmd is still running: %s", expected_cmd)
+                    cmds_found.append(expected_cmd)
+                    break
+
+        for expected_cmd in self.fuzz_cmds:
+            if expected_cmd is None:
+                continue
+
+            if expected_cmd in cmds_found:
+                continue
+
+            # cmd is not running anymore - need to do something
+
+            if self.num_cmd_restarts[expected_cmd] > try_restart_times:
+                continue
+
+            self.num_cmd_restarts[expected_cmd] += 1
+            if self.num_cmd_restarts[expected_cmd] > try_restart_times:
+                log.warning("GAVE UP on restarting the fuzzer cmd: %s", expected_cmd)
+                continue
+
+            log.warning("RESTARTING fuzzer cmd: %s", expected_cmd)
+            cmds_to_restart.append(expected_cmd)
+
+        bad_fuzzing = False
+        if len(cmds_found) < 2 and len(cmds_to_restart) == 0:
+            if len(cmds_found) == 1:
+                stats_cmd = self.cmdgen.stats_cmd(self.fuzz_sync_dir)
+                if stats_cmd is not None and stats_cmd in cmds_found:
+                    bad_fuzzing = True
+            else:  # empty cmds_found
+                bad_fuzzing = True
+
+        if bad_fuzzing:
+            log.error(
+                "fuzzers don't work. Please check manually by running one of the following commands:\n%s",
+                "\n".join(self.fuzz_cmds),
+            )
+            raise FuzzBoxError("fuzzers don't work. Please check manually")
+
+        if len(cmds_to_restart) < 1:
+            return
+
+        cmds_dict = {k: self.fuzz_cmds[k] for k in cmds_to_restart}
+        self.run_fuzzer_cmds(fuzzer_cmds=cmds_dict)
 
     def _init_stop_condition(self) -> None:
         try:
@@ -267,6 +384,9 @@ class FuzzBox:
         """
 
         sleep(10.0)
+
+        self.check_and_restart_fuzzers()
+
         real_duration = int(time()) - self.start_timestamp
 
         stats_dir = self.info.stats_dir(self.fuzz_sync_dir)
@@ -281,7 +401,6 @@ class FuzzBox:
                 raise CannotContinueFuzzingException(
                     "a bug was found and selected fuzzer cannot continue testing"
                 )
-
         except FileNotFoundError:
             log.debug("FileNotFoundError when trying to load stats")
             return False
@@ -309,7 +428,6 @@ class FuzzBox:
 
         stop_conditions = {} if interrupted else self.stop_conditions
 
-        log.info("[+] Fuzzing complete, updating configuration file")
         self.fuzz_config.update_config_vars(
             config_vars=bane_vars,
             fuzz_sync_dir=self.fuzz_sync_dir,
@@ -332,12 +450,45 @@ class FuzzBox:
         )
 
     def _kill_fuzzers(self) -> None:
+        """
+        Stop fuzzers and tmux which we previously spawned.
+        """
         log.verbose1("Stopping fuzzers and tmux...")
-        run_interactive_shell_cmd(  # TODO: kill fuzz target binaries (cmplog leftovers etc)
-            """killall -q -s SIGINT afl-fuzz; \
-            sleep 2s; \
-            killall -q -s SIGKILL afl-fuzz; \
-            killall -q 'tmux: server' tmux; \
-            sleep 1s; \
-            killall -q -s SIGKILL 'tmux: server' tmux"""
-        )
+
+        try:
+            procs = get_process_children(self.tmux_server_pid, recursive=True)
+        except ProcessException:
+            return
+
+        fuzzer_procs = []
+
+        for p in procs:
+            if not p.is_running():
+                continue
+
+            try:
+                cmdline = " ".join(p.cmdline())
+            except psutil.Error:
+                continue
+
+            for cmd in self.fuzz_cmds:
+                if cmd.startswith(cmdline):
+                    fuzzer_procs.append(p)
+                    break
+
+        for p in fuzzer_procs:
+            if p.is_running():
+                p.send_signal(signal.SIGINT)
+        sleep(2.0)
+
+        for p in fuzzer_procs:
+            if p.is_running():
+                p.send_signal(signal.SIGKILL)
+        sleep(1.0)
+
+        try:
+            tmux_proc = psutil.Process(self.tmux_server_pid)
+            if tmux_proc.is_running():
+                tmux_proc.send_signal(signal.SIGTERM)
+        except psutil.Error:
+            return

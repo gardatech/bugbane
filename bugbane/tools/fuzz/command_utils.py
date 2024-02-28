@@ -14,25 +14,52 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional
+from typing import List, Optional, Dict
+from bugbane.modules.process import run_interactive_shell_cmd
+
+
+class CmdUtilsException(Exception):
+    """Exception class for errors in command utils module."""
 
 
 def make_tmux_commands(
-    all_cmds: List[Optional[str]], tmux_session_name: Optional[str] = None
+    all_cmds: Dict[str, int],
+    create_session: bool = True,
+    tmux_socket_name: Optional[str] = None,
+    tmux_session_name: Optional[str] = None,
 ) -> List[str]:
     """
     Convert list of commands to tmux commands.
-    all_cmds: list of commands that need to be run via tmux
+    all_cmds: dict mapping commands to be run in tmux to their wanted window indexes.
+    If window index is already in use, it will be destroyed by tmux (new-window -k ...)
     """
+    tmux_socket_name = tmux_socket_name or "fuzz"
     tmux_session_name = tmux_session_name or "fuzz"
 
-    cmds = []
+    cmds: List[str] = []
 
-    cmds.append(f"tmux new-session -d -x 90 -y 35 -s {tmux_session_name}")
-    for i, cmd in enumerate(all_cmds, start=1):
-        if cmd is None:  # stats command missing
-            continue
+    if create_session:
+        cmds.append(
+            f'tmux -L "{tmux_socket_name}" new-session -d -x 90 -y 35 -s "{tmux_session_name}"'
+        )
 
-        cmds.append(f"tmux new-window -dn {tmux_session_name}:{i} '{cmd} ; sh -i'")
+    for cmd, i in all_cmds.items():
+        window_name = f"{tmux_session_name}-{i}"
+        cmds.append(
+            f'tmux -L "{tmux_socket_name}" new-window -k -dn "{window_name}" -t {i} \'{cmd} ; sh -i\''
+        )
 
     return cmds
+
+
+def get_tmux_server_pid(tmux_socket_name: str) -> int:
+    """Return tmux server process id by the given tmux socket name."""
+    exit_code, output = run_interactive_shell_cmd(
+        f"tmux -L \"{tmux_socket_name}\" list-sessions -F '#{{pid}}'"
+    )
+    try:
+        if exit_code != 0:
+            raise RuntimeError()
+        return int(output.decode("utf-8"))
+    except (RuntimeError, ValueError, UnicodeDecodeError):
+        raise CmdUtilsException("wasn't able to determine tmux server pid")

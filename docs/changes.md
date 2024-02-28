@@ -2,6 +2,9 @@
 List of significant changes in BugBane.
 
 ## Version 0.5.2
+- fuzz tool:
+    - the tool now makes few attempts to restart dead fuzzers
+    - the tool no longer kills system-wide tmux and afl-fuzz processes
 - corpus tool:
     - added libFuzzer corpus minimizer
 - reproduce tool:
