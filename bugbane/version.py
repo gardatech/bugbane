@@ -14,4 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from . import log
+"""Module describing BugBane version."""
+
+__version__ = "0.5.2.dev"
+"""BugBane version"""
