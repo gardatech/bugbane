@@ -110,7 +110,9 @@ class FuzzerCmd(ABC):
 
         cmds = []
         for i in range(1, num_windows + 1):
-            cmd = self.make_one_tmux_capture_pane_cmd(tmux_socket_name, tmux_session_name, i)
+            cmd = self.make_one_tmux_capture_pane_cmd(
+                tmux_socket_name, tmux_session_name, i
+            )
             cmds.append(cmd)
 
         return cmds

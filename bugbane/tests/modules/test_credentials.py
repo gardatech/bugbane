@@ -82,7 +82,9 @@ def test_make_env_var_name(cred_name: str, var_name: str) -> None:
     ],
 )
 def test_make_env_var_name_bad(invalid_cred_name: str) -> None:
-    with pytest.raises(InvalidCredentialsNameException, match="invalid credentials name"):
+    with pytest.raises(
+        InvalidCredentialsNameException, match="invalid credentials name"
+    ):
         make_env_var_name(invalid_cred_name)
 
 
@@ -97,12 +99,13 @@ def test_make_credentials_from_env() -> None:
     assert c.login == "dojouser"
     assert c.secret == "d0jo_s3cret"
 
+
 @pytest.mark.parametrize(
     "login",
     [
         None,
         "user",
-    ]
+    ],
 )
 def test_make_credentials_from_env_empty_secret_is_ok(login: str) -> None:
     fake_env = {
@@ -114,6 +117,7 @@ def test_make_credentials_from_env_empty_secret_is_ok(login: str) -> None:
     c = Credentials.from_env(credentials_name="some", env=fake_env)
     assert c.login == login
     assert c.secret == ""
+
 
 def test_make_credentials_from_env_only_secret() -> None:
     fake_env = {

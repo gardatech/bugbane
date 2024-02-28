@@ -23,7 +23,6 @@ from bugbane.tools.corpus.minimizers.afl_cmin_minimizer import (
 )
 
 
-
 afl_cmin_output = """1
 2
 3
@@ -62,6 +61,7 @@ def test_make_run_cmd() -> None:
         cmin._make_run_cmd(input_dir="samples/", dest_dir="minimized")
         == 'afl-cmin -t 234 -i "samples/" -o "minimized" -m none -- "./myprog"'
     )
+
 
 def test_afl_cmin_not_configured_with_program(mocker: MockerFixture) -> None:
     # prevent running afl-cmin if this test breaks

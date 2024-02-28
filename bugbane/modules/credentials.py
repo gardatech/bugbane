@@ -28,11 +28,14 @@ import re
 class CredentialsException(Exception):
     """Exception class for Credentials class."""
 
+
 class EmptyLoginException(CredentialsException):
     """Exception: login was defined with an empty value."""
 
+
 class NoSecretDefinedException(CredentialsException):
     """Exception: secret wasn't defined."""
+
 
 class InvalidCredentialsNameException(CredentialsException):
     """Exception: credentials name was invalid."""

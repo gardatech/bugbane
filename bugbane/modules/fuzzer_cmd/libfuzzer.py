@@ -177,6 +177,4 @@ class LibFuzzerCmd(FuzzerCmd):
         """
         Generate one tmux capture-pane command to get fuzzer log on stdout
         """
-        return (
-            f"""tmux -L "{tmux_socket_name}" capture-pane -e -t "{tmux_session_name}:{window_index}" -S -5 -p"""
-        )
+        return f"""tmux -L "{tmux_socket_name}" capture-pane -e -t "{tmux_session_name}:{window_index}" -S -5 -p"""

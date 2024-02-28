@@ -101,7 +101,7 @@ def run_shell_cmd(
         exit_code, output = _get_exitcode_and_output(inst, timeout_total)
 
     except TimeoutExpired:
-        inst.kill() 
+        inst.kill()
         inst.wait(3.0)
 
         try:
@@ -204,6 +204,7 @@ def prepare_run_args_for_shell(run_args: List[str], sample_path: str) -> str:
     if "@@" in str_args:
         return str_args.replace("@@", f'"{sample_path}"')
     return str_args + f' < "{sample_path}"'
+
 
 def get_process_children(pid: int, recursive: bool = False) -> List[psutil.Process]:
     """

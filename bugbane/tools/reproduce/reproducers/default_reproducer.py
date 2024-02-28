@@ -80,7 +80,10 @@ class DefaultReproducer(Reproducer):
                 break
             cmd = self.make_gdb_run_cmd_for_hang(binary_path, sample)
             card = self.run(cmd, binary_path, sample, self.one_run_try_hang)
-            if card.verdict is not None and card.verdict.value[0] >= Verdict.HANG.value[0]:
+            if (
+                card.verdict is not None
+                and card.verdict.value[0] >= Verdict.HANG.value[0]
+            ):
                 cards.append(card)
         return cards
 

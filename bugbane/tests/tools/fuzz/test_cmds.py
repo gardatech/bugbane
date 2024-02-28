@@ -734,7 +734,7 @@ def test_make_tmux_commands():
         if stats_cmd is not None:
             all_cmds.append(stats_cmd)
         all_cmds.extend(cmds)
-        cmds_dict = { c: i for i, c in enumerate(all_cmds, start=1) }
+        cmds_dict = {c: i for i, c in enumerate(all_cmds, start=1)}
         tmux_cmds = make_tmux_commands(cmds_dict)
 
         # tmux new-session cmd [+ extra cmds (stats)] + fuzz cmds
@@ -759,9 +759,7 @@ def test_make_one_tmux_capture_pane_cmds(gen_name: str):
 
 def test_make_tmux_screen_capture_cmds():
     cmdgen = AFLplusplusCmd()
-    cmds = cmdgen.make_tmux_screen_capture_cmds(
-        num_windows=32
-    )
+    cmds = cmdgen.make_tmux_screen_capture_cmds(num_windows=32)
     assert len(cmds) == 32
 
 

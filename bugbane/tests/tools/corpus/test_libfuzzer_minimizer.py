@@ -32,6 +32,7 @@ def test_make_run_cmd() -> None:
         == '"./myprog" -merge=1 -rss_limit_mb=0 -timeout=1 "minimized" "samples/"'
     )
 
+
 def test_libfuzzer_not_configured_with_program(mocker: MockerFixture) -> None:
     # prevent running afl-cmin if this test breaks
     mocker.patch(

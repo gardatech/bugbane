@@ -109,5 +109,7 @@ class AFL_cmin_Minimizer(MinimizerUsingProgram):
             # make "dangerously low" timeout values to be at least 50 ms
             self.prog_timeout_ms = max(self.prog_timeout_ms, 50)
             cmd += f"-t {self.prog_timeout_ms} "
-        cmd += f'-i "{input_dir}" -o "{dest_dir}" -m none -- "{self.program}" {run_args}'
+        cmd += (
+            f'-i "{input_dir}" -o "{dest_dir}" -m none -- "{self.program}" {run_args}'
+        )
         return cmd.strip()
