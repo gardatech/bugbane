@@ -37,7 +37,7 @@ class DefectDojoAPI_official(DefectDojoAPI):
     Implementation based on use of defectdojo_api library
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.api: Optional[ddapiv2_official] = None
 
@@ -51,7 +51,7 @@ class DefectDojoAPI_official(DefectDojoAPI):
         engagement_id: int,
         test_type_id: int,
         debug: bool = False,
-    ):
+    ) -> None:
         super().instantiate_api(
             host,
             verify_ssl,
@@ -64,10 +64,9 @@ class DefectDojoAPI_official(DefectDojoAPI):
         )
 
         self.instantiate_underlying_api()
-        self.__check_connectivity_or_raise()
-        self.load_product_id()
+        self.request_product_id()
 
-    def instantiate_underlying_api(self):
+    def instantiate_underlying_api(self) -> None:
         self.api = ddapiv2_official(
             self.host,
             self.user_token,
@@ -77,17 +76,7 @@ class DefectDojoAPI_official(DefectDojoAPI):
             api_version="v2",
         )
 
-    def __check_connectivity_or_raise(self):
-        if not self.check_connection():
-            raise DefectDojoAPIError(
-                f"No API connectivity with DefectDojo host '{self.host}'"
-            )
-
-    def check_connection(self):
-        user = self.api.get_user(1)
-        return user.message == "Success"
-
-    def load_product_id(self):
+    def request_product_id(self) -> None:
         engagement_resp = self.api.get_engagement(self.engagement_id)
         if engagement_resp.response_code == -1:
             return
@@ -100,7 +89,6 @@ class DefectDojoAPI_official(DefectDojoAPI):
         set test id instance variable, return test id
         """
 
-        # TODO: extract actual fuzzing start time
         date_start = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         date_end = date_start
 
@@ -116,7 +104,7 @@ class DefectDojoAPI_official(DefectDojoAPI):
         self.test_id = self.__get_id_from_dd_response(test_id_resp)
         return self.test_id
 
-    def __get_value_from_dd_response(self, response, key):
+    def __get_value_from_dd_response(self, response: DefectDojoResponse, key: str):
         if not response or not key:
             return None
 
@@ -130,7 +118,7 @@ class DefectDojoAPI_official(DefectDojoAPI):
 
         return value
 
-    def __get_id_from_dd_response(self, response):
+    def __get_id_from_dd_response(self, response: DefectDojoResponse):
         return self.__get_value_from_dd_response(response, "id")
 
     def create_finding(
@@ -155,7 +143,6 @@ class DefectDojoAPI_official(DefectDojoAPI):
         but also append 'found_by', 'unique_id_from_tool' and 'vuln_id_from_tool' fields to data
         """
 
-        # TODO: use detection date instead of upload date?
         date = kwargs.get("date", datetime.now().strftime("%Y-%m-%d"))
 
         data = {

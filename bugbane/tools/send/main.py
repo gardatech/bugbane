@@ -43,7 +43,7 @@ def main(argv=None):
     try:
         dd_api = create_dd_api_from_args(args, log)
     except CreateAPIException as e:
-        log.error("during creation of DefectDojoAPI object: %s", e)
+        log.error("during creation of DefectDojoAPI object: %s", str(e))
         return 1
 
     log.info(
@@ -57,7 +57,7 @@ def main(argv=None):
     try:
         sender.load_cards()
     except DefectDojoAPIError as e:
-        log.error("during loading of issue cards. Message: %s", e)
+        log.error("during loading of issue cards. Message: %s", str(e))
         return 1
 
     bug_samples_dir = "bug_samples"
