@@ -84,13 +84,6 @@ class DefectDojoAPI(ABC):
         """
 
     @abstractmethod
-    def check_connection(self) -> bool:
-        """
-        Check if we can execute methods against DefectDojo instance.
-        Return True on success
-        """
-
-    @abstractmethod
     def create_test(self) -> int:
         """
         Create new test,
@@ -130,12 +123,12 @@ class DefectDojoAPI(ABC):
         """
 
     @abstractmethod
-    def load_product_id(self):
+    def request_product_id(self) -> None:
         """
         Set product id instance variable corresponding to previously saved engagement id.
         """
 
-    def make_finding_url(self, finding_id: int):
+    def make_finding_url(self, finding_id: int) -> Optional[str]:
         """
         Converts finding_id to full host url
         """

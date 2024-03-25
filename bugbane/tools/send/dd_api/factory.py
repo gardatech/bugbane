@@ -17,12 +17,12 @@
 """
 Module describes DefectDojoAPIFactory class to provide different DefectDojoAPI implementations
 """
-from typing import Dict
+from typing import Dict, Type
 
 from bugbane.modules.factory import Factory
 
 from .abc import DefectDojoAPI
 
 
-class DefectDojoAPIFactory(Factory):
-    registry: Dict[str, DefectDojoAPI] = {}
+class DefectDojoAPIFactory(Factory[DefectDojoAPI]):
+    registry: Dict[str, Type[DefectDojoAPI]] = {}

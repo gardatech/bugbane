@@ -14,27 +14,29 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Callable
+from typing import Dict, Callable, Type, TypeVar, Generic
 from abc import ABC
 
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
+T = TypeVar("T")
 
-class Factory(ABC):
+
+class Factory(ABC, Generic[T]):
     """Factory/Registry ABC.
     Registers classes (types) in internal dictionary using @register decorator.
     Creates new instances of classes using create method.
     """
 
-    registry: Dict[str, Callable] = {}
+    registry: Dict[str, Type[T]] = {}
 
     @classmethod
-    def register(cls, name: str) -> Callable:
+    def register(cls, name: str) -> Callable[[Type[T]], Type[T]]:
         """Register class in internal registry"""
 
-        def wrapper(wrapped) -> Callable:
+        def wrapper(wrapped: Type[T]) -> Type[T]:
             if name in cls.registry:
                 log.warning("replacing '%s' class in %s registry", name, cls.__name__)
             cls.registry[name] = wrapped
@@ -43,7 +45,7 @@ class Factory(ABC):
         return wrapper
 
     @classmethod
-    def create(cls, wanted_class: str):
+    def create(cls, wanted_class: str) -> T:
         """Create concrete class"""
         if wanted_class not in cls.registry:
             raise TypeError(
