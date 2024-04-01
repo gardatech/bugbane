@@ -18,6 +18,7 @@ from typing import Tuple, List, Dict, Optional
 
 import os
 from subprocess import Popen, PIPE, STDOUT, TimeoutExpired, SubprocessError
+import shlex
 
 import psutil
 
@@ -179,7 +180,10 @@ def make_env_shell_str(env: Dict[str, str]) -> Optional[str]:
     """
     env = env or {}
 
-    result = []
+    if not env:
+        return None
+
+    result: List[str] = []
     for k, v in env.items():
         value = v
         if "$" in v or " " in v:
@@ -190,7 +194,26 @@ def make_env_shell_str(env: Dict[str, str]) -> Optional[str]:
 
         result.append(f"{k}={value}")
 
-    return " ".join(result) or None
+    return " ".join(result)
+
+
+def remove_prefix_env(cmdline: str) -> str:
+    """
+    Return `cmdline` without preceeding env variables.
+    Original `cmdline` is returned if it doesn't start with "env ".
+    """
+
+    if not cmdline.startswith("env "):
+        return cmdline
+
+    cmd = cmdline.strip()
+    cmd = shlex.split(cmd)[1:]
+
+    for i, arg in enumerate(cmd):
+        if "=" not in arg:
+            return " ".join(cmd[i:])
+
+    return " ".join(cmd)
 
 
 def prepare_run_args_for_shell(run_args: List[str], sample_path: str) -> str:

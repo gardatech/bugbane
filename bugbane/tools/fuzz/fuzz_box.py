@@ -33,6 +33,7 @@ log = getLogger(__name__)
 from bugbane.modules.process import (
     run_interactive_shell_cmd,
     get_process_children,
+    remove_prefix_env,
     ProcessException,
 )
 from bugbane.modules.corpus_utils import ensure_initial_corpus_exists
@@ -277,7 +278,7 @@ class FuzzBox:
                 if expected_cmd in cmds_found:
                     continue
 
-                if expected_cmd.startswith(cmdline):
+                if remove_prefix_env(expected_cmd).startswith(cmdline):
                     log.trace("Fuzzer cmd is still running: %s", expected_cmd)
                     cmds_found.append(expected_cmd)
                     break
@@ -313,7 +314,7 @@ class FuzzBox:
 
         if bad_fuzzing:
             log.error(
-                "fuzzers don't work. Please check manually by running one of the following commands:\n%s",
+                "fuzzers don't work. Please check manually by running some of the fuzzer commands:\n%s",
                 "\n".join(self.fuzz_cmds),
             )
             raise FuzzBoxError("fuzzers don't work. Please check manually")
