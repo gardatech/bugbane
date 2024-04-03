@@ -25,7 +25,7 @@ from bugbane.modules.log import getLogger
 log = getLogger(__name__)
 
 from bugbane.modules.build_type import BuildType
-from bugbane.modules.string_utils import replace_part_in_str_list
+from bugbane.modules.string_utils import replace_part_in_str_list, shorten_string
 from bugbane.modules.process import make_env_shell_str
 
 from .fuzzer_cmd import FuzzerCmd, FuzzerCmdError
@@ -262,16 +262,26 @@ class AFLplusplusCmd(FuzzerCmd):
     def _add_fuzzer_instance_names(
         self, cmds: List[str], specs: List[str], base_inst_name: str
     ):
-        """Replace $name in both cmds and specs with base_inst_name + index"""
+        """
+        Replace $name in both cmds and specs with base_inst_name + index
+        """
 
         first = 0
         last = len(cmds) - 1
 
+        # older versions of AFL required sync_id to be at most 24 symbols long
+        afl_sync_id_len_limit = 24
+
         for str_list in (cmds, specs):
+            afl_sync_id = shorten_string(
+                base_inst_name + "$i",
+                max_len=afl_sync_id_len_limit,
+                new_mid_part="___",
+            )
             replace_part_in_str_list(
                 str_list,
                 "$name",
-                base_inst_name + "$i",
+                afl_sync_id,
                 1,
                 first,
                 last,

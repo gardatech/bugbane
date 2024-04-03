@@ -57,6 +57,25 @@ def test_generate_commands():
     assert len(cmds) == 17
 
 
+def test_generate_commands_long_name():
+    cmdgen = AFLplusplusCmd()
+
+    builds = {
+        BuildType.BASIC: "./basic/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    }
+
+    cmds, _ = cmdgen.generate(
+        run_args="@@",
+        run_env={},
+        input_corpus="in",
+        output_corpus="out",
+        count=10,
+        builds=builds,
+    )
+    assert "-M 0123456789A___STUVWXYZ01" in cmds[0]
+    assert "-S 0123456789A___STUVWXYZ10" in cmds[-1]
+
+
 def test_replace_part_in_commands():
     count = 8
     base_cmd = (
