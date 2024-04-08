@@ -450,6 +450,290 @@ Aborted
     )
 
 
+def test_atheris_uncaught_exception() -> None:
+    """Uncaught Python exception detected with Atheris."""
+
+    output = """INFO: Using built-in libfuzzer
+WARNING: Failed to find function "__sanitizer_acquire_crash_state".
+WARNING: Failed to find function "__sanitizer_print_stack_trace".
+WARNING: Failed to find function "__sanitizer_set_death_callback".
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 554069088
+./fuzz.py: Running 1 inputs 1 time(s) each.
+Running: artifacts/crash-0125e21e3b4d87bcc61d854f63e235a46a48e8e8
+
+ === Uncaught Python exception: ===
+ValueError: minute must be in 0..59
+Traceback (most recent call last):
+  File "/pyxyz/./fuzz.py", line 23, in TestOneInput
+    context = xyz.load(data)
+  File "/pyxyz/src/xyz/__init__.py", line 73, in load
+    return parser.load_one()
+  File "/pyxyz/src/xyz/parser.py", line 88, in load_one
+    return self.make(item)
+  File "/pyxyz/src/xyz/parser.py", line 112, in make
+    data = self.make_inner(item)
+  File "/pyxyz/src/xyz/parser.py", line 151, in make_inner
+    data = parse_data(self, item)
+  File "/pyxyz/src/xyz/parser.py", line 391, in make_stats
+    return datetime.datetime(year, month, day, hour, minute, second, fraction,
+ValueError: minute must be in 0..59
+
+==187528== ERROR: libFuzzer: fuzz target exited
+SUMMARY: libFuzzer: fuzz target exited
+"""
+    card = helper_make_card(output, exit_code=77, is_hang=None, src_path="/pyxyz/src")
+    assert (
+        card.title
+        == "Unhandled exception ValueError in make_stats at /pyxyz/src/xyz/parser.py:391"
+    )
+
+
+def test_python_exception_without_message() -> None:
+    """Uncaught Python exception without exception message."""
+
+    output = """Traceback (most recent call last):
+  File "/src/./prog.py", line 27, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 20, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 15, in <lambda>
+    1: lambda: check_data("1"),
+               ^^^^^^^^^^^^^^^
+  File "/src/parse.py", line 20, in check_data
+    raise SpecialError()
+parse.SpecialError
+"""
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert (
+        card.title
+        == "Unhandled exception parse.SpecialError in check_data at /src/parse.py:20"
+    )
+
+
+def test_python_exception_from_stdin() -> None:
+    """Uncaught Python exception (code ran from stdin)."""
+
+    output = """Traceback (most recent call last):
+  File "<stdin>", line 27, in <module>
+  File "<stdin>", line 20, in main
+IndexError: list index out of range
+"""
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert card.title == "Unhandled exception IndexError in main at <stdin>:20"
+
+
+def test_python_exception_causes_another_exception() -> None:
+    """
+    Uncaught Python exception which causes another uncaught exception.
+    Happens when we don't catch exception raised by `raise from`.
+    """
+
+    output = """Traceback (most recent call last):
+  File "/src/./prog.py", line 20, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 16, in <lambda>
+    2: lambda: load_data(""),
+               ^^^^^^^^^^^^^
+  File "/src/./prog.py", line 9, in load_data
+    raise RuntimeError("no data provided")
+RuntimeError: no data provided
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/src/./prog.py", line 27, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 22, in main
+    raise TypeError("bad type") from e
+TypeError: bad type
+"""
+
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert card.title == "Unhandled exception TypeError in main at /src/prog.py:22"
+
+
+def test_python_exception_during_another_exception() -> None:
+    """
+    Uncaught Python exception which causes another uncaught exception.
+    Happens when we don't catch exception raised in an `except` block
+    via `raise` (not `raise from`).
+    """
+
+    output = """Traceback (most recent call last):
+  File "/src/parse.py", line 3, in parse_data
+    return parse_caller(_inner_parse(data))
+                        ^^^^^^^^^^^^^^^^^^
+  File "/src/parse.py", line 12, in _inner_parse
+    return int(data)
+           ^^^^^^^^^
+ValueError: invalid literal for int() with base 10: '-'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/src/./prog.py", line 27, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 20, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 17, in <lambda>
+    3: lambda: load_data("-"),
+               ^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 11, in load_data
+    return parse_data(data)
+           ^^^^^^^^^^^^^^^^
+  File "/src/parse.py", line 5, in parse_data
+    print("bad data! %d" % (data,))
+          ~~~~~~~~~~~~~~~^~~~~~~~~
+TypeError: %d format: a real number is required, not str
+"""
+
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert (
+        card.title == "Unhandled exception TypeError in parse_data at /src/parse.py:5"
+    )
+
+
+def test_python_exception_in_stdlib() -> None:
+    """Uncaught Python exception which happened in standard library."""
+
+    output = """Traceback (most recent call last):
+  File "/src/./prog.py", line 28, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 21, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 18, in <lambda>
+    4: lambda: call_stdlib(),
+               ^^^^^^^^^^^^^
+  File "/src/parse.py", line 32, in call_stdlib
+    Thread(target=_thread_func).run()
+  File "/usr/lib64/python3.11/threading.py", line 975, in run
+    self._target(*self._args, **self._kwargs)
+  File "/src/parse.py", line 30, in _thread_func
+    re.compile("[A-")
+  File "/usr/lib64/python3.11/re/__init__.py", line 227, in compile
+    return _compile(pattern, flags)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/re/__init__.py", line 294, in _compile
+    p = _compiler.compile(pattern, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/re/_compiler.py", line 743, in compile
+    p = _parser.parse(p, flags)
+        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/re/_parser.py", line 982, in parse
+    p = _parse_sub(source, state, flags & SRE_FLAG_VERBOSE, 0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/re/_parser.py", line 457, in _parse_sub
+    itemsappend(_parse(source, state, verbose, nested + 1,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib64/python3.11/re/_parser.py", line 588, in _parse
+    raise source.error("unterminated character set",
+re.error: unterminated character set at position 0
+"""
+
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert (
+        card.title == "Unhandled exception re.error in _thread_func at /src/parse.py:30"
+    )
+
+
+def test_python_exception_in_lambda() -> None:
+    """Uncaught Python exception which happened in a lambda function."""
+
+    output = """Traceback (most recent call last):
+  File "/src/./prog.py", line 29, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 22, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 19, in <lambda>
+    5: lambda: None.a,
+               ^^^^^^
+AttributeError: 'NoneType' object has no attribute 'a'
+"""
+
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert (
+        card.title
+        == "Unhandled exception AttributeError in <lambda> at /src/prog.py:19"
+    )
+
+
+def test_python_exception_in_eval() -> None:
+    """Uncaught Python exception which happened in an eval call."""
+
+    output = """Traceback (most recent call last):
+  File "/src/./prog.py", line 30, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/src/./prog.py", line 23, in main
+    print(m[int(sys.argv[1])]())
+          ^^^^^^^^^^^^^^^^^^^^^
+  File "/src/./prog.py", line 20, in <lambda>
+    6: lambda: evaluator("None()"),
+               ^^^^^^^^^^^^^^^^^^^
+  File "/src/parse.py", line 35, in evaluator
+    eval(cmd)
+  File "<string>", line 1, in <module>
+TypeError: 'NoneType' object is not callable
+"""
+
+    card = helper_make_card(output, exit_code=1, is_hang=None, src_path="/src")
+    assert (
+        card.title == "Unhandled exception TypeError in evaluator at /src/parse.py:35"
+    )
+
+
+def test_python_aborted() -> None:
+    """
+    Python caught signal like SIGABRT.
+    This will probably be detected by non-Python trace parsers.
+    """
+
+    output = """QWidget: Must construct a QApplication before a QWidget
+Aborted
+"""
+
+    card = helper_make_card(output, exit_code=134, is_hang=None, src_path="/src")
+    assert card.title == "Crash"
+
+
+def test_python_aborted_with_src_location() -> None:
+    """
+    Python caught signal like SIGABRT.
+    Here triggered by pytest, but can happen in other situations as well.
+    """
+
+    output = """Thread 0x00007f9715c296c0 (most recent call first):
+  File "/src/test_qt.py", line 8 in _thread_func
+  File "/usr/lib64/python3.11/threading.py", line 975 in run
+  File "/usr/lib64/python3.11/threading.py", line 1038 in _bootstrap_inner
+  File "/usr/lib64/python3.11/threading.py", line 995 in _bootstrap
+
+Current thread 0x00007f971a2d9500 (most recent call first):
+  File "/src/test_qt.py", line 15 in test_test
+  File "/usr/lib/python3.11/site-packages/_pytest/python.py", line 194 in pytest_pyfunc_call
+  File "/usr/lib/python3.11/site-packages/pluggy/_callers.py", line 77 in _multicall
+  File "/usr/lib/python3.11/site-packages/_pytest/config/__init__.py", line 192 in console_main
+  File "/usr/bin/pytest-3.11", line 33 in <module>
+
+Extension modules: PyQt6.QtCore, PyQt6.QtGui, PyQt6.QtWidgets (total: 3)
+Aborted
+"""
+
+    card = helper_make_card(output, exit_code=134, is_hang=None, src_path="/src")
+    assert card.title == "Crash in test_test at /src/test_qt.py:15"
+
+
 def test_no_errors():
     output = """Bad input data entered!
 Leaving...

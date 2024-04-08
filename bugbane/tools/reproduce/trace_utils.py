@@ -158,6 +158,11 @@ def get_crash_location(output: str, src_path: Optional[str] = None) -> Optional[
     if result is not None:
         return result
 
+    result = get_python_crash_location(t, src_path)
+    log.trace("python location result: %s", result)
+    if result is not None:
+        return result
+
     result = get_gdb_crash_location(t, src_path)
     log.trace("gdb location result: %s", result)
     if result is not None:
@@ -215,6 +220,92 @@ def get_dotnet_crash_or_hang_location(
 
     location = f"{issue_type}at {file_path}:{file_line}"
     log.debug("dotnet location: %s", location)
+    return location
+
+
+def get_python_crash_location(
+    output: Optional[str], src_path: Optional[str] = None
+) -> Optional[str]:
+    """
+    Find first user code in Python traceback.
+    If user code can't be found, return most recent call location.
+    If it can't be found, return None.
+    """
+
+    if not output:
+        return None
+
+    if not "(most recent call" in output:
+        return None
+
+    split_by = [
+        re.compile(r"[Tt]he above exception[\s,]", re.MULTILINE),
+        re.compile(r"^Current thread ", re.MULTILINE),
+    ]
+    last_trace = output
+    for splitter in split_by:
+        if splitter.search(last_trace) is not None:
+            last_trace: str = splitter.split(last_trace)[-1]
+
+    log.trace("last python trace found (in square brackets): [%s]", last_trace)
+
+    re_python_stack = re.compile(
+        r"^\w+\s+\(most recent call (\w+)\).*?\n(.*)[$\n]", re.MULTILINE | re.DOTALL
+    )
+    # groups: 1=last|first, 2=stack
+
+    py_trace_match = re_python_stack.search(last_trace)
+    if not py_trace_match:
+        log.debug("failed to find python trace")
+        return None
+
+    first_or_last: str = py_trace_match.group(1)
+    py_trace: str = py_trace_match.group(2)
+    log.trace("matched python trace (in square brackets): [%s]", py_trace)
+
+    trace_lines = (line.strip() for line in py_trace.split("\n"))
+    trace_lines = [line for line in trace_lines if ": libFuzzer: " not in line]
+    trace_lines = [line for line in trace_lines if len(line) > 0]
+
+    if "(most recent call " in trace_lines[0]:
+        trace_lines.pop(0)  # remove the "Traceback" / "Stack trace" line
+
+    if first_or_last == "last":
+        trace_lines.reverse()
+        exception_name = trace_lines[0]
+        if ":" in exception_name:
+            exception_name = exception_name.split(":")[0]
+    else:
+        exception_name = ""
+
+    re_file_line = re.compile(
+        r'^\s*File "(.*?)", line (\d+),? in (\S+)\s*$', re.MULTILINE
+    )
+    # 1=file, 2=line, 3=func
+
+    # stack_lines = [line for line in stack_lines if re_file_line.match(line)]
+    trace = "\n".join(trace_lines)
+    log.trace("reconstructed python trace (in square brackets): [%s]", trace)
+
+    best_location = ""
+    src_path = src_path or ""
+    for m in re_file_line.finditer(trace):
+        filename = m.group(1)
+        line = m.group(2)
+        func = m.group(3)
+
+        if filename.startswith(src_path):
+            best_location = f" in {func} at {filename}:{line}"
+            break
+
+        if len(best_location) < 1:
+            best_location = f" in {func} at {filename}:{line}"
+
+    if not exception_name and not best_location:
+        return None
+
+    location = f"{exception_name}{best_location}"
+    log.debug("python location: %s", location)
     return location
 
 

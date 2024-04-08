@@ -1,6 +1,12 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.5.3
+- fuzz tool:
+    - fixed restarting fuzzers with custom `run_env`
+- reproduce tool:
+    - added support for Python tracebacks
+
 ## Version 0.5.2
 - fuzz tool:
     - the tool now makes few attempts to restart dead fuzzers

@@ -13,10 +13,10 @@ BugBane goals:
 
 BugBane features:
 1. Building applications for fuzz testing with sanitizers and coverage support: AFL++, libFuzzer.
-2. Fuzzing built targets with [AFL++](https://github.com/AFLplusplus/AFLplusplus), [libFuzzer](https://www.llvm.org/docs/LibFuzzer.html), [dvyukov/go-fuzz](https://github.com/dvyukov/go-fuzz), [go test](https://go.dev/security/fuzz) using a given number of CPU cores until meeting a given stop condition.
+2. Fuzzing built targets with [AFL++](https://github.com/AFLplusplus/AFLplusplus), [libFuzzer](https://www.llvm.org/docs/LibFuzzer.html) (including [Atheris](https://github.com/google/atheris)), [dvyukov/go-fuzz](https://github.com/dvyukov/go-fuzz), [go test](https://go.dev/security/fuzz) using a given number of CPU cores until meeting a given stop condition.
 3. Synchronizing test cases between fuzzer and storage directories, including deduplication and minimization with use of fuzzer tools.
-4. Coverage collection of tested app's source code using fuzzer-generated samples, coverage reports creation.
-5. Reproducing of fuzzer-discovered crashes and hangs. Determining location of bugs in the source code.
+4. Coverage collection of tested app's source code using fuzzer-generated samples, coverage reports creation (lcov, go tool cover).
+5. Reproducing of fuzzer-discovered crashes and hangs. Determining location of bugs in the source code: C/C++, C#, Go, Python.
 6. Submitting reproducible bugs to vulnerability management system: [Defect Dojo](https://github.com/DefectDojo/django-DefectDojo).
 7. Creating screenshots for both fuzzers and coverage reports.
 8. Report generation with use of Jinja2 templates.
@@ -318,8 +318,8 @@ The bugbane.json configuration file must define the variables `fuzzer_type`, `te
 The builds of the app to test must exist on disk in folders corresponding to the build type, just as the bb-build tool places them.<br>
 There may also be dictionary files with the ".dict" extension in the "dictionaries" folder. They are merged into one dictionary, which is provided for the fuzzer to use, subject to the support from the fuzzer.
 
-The values available for the variable `fuzzer_type`: AFL++, libFuzzer, go-fuzz, go-test.<br>
-The variable `tested_binary_path` holds the path to the tested app's binary relative to an input directory (where builds will be searched for). Example: imagine, there's a folder named "build" with the build results, executable is named "app" and is saved as build/test/app, the bb-build tool performed several builds each time copying the "build" folder to path /fuzz, that is, now there are paths /fuzz/basic/test/app, /fuzz/coverage/test/app, etc. In this case the `tested_binary_path` should be "test/app".<br>
+The values available for the variable `fuzzer_type`: AFL++, libFuzzer, go-fuzz, go-test. For fuzzing with SharpFuzz you should specify AFL++, for Atheris you should specify libFuzzer.<br>
+The variable `tested_binary_path` holds the path to the tested app's binary relative to an input directory (where builds will be searched for). Example: imagine, there's a folder named "build" with the build results, executable is named "app" and is saved as build/test/app, the bb-build tool performed several builds each time copying the "build" folder to path /fuzz, that is, now there are paths /fuzz/basic/test/app, /fuzz/coverage/test/app, etc. In this case the `tested_binary_path` should be "test/app". For Atheris the `tested_binary_path` variable should contain name of an executable Python script, and the script should start with Python shebang (interpreter directive such as `#!/usr/bin/env python3`).<br>
 The variable `src_root` is not used directly, but other BugBane tools running after bb-fuzz fail if the variable is missing.<br>
 The `run_args` variable holds a string containing run arguments for the tested app. The variable may include the "@@" sequence, through which the fuzzer may provide input samples for the app.<br>
 For the built-in Go fuzzer the variable `run_args` must contain the `-test.fuzz` launch option with a specific fuzz test, for instance, `-test.fuzz=FuzzHttp`.<br>
@@ -361,6 +361,7 @@ bb-coverage suite /fuzz
 ```
 As a result, coverage report files appear under the /fuzz/coverage_report directory, with the /fuzz/coverage_report/index.html being the main page of the report.<br>
 **The tool does not work for the built-in Go fuzzer (go test).** This is due to the way the fuzzer works.
+**Also coverage collection is not implemented for Python fuzz targets.**<br>
 
 <details>
 <summary>Details on how bb-coverage works</summary>

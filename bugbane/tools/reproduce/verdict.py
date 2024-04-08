@@ -85,6 +85,12 @@ class Verdict(Enum):
         if exit_code == 134 and "Unhandled exception" in output:
             return cls.CRASH_UNHANDLED_EXCEPTION
 
+        if exit_code == 134 and "(most recent call " in output and "Aborted" in output:
+            return cls.CRASH_GENERIC
+
+        if exit_code in (1, 77, 134) and "(most recent call " in output:
+            return cls.CRASH_UNHANDLED_EXCEPTION
+
         if exit_code == 77 and "Sanitizer: detected memory leaks" in output:
             return cls.CRASH_LSAN
 
