@@ -15,7 +15,7 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Iterable, Sequence
 
 from ..issue_card import IssueCard
 
@@ -52,13 +52,30 @@ class Reproducer(ABC):
     def run_binary_on_samples(
         self,
         binary_path: str,
-        crashes_mask: Optional[str],
-        hangs_mask: Optional[str],
+        crashes: Iterable[str],
+        hangs: Iterable[str],
         hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         """
-        Run binary specified by binary_path on each sample matching crashes_mask or hangs_mask.
+        Run binary specified by `binary_path` on each sample matching crashes_mask or hangs_mask.
         If any mask is missing/empty, then nothing should be done for it.
         Masks may specify one file.
         Return list of IssueCard
+        """
+
+    @classmethod
+    @abstractmethod
+    def reproduce_cmd_matchers(cls) -> Sequence[str]:
+        """
+        Return a sequence of patterns (strings), by which this reproducer
+        can be identified from reproduce command.
+        """
+
+    @classmethod
+    @abstractmethod
+    def can_run_tested_app(cls) -> bool:
+        """
+        Return True if this reproducer actually runs tested app on bug samples.
+        Return False if this reproducer only collects reproduce results (e.g. from fuzzer),
+            and does not run the app
         """

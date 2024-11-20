@@ -390,7 +390,7 @@ Possible values of the `coverage_type` variable
 </details>
 
 ## bb-reproduce
-Reproduces fuzzer-discovered crashes and hangs and summarizes the results of a fuzzing campaign.<br>
+Reproduces fuzzer-discovered crashes and hangs and summarizes the fuzz stats.<br>
 
 Example usage:
 ```shell
@@ -404,15 +404,16 @@ This generates the file /fuzz/bb_results.json, containing the fuzzer statistics 
 
 The bb-reproduce tool does the following:
 1. Collects the overall statistics of fuzzers' operation
-2. Minimizes crashes and hangs by reproducing them
+2. Deduplicates crashes and hangs by reproducing them
 3. Records information about each unique reproducible bug
 4. Generates a JSON file with the stats and the bugs data
 5. Saves test cases resulting in reproducible crashes and hangs to disk
 
 The data saved for each reproducible bug includes the issue/bug title, the location of the bug in the source code, the run command with a particular test sample, the app output (stdout+stderr), the environment variables, etc.<br>
 Targets instrumented with [SharpFuzz](https://github.com/Metalnem/sharpfuzz) are also supported by the tool.
+The tool can also reproduce previously discovered bugs (`--old-bugs`), as well as bugs, found by other tools (`--extra-bugs`). For examples use `bb-reproduce -hh`.<br>
 
-The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `fuzzer_type`, `reproduce_specs`, `run_args`, and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
+The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `reproduce_specs`, `run_args`, and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
 The `fuzz_sync_dir` contains the path to the fuzzer synchronization directory; bb-fuzz uses the "out" directory.<br>
 The `src_root` is the root directory of the tested app's source code as it was at the time of build; the path does not have to exist on the file system as the variable is only used for better precision when locating the crashing/hanging line in the source code.<br>
 The `reproduce_specs` is a JSON dictionary, specifying the fuzzer type and mapping the builds of the tested app to the folders, on which to reproduce bugs:

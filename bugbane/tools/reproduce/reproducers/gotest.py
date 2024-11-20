@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
+from typing import Sequence
 
 import os
 from bugbane.modules.log import getLogger
@@ -41,3 +42,7 @@ class GoTestReproducer(DefaultReproducer):
         parts = sample.split(os.sep)
         arg = "/".join(parts[-2:])
         return f"-test.run={arg}"
+
+    @classmethod
+    def reproduce_cmd_matchers(cls) -> Sequence[str]:
+        return [" -test.run=Fuzz", " -run=Fuzz"]

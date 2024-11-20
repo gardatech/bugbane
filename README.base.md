@@ -778,11 +778,11 @@ Possible values of the `coverage_type` variable
 
 ## bb-reproduce
 <!-- [ru] -->
-Воспроизводит обнаруженные фаззером падения и зависания и обобщает результаты работы фаззера.<br>
+Воспроизводит обнаруженные фаззером падения и зависания и обобщает статистику работы фаззера.<br>
 
 Пример запуска:
 <!-- [en] -->
-Reproduces fuzzer-discovered crashes and hangs and summarizes the results of a fuzzing campaign.<br>
+Reproduces fuzzer-discovered crashes and hangs and summarizes the fuzz stats.<br>
 
 Example usage:
 <!-- [common] -->
@@ -807,7 +807,7 @@ This generates the file /fuzz/bb_results.json, containing the fuzzer statistics 
 <!-- [ru] -->
 Инструмент bb-reproduce выполняет следующие действия:
 1. Получает общую статистику работы фаззеров
-2. Минимизирует падения и зависания путём их воспроизведения
+2. Дедуплицирует падения и зависания путём их воспроизведения
 3. Составляет информацию о каждом уникальном воспроизводимом баге
 4. Формирует JSON-файл со статистикой и данными о багах
 5. Сохраняет на диск тестовые примеры, приводящие к воспроизводимым падениям и зависаниям
@@ -815,7 +815,7 @@ This generates the file /fuzz/bb_results.json, containing the fuzzer statistics 
 <!-- [en] -->
 The bb-reproduce tool does the following:
 1. Collects the overall statistics of fuzzers' operation
-2. Minimizes crashes and hangs by reproducing them
+2. Deduplicates crashes and hangs by reproducing them
 3. Records information about each unique reproducible bug
 4. Generates a JSON file with the stats and the bugs data
 5. Saves test cases resulting in reproducible crashes and hangs to disk
@@ -823,18 +823,20 @@ The bb-reproduce tool does the following:
 <!-- [ru] -->
 Для каждого бага сохраняются такие сведения как заголовок issue/бага, место возникновения бага в исходном коде, команда запуска с конкретным семплом, вывод приложения (stdout+stderr), переменные окружения и т.д.<br>
 Поддерживаются цели, инструментированные с помощью [SharpFuzz](https://github.com/Metalnem/sharpfuzz).<br>
+Поддерживается воспроизведение ранее обнаруженных багов (`--old-bugs`), а также багов, обнаруженных сторонними инструментами (`--extra-bugs`). Ознакомиться с примерами использования: `bb-reproduce -hh`.<br>
 
 <!-- [en] -->
 The data saved for each reproducible bug includes the issue/bug title, the location of the bug in the source code, the run command with a particular test sample, the app output (stdout+stderr), the environment variables, etc.<br>
 Targets instrumented with [SharpFuzz](https://github.com/Metalnem/sharpfuzz) are also supported by the tool.
+The tool can also reproduce previously discovered bugs (`--old-bugs`), as well as bugs, found by other tools (`--extra-bugs`). For examples use `bb-reproduce -hh`.<br>
 
 <!-- [ru] -->
-В конфигурационном файле bugbane.json должны быть определены переменные `src_root`, `fuzz_sync_dir`, `fuzzer_type`, `reproduce_specs`, `run_args` и `run_env`. Переменные `fuzz_sync_dir` и `reproduce_specs` добавляются инструментом bb-fuzz.<br>
+В конфигурационном файле bugbane.json должны быть определены переменные `src_root`, `fuzz_sync_dir`, `reproduce_specs`, `run_args` и `run_env`. Переменные `fuzz_sync_dir` и `reproduce_specs` добавляются инструментом bb-fuzz.<br>
 `fuzz_sync_dir` - директория синхронизации фаззера; bb-fuzz использует директорию "out".<br>
 `src_root` - путь к исходному коду тестируемого приложения на момент выполнения сборок; не обязан реально существовать в файловой системе, используется для более точного определения места падений/зависаний в исходном коде.<br>
 `reproduce_specs` - словарь, определяющий тип фаззера, и задающий соответствие между сборками приложения и папками, на которых требуется выполнить воспроизведение:
 <!-- [en] -->
-The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `fuzzer_type`, `reproduce_specs`, `run_args`, and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
+The bugbane.json configuration file must define the variables `src_root`, `fuzz_sync_dir`, `reproduce_specs`, `run_args`, and `run_env`. The variables `fuzz_sync_dir` and `reproduce_specs` are usually set by the bb-fuzz tool.<br>
 The `fuzz_sync_dir` contains the path to the fuzzer synchronization directory; bb-fuzz uses the "out" directory.<br>
 The `src_root` is the root directory of the tested app's source code as it was at the time of build; the path does not have to exist on the file system as the variable is only used for better precision when locating the crashing/hanging line in the source code.<br>
 The `reproduce_specs` is a JSON dictionary, specifying the fuzzer type and mapping the builds of the tested app to the folders, on which to reproduce bugs:

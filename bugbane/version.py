@@ -14,7 +14,24 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-"""Module describing BugBane version."""
+"""Module describing BugBane version and helper utils."""
 
-__version__ = "0.5.3"
+__version__ = "0.6.0.dev"
 """BugBane version"""
+
+
+def name_version_description(prog_name: str, description: str) -> str:
+    """
+    Return provided program name `prog_name` with the current project version
+    and `description` provided.
+    For use with argparse.ArgumentParser.
+    """
+    return f"{name_version(prog_name)} - {description}"
+
+
+def name_version(prog_name: str) -> str:
+    """
+    Return provided program name `prog_name` with the current project version.
+    For use in things like argument parsing and help messages.
+    """
+    return f"{prog_name} v{__version__}"

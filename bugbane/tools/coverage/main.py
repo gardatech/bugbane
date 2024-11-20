@@ -22,6 +22,7 @@ import os
 import sys
 import shlex
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataError, FuzzDataSuite
 from bugbane.modules.builds import BuildDetectionError, detect_builds
@@ -47,7 +48,7 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
 
-    log.info("[*] BugBane coverage tool")
+    log.info("[*] BugBane coverage tool v%s", __version__)
 
     if args.run_mode == "suite":
         try:

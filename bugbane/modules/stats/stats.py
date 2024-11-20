@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 import os
 import glob
 from bugbane.modules.log import getLogger
+from bugbane.errors import BugBaneException
 
 from bugbane.modules.string_utils import is_glob_mask
 
@@ -28,7 +29,7 @@ log = getLogger(__name__)
 from bugbane.modules.file_utils import none_on_bad_nonempty_file
 
 
-class StatsError(Exception):
+class StatsError(BugBaneException):
     """Base class for exceptions happened during work with stats"""
 
 

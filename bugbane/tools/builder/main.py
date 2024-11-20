@@ -18,6 +18,7 @@ import os
 import sys
 import pprint
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 
@@ -37,7 +38,7 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
 
-    log.info("[*] BugBane build tool")
+    log.info("[*] BugBane build tool v%s", __version__)
 
     os.chdir(args.input)
 

@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
+from typing import Dict, Any
 
 import os
 import json
@@ -134,7 +134,7 @@ class DefectDojoSender:
         )
         return finding_id
 
-    def __make_finding_description(self, issue_card):
+    def __make_finding_description(self, issue_card: Dict[str, Any]) -> str:
         if not issue_card:
             return "<<-- No description -->>"
 
@@ -149,6 +149,9 @@ class DefectDojoSender:
         env = issue_card.get("reproduce_env")
         if env:
             description += "\nEnvironment was:\n" + env
+
+        if issue_card.get("old") is True:
+            description += "\nNOTE: possible regression or unaddressed issue. This bug was previously discovered, but has just been reproduced again.\n"
 
         return description
 

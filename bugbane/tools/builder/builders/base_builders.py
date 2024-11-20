@@ -104,12 +104,10 @@ class Builder(ABC):
         """
 
     @abstractmethod
-    def run_build_cmd(self, extra_env=None):
-        ...
+    def run_build_cmd(self, extra_env=None): ...
 
     @abstractmethod
-    def _append_build_log(self, text: str, extra_env: Dict):
-        ...
+    def _append_build_log(self, text: str, extra_env: Dict): ...
 
     @abstractmethod
     def store_build(self, bt: BuildType):

@@ -14,14 +14,14 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
+from typing import Dict, Type
 
 from bugbane.modules.factory import Factory
 
 from .screenshot import ScreenshotMaker
 
 
-class ScreenshotMakerFactory(Factory):
+class ScreenshotMakerFactory(Factory[ScreenshotMaker]):
     """Factory for ScreenshotMaker subclasses"""
 
-    registry: Dict[str, ScreenshotMaker] = {}
+    registry: Dict[str, Type[ScreenshotMaker]] = {}

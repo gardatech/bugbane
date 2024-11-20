@@ -14,7 +14,8 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict, Callable, Optional
+from typing import Dict, Callable, Optional, Type
+from copy import deepcopy
 
 from bugbane.modules.log import getLogger
 
@@ -25,17 +26,17 @@ from bugbane.modules.factory import Factory
 from .reproducer import Reproducer
 
 
-class ReproducerFactory(Factory):
+class ReproducerFactory(Factory[Reproducer]):
     """Factory/Registry for Reproducer subclasses"""
 
-    registry: Dict[str, Reproducer] = {}
-    default: Optional[Reproducer] = None
+    registry: Dict[str, Type[Reproducer]] = {}
+    default: Optional[Type[Reproducer]] = None
 
     @classmethod
-    def register_default(cls) -> Callable:
+    def register_default(cls) -> Callable[[Type[Reproducer]], Type[Reproducer]]:
         """Register default class in internal registry"""
 
-        def wrapper(wrapped: Reproducer) -> Reproducer:
+        def wrapper(wrapped: Type[Reproducer]) -> Type[Reproducer]:
             if cls.default is not None:
                 log.warning("replacing default class in %s", cls.__name__)
             cls.default = wrapped
@@ -54,3 +55,33 @@ class ReproducerFactory(Factory):
             )
 
         return ret()
+
+    @classmethod
+    def create_from_reproduce_cmd(cls, reproduce_cmd: str) -> Reproducer:
+        """
+        Return a new instance of Reproducer subclass matching to `reproduce_cmd`.
+        """
+        name = cls.get_reproducer_name_from_reproduce_cmd(reproduce_cmd)
+        return cls.create(name)
+
+    @classmethod
+    def get_reproducer_name_from_reproduce_cmd(cls, reproduce_cmd: str) -> str:
+        """
+        Return name by which Reproducer subclass matching to `reproduce_cmd` was registered.
+        The name can then be used to get a new Reproducer subclass instance.
+
+        This method can be used for caching reproducer instances
+        """
+
+        reproducers = deepcopy(cls.registry)
+        if cls.default is not None:
+            reproducers["~~~DEFAULT~~~"] = cls.default
+
+        for name, reproducer in reproducers.items():
+            for m in reproducer.reproduce_cmd_matchers():
+                if m in reproduce_cmd:
+                    return name
+
+        raise TypeError(
+            f"failed to find reproducer for reproduce command '{reproduce_cmd}'"
+        )

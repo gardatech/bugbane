@@ -40,7 +40,7 @@ class Verdict(Enum):
     CRASH_UNHANDLED_EXCEPTION = (8192, "Unhandled exception")
     CRASH_OUT_OF_MEMORY = (16384, "Out of memory")
 
-    def __init__(self, value, description):
+    def __init__(self, value: int, description: str) -> None:
         self._id = value
         self._description = description
 
@@ -110,3 +110,12 @@ class Verdict(Enum):
             return cls.CRASH_GENERIC
 
         return cls.NO_ERROR
+
+    @classmethod
+    def from_string(cls, verdict: str):
+        """Make Verdict object from a string matching its name"""
+        for v in cls:
+            if v.name == verdict:
+                return v
+
+        return cls.UNKNOWN

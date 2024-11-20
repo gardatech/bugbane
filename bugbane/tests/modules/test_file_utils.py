@@ -17,6 +17,8 @@
 import os
 import tempfile
 from io import BytesIO
+
+import pytest
 from pytest_mock import MockerFixture
 
 from bugbane.modules import file_utils

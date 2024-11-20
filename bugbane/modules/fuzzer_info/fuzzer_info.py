@@ -34,6 +34,12 @@ class FuzzerInfo(ABC):
     """
 
     @abstractmethod
+    def fuzzer_type_name(self) -> str:
+        """
+        Return the name of a corresponding fuzzer type, e.g. AFL++ or libFuzzer
+        """
+
+    @abstractmethod
     def initial_samples_required(self) -> bool:
         """
         Return True if fuzzer can't work without initial corpus.

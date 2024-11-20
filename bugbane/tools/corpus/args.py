@@ -19,6 +19,7 @@ import sys
 import argparse
 from argparse import Namespace
 
+from bugbane.version import name_version_description
 from bugbane.modules.file_utils import none_on_bad_nonempty_dir
 from bugbane.modules.fuzzer_info.factory import FuzzerInfoFactory
 
@@ -38,7 +39,9 @@ def parse_args(argv):
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(
-        description="%(prog)s - import/export tool for sample storage",
+        description=name_version_description(
+            "%(prog)s", "an import/export tool for sample storage"
+        ),
     )
     parser.add_argument(
         "-v",

@@ -18,17 +18,20 @@ import os
 import sys
 import argparse
 
+from bugbane.version import name_version_description
 from .dd_api.factory import DefectDojoAPIFactory
 
 
 def parse_args(argv):
     parser = argparse.ArgumentParser(
-        description="%(prog)s - tool to send issue cards to Defect Dojo",
+        description=name_version_description(
+            "%(prog)s", "a tool to send issue cards to Defect Dojo"
+        ),
     )
     parser.add_argument(
         "-v",
         "--verbose",
-        help="print more informational messages",
+        help="print more informational messages (specify up to 5 times)",
         action="count",
         default=0,
     )

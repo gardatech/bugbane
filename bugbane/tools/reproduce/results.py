@@ -18,7 +18,11 @@ from dataclasses import dataclass
 
 
 @dataclass
-class TotalReproduceResult:
+class ReproduceStats:
+    """
+    Stores count of crashes and hangs tried and reproduced.
+    """
+
     crashes_tried: int = 0
     crashes: int = 0
     hangs_tried: int = 0

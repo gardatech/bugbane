@@ -35,8 +35,47 @@ from bugbane.tools.reproduce.reproducers.gotest import GoTestReproducer
         ("go-test", GoTestReproducer),
     ],
 )
-def test_factory(fuzzer_type: str, reproducer_class: Type[Reproducer]):
+def test_factory_by_fuzzer_type(fuzzer_type: str, reproducer_class: Type[Reproducer]):
     assert ReproducerFactory.create(fuzzer_type).__class__ is reproducer_class
+
+
+@pytest.mark.parametrize(
+    "reproduce_cmd, reproducer_class",
+    [
+        (
+            'ubsan/app "./out/target/crashes/id:000000,sig:06,sync:m1,src:000000"',
+            DefaultReproducer,
+        ),
+        (
+            './app --file "./out/target/hangs/id:000000,sig:06,sync:m1,src:000000"',
+            DefaultReproducer,
+        ),
+        ('myapp "./artifacts/crash-1234567890"', DefaultReproducer),
+        (
+            """timeout --kill-after 9s -s SIGINT 2s gdb --ex 'r "artifacts/crash-57700c512968964cfaaea5932b3747cd99884f80"' --ex "q" ./asan/app 0</dev/null""",
+            DefaultReproducer,
+        ),
+        (
+            'cat "crashers/crash-57700c512968964cfaaea5932b3747cd99884f80"',
+            GoFuzzReproducer,
+        ),
+        (
+            "go test -run=FuzzMyFunc/57700c512968964cfaaea5932b3747cd99884f80",
+            GoTestReproducer,
+        ),
+        (
+            "go test -test.run=FuzzMyFunc/57700c512968964cfaaea5932b3747cd99884f80",
+            GoTestReproducer,
+        ),
+    ],
+)
+def test_factory_by_reproduce_cmd(
+    reproduce_cmd: str, reproducer_class: Type[Reproducer]
+):
+    assert (
+        ReproducerFactory.create_from_reproduce_cmd(reproduce_cmd).__class__
+        is reproducer_class
+    )
 
 
 def test_factory_bad(mocker: MockerFixture):
@@ -48,8 +87,8 @@ def test_factory_bad(mocker: MockerFixture):
 
 def test_factory_overwrite():
     class ReproducerFactoryChild(ReproducerFactory):
-        registry: Dict[str, Reproducer] = {}
-        default: Optional[Reproducer] = None
+        registry: Dict[str, Type[Reproducer]] = {}
+        default: Optional[Type[Reproducer]] = None
 
     @ReproducerFactoryChild.register_default()
     class SomeClass1:
@@ -83,3 +122,17 @@ def test_gotest_make_reproduce_cmd(samples_path: str, expected_run_args: str):
     r = GoTestReproducer()
     print(f"samples_path={samples_path}, expected_run_args={expected_run_args}")
     assert r.prep_run_args(sample_path=samples_path) == expected_run_args
+
+
+@pytest.mark.parametrize(
+    "reproducer, expected_ability_to_reproduce",
+    [
+        (DefaultReproducer, True),
+        (GoFuzzReproducer, False),
+        (GoTestReproducer, True),
+    ],
+)
+def test_ability_to_run_tested_app(
+    reproducer: Reproducer, expected_ability_to_reproduce: bool
+) -> None:
+    assert reproducer.can_run_tested_app() is expected_ability_to_reproduce

@@ -21,6 +21,7 @@ Screenshot tool
 import sys
 import shutil
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger
 
 from .args import parse_args
@@ -32,6 +33,8 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
+
+    log.info("[*] BugBane screenshot tool v%s", __version__)
 
     if args.screener == "pango":
         if shutil.which("pango-view") is None:

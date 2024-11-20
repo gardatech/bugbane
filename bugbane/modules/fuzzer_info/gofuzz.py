@@ -22,11 +22,17 @@ from .fuzzer_info import FuzzerInfo
 from .factory import FuzzerInfoFactory
 
 
-@FuzzerInfoFactory.register("go-fuzz")
+fuzzer_type_name = "go-fuzz"
+
+
+@FuzzerInfoFactory.register(fuzzer_type_name)
 class GoFuzzInfo(FuzzerInfo):
     REPRODUCE_REQUIRED = False  # go-fuzz reproduces bugs on its own
 
     COVERAGE_REQUIRED = False  # go-fuzz should be launched with -dumpcover option
+
+    def fuzzer_type_name(self) -> str:
+        return fuzzer_type_name
 
     def initial_samples_required(self) -> bool:
         return False

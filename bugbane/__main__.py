@@ -19,6 +19,8 @@
 import sys
 import argparse
 
+from bugbane.version import name_version_description
+
 from bugbane.tools.corpus.main import main as corpus_main
 from bugbane.tools.builder.main import main as builder_main
 from bugbane.tools.fuzz.main import main as fuzz_main
@@ -44,7 +46,9 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
     if len(argv) < 1:
         parser = argparse.ArgumentParser(
-            description="%(prog)s - common entry point for all the BugBane tools",
+            description=name_version_description(
+                "%(prog)s", "a common entry point for all the BugBane tools"
+            ),
             add_help=False,
         )
         parser.add_argument(

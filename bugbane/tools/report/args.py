@@ -13,12 +13,13 @@
 # limitations under the License.
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
+from typing import Sequence, Union, NoReturn
 
 import os
 import sys
 import argparse
-from argparse import Namespace
 
+from bugbane.version import name_version_description
 from bugbane.modules.file_utils import none_on_bad_nonempty_file
 from bugbane.modules.stats.coverage.factory import CoverageStatsFactory
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
@@ -26,7 +27,7 @@ from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
 from .emitters.factory import EmitterFactory
 
 
-def parse_args(argv):
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser = create_argument_parser()
 
     if len(argv) < 1:
@@ -39,9 +40,11 @@ def parse_args(argv):
     return args
 
 
-def create_argument_parser():
+def create_argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="%(prog)s - tool to generate fuzzing reports",
+        description=name_version_description(
+            "%(prog)s", "a tool to generate fuzzing reports"
+        ),
     )
     parser.add_argument(
         "-v",
@@ -133,14 +136,14 @@ def create_argument_parser():
     return parser
 
 
-def exit_on_bad_args(args: Namespace):
+def exit_on_bad_args(args: argparse.Namespace) -> Union[None, NoReturn]:
     if not os.path.isdir(args.suite):
         sys.exit(f"ERROR: suite directory '{args.suite}' doesn't exist")
 
     if not os.path.isdir(args.templates):
         sys.exit(f"ERROR in --templates: directory '{args.templates}' doesn't exist")
 
-    template_path = os.path.join(args.templates, args.template_name)
+    template_path: str = os.path.join(args.templates, args.template_name)
     checked_path = none_on_bad_nonempty_file(template_path)
     if not checked_path:
         sys.exit(
@@ -149,6 +152,6 @@ def exit_on_bad_args(args: Namespace):
         )
 
 
-def post_process_args(args: Namespace):
+def post_process_args(args: argparse.Namespace) -> None:
     if args.template_name is None:
         args.template_name = f"report.{args.format}"

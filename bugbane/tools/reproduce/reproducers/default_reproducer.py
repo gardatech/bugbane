@@ -14,13 +14,11 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Callable, Tuple, Dict, List, Optional
+from typing import Callable, Tuple, Dict, List, Optional, Iterable, Sequence
 
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
-
-import glob
 
 from bugbane.modules.process import (
     make_env_shell_str,
@@ -44,22 +42,19 @@ class DefaultReproducer(Reproducer):
     def run_binary_on_samples(
         self,
         binary_path: str,
-        crashes_mask: Optional[str],
-        hangs_mask: Optional[str],
+        crashes: Iterable[str],
+        hangs: Iterable[str],
         hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
-        cards.extend(self.run_binary_on_crashes(binary_path, crashes_mask))
-        cards.extend(
-            self.run_binary_on_hangs(binary_path, hangs_mask, hang_reproduce_limit)
-        )
+        cards.extend(self.run_binary_on_crashes(binary_path, crashes))
+        cards.extend(self.run_binary_on_hangs(binary_path, hangs, hang_reproduce_limit))
         return cards
 
     def run_binary_on_crashes(
-        self, binary_path: str, mask: Optional[str]
+        self, binary_path: str, samples: Iterable[str]
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
-        samples = self.mask_to_samples(mask)
         for sample in samples:
             cmd = self.make_basic_run_cmd(binary_path, sample)
             card = self.run(cmd, binary_path, sample, self.one_run_try)
@@ -71,10 +66,9 @@ class DefaultReproducer(Reproducer):
         return cards
 
     def run_binary_on_hangs(
-        self, binary_path: str, mask: Optional[str], hang_reproduce_limit: int
+        self, binary_path: str, samples: Iterable[str], hang_reproduce_limit: int
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
-        samples = self.mask_to_samples(mask)
         for num, sample in enumerate(samples, start=1):
             if num > hang_reproduce_limit:
                 break
@@ -86,12 +80,6 @@ class DefaultReproducer(Reproducer):
             ):
                 cards.append(card)
         return cards
-
-    def mask_to_samples(self, mask: Optional[str]) -> List[str]:
-        """Return sorted(glob.glob(mask)) if mask is not empty/None"""
-        if not mask:
-            return []
-        return sorted(glob.glob(mask))
 
     def run(
         self,
@@ -209,3 +197,11 @@ class DefaultReproducer(Reproducer):
         Generate shell-compatible run arguments replacing @@ with sample_path.
         """
         return prepare_run_args_for_shell(self.run_args, sample_path)
+
+    @classmethod
+    def reproduce_cmd_matchers(cls) -> Sequence[str]:
+        return ["artifacts/", "crashes/id", "hangs/id"]
+
+    @classmethod
+    def can_run_tested_app(cls) -> bool:
+        return True

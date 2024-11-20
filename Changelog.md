@@ -1,6 +1,14 @@
 # BugBane changelog
 List of significant changes in BugBane.
 
+## Version 0.6.0
+- all tools:
+    - each tool now prints bugbane version
+- reproduce tool:
+    - added support for regression testing (`--old-bugs`, `--saved-results-file-path`)
+    - added support for reproducing custom user provided samples (`--extra-bugs`)
+    - the reproduce tool now respects contents of existing results file (`bb_results.json`), new issues will now be added to the existing ones instead of replacing them, so the tool can now be ran multiple times in a row (this was mainly added to improve flexibility with `--old-bugs`, `--extra-bugs`, and `--no-own-bugs`)
+
 ## Version 0.5.3
 - fuzz tool:
     - fixed restarting fuzzers with custom `run_env`
@@ -59,7 +67,7 @@ List of significant changes in BugBane.
 ## Version 0.4.3
 - **(breaking change)** bb-fuzz syntax updated to match other tools.<br>
     Users will need to remove dashes from the `suite` option: change `bb-fuzz --suite $DIR` to `bb-fuzz suite $DIR`
-- all tools that run tested application now support the `run_env` variable (bb-fuzz replaces LD_PRELOAD with similar fuzzer variable, e.g., AFL_PRELOAD for AFL++)
+- all tools that run tested application now support the `run_env` variable (bb-fuzz replaces LD\_PRELOAD with similar fuzzer variable, e.g., AFL\_PRELOAD for AFL++)
 
 ## Version 0.4.2
 - fixed timeout option

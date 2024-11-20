@@ -14,10 +14,11 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from bugbane.modules.factory import Factory
+"""Module describes project specific exceptions."""
 
 
-class StatsFactory(Factory):
-    """Factory that creates Stats"""
-
-    registry = {}
+class BugBaneException(Exception):
+    """
+    The top level BugBane exception.
+    Other BugBane's exceptions should always be inherited from it.
+    """

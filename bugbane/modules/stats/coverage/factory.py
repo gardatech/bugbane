@@ -13,11 +13,13 @@
 # limitations under the License.
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
+from typing import Dict, Type
 
-from ..factory import StatsFactory
+from bugbane.modules.factory import Factory
+from .coverage_stats import CoverageStats
 
 
-class CoverageStatsFactory(StatsFactory):
+class CoverageStatsFactory(Factory[CoverageStats]):
     """Abstract Factory for CoverageStats"""
 
-    registry = {}
+    registry: Dict[str, Type[CoverageStats]] = {}

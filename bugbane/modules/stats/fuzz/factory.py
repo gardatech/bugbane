@@ -13,11 +13,13 @@
 # limitations under the License.
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
+from typing import Dict, Type
 
-from ..factory import StatsFactory
+from bugbane.modules.factory import Factory
+from .fuzz_stats import FuzzStats
 
 
-class FuzzStatsFactory(StatsFactory):
+class FuzzStatsFactory(Factory[FuzzStats]):
     """Abstract Factory for FuzzStats"""
 
-    registry = {}
+    registry: Dict[str, Type[FuzzStats]] = {}

@@ -14,10 +14,13 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
+from typing import Type, Dict
+
 from bugbane.modules.factory import Factory
+from .fuzzer_cmd import FuzzerCmd
 
 
-class FuzzerCmdFactory(Factory):
+class FuzzerCmdFactory(Factory[FuzzerCmd]):
     """Factory for FuzzerCmd"""
 
-    registry = {}
+    registry: Dict[str, Type[FuzzerCmd]] = {}

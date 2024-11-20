@@ -21,9 +21,14 @@ import os
 from .fuzzer_info import FuzzerInfo
 from .factory import FuzzerInfoFactory
 
+fuzzer_type_name = "libFuzzer"
 
-@FuzzerInfoFactory.register("libFuzzer")
+
+@FuzzerInfoFactory.register(fuzzer_type_name)
 class LibFuzzerInfo(FuzzerInfo):
+    def fuzzer_type_name(self) -> str:
+        return fuzzer_type_name
+
     def initial_samples_required(self) -> bool:
         return False
 

@@ -14,10 +14,9 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Iterable, Sequence
 
 import re
-import glob
 from bugbane.modules.log import getLogger
 
 
@@ -35,25 +34,23 @@ from ..verdict import Verdict
 class GoFuzzReproducer(Reproducer):
     """
     go-fuzz reproducer that only collects reproduce results previously saved by fuzzer
+    (does not run tested app)
     """
 
     def run_binary_on_samples(
         self,
         binary_path: str,
-        crashes_mask: Optional[str],
-        hangs_mask: Optional[str],
+        crashes: Iterable[str],
+        hangs: Iterable[str],
         hang_reproduce_limit: int,
     ) -> List[IssueCard]:
         # no need to limit hangs: reproducing already happened by go-fuzz
         cards: List[IssueCard] = []
-        if not crashes_mask:
-            return cards
-        crashers = glob.glob(crashes_mask)
-        cards.extend(self.collect_crashers(binary_path, crashers))
+        cards.extend(self.collect_crashers(binary_path, crashes))
         return cards
 
     def collect_crashers(
-        self, binary_path: str, crashers: List[str]
+        self, binary_path: str, crashers: Iterable[str]
     ) -> List[IssueCard]:
         """
         For each crasher in `crashers` collect program output,
@@ -64,7 +61,7 @@ class GoFuzzReproducer(Reproducer):
         for crasher in crashers:
             output_file_path, output = self.load_crasher_output(crasher)
             verdict = self.make_verdict(output)
-            if verdict.value <= Verdict.HANG.value:
+            if verdict.value[0] <= Verdict.HANG.value[0]:
                 continue
 
             card = IssueCard(
@@ -114,3 +111,11 @@ class GoFuzzReproducer(Reproducer):
         if m is None:
             return None
         return int(m.group(1))
+
+    @classmethod
+    def reproduce_cmd_matchers(cls) -> Sequence[str]:
+        return ["crashers/"]
+
+    @classmethod
+    def can_run_tested_app(cls) -> bool:
+        return False

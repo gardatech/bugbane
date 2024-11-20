@@ -76,7 +76,7 @@ class BugSampleSaver:
         Change saved sample name in input `issue_card`.
         """
         try:
-            sample_path = issue_card["sample"]
+            sample_path = str(issue_card["sample"])
             title = issue_card["title"]
         except KeyError as e:
             raise BugSampleSaverError(
@@ -85,14 +85,13 @@ class BugSampleSaver:
         save_name = self.title_to_sample_name(str(title))
         save_path = os.path.join(output_dir, save_name)
 
-        save_path = self.get_next_free_file_name(save_path)
-
-        try:
-            shutil.copyfile(str(sample_path), save_path)
-        except OSError as e:
-            raise BugSampleSaverError(
-                f"wasn't able to copy file '{sample_path}' to '{save_path}'"
-            ) from e
+        if os.path.isfile(sample_path) and not os.path.exists(save_path):
+            try:
+                shutil.copyfile(str(sample_path), save_path)
+            except OSError as e:
+                raise BugSampleSaverError(
+                    f"wasn't able to copy file '{sample_path}' to '{save_path}'"
+                ) from e
 
         issue_card["sample"] = save_name
 
@@ -108,15 +107,3 @@ class BugSampleSaver:
             normalized, new_mid_part="_-_-_", max_len=self.max_file_name_len
         )
         return shortened
-
-    @staticmethod
-    def get_next_free_file_name(wanted_path: str) -> str:
-        """
-        Generate the next available file name if `wanted_path` already exists.
-        """
-        number = 1
-        orig_wanted_path = wanted_path
-        while os.path.exists(wanted_path):
-            wanted_path = orig_wanted_path + "%04d" % number
-            number += 1
-        return wanted_path

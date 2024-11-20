@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
+from typing import Dict, Union
 from dataclasses import dataclass
 from time import time
 
@@ -44,7 +44,7 @@ class FuzzStats(Stats):
         self.last_path_timestamp = 0
         self.start_timestamp = int(time())
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> Dict[str, Union[int, float]]:
         self._ensure_format()
         return {
             "num_instances": self.num_instances,
@@ -72,9 +72,9 @@ class FuzzStats(Stats):
             avg = avg / self.num_instances
         return avg
 
-    def add_stats_from(self, *others):
+    def add_stats_from(self, *others: "FuzzStats") -> None:
         """
-        *others: iterable of FuzzStats
+        *others: tuple of FuzzStats
         """
         for other in others:
             self.num_instances += other.num_instances

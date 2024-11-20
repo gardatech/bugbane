@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Tuple, List, Dict, Optional
+from typing import Dict, Optional
 
 import pytest
 
@@ -40,3 +40,34 @@ import bugbane.modules.process as p
 )
 def test_remove_prefix_env(env_cmd: str, cmd: str) -> None:
     assert p.remove_prefix_env(env_cmd) == cmd
+
+
+@pytest.mark.parametrize(
+    "env_str, env_dict",
+    [
+        (None, {}),
+        ("a=1", {"a": "1"}),
+        ("a=1 bcd=efg", {"a": "1", "bcd": "efg"}),
+    ],
+)
+def test_make_env_shell_str(env_str: Optional[str], env_dict: Dict[str, str]) -> None:
+    assert p.make_env_shell_str(env_dict) == env_str
+
+
+@pytest.mark.parametrize(
+    "env_str, env_dict",
+    [
+        (None, {}),
+        ("a=1", {"a": "1"}),
+        ("a=1 bcd=efg", {"a": "1", "bcd": "efg"}),
+    ],
+)
+def test_make_env_dict_from_str(
+    env_str: Optional[str], env_dict: Dict[str, str]
+) -> None:
+    assert p.make_env_dict_from_str(env_str) == env_dict
+
+
+def test_make_env_dict_from_str_raises() -> None:
+    with pytest.raises(p.ProcessException):
+        p.make_env_dict_from_str("A")

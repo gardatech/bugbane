@@ -17,6 +17,7 @@
 from typing import Dict
 
 import os
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -28,13 +29,14 @@ from bugbane.modules.file_utils import (
 from bugbane.modules.build_type import BuildType
 
 
-class BuildDetectionError(Exception):
+class BuildDetectionError(BugBaneException):
     """Exception class for errors during build detection"""
 
 
 def get_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
     """
-    Convinience wrapper around detect_builds method
+    Wrapper around the `detect_builds` method.
+    Checks for missing builds and raises BuildDetectionError
     """
     builds = detect_builds(suite, tested_binary_path)
     if not any(bt.is_fuzz_target() for bt in builds):
@@ -56,6 +58,7 @@ def get_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
 def detect_builds(suite: str, tested_binary_path: str) -> Dict[BuildType, str]:
     """
     Enumerate directories (defined by BuildType) in suite path.
+    Return dictionary mapping `BuildType` to builds detected on disk
     """
     log.trace("suite: %s, tested_binary_path: %s", suite, tested_binary_path)
 

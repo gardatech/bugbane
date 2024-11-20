@@ -197,6 +197,28 @@ def make_env_shell_str(env: Dict[str, str]) -> Optional[str]:
     return " ".join(result)
 
 
+def make_env_dict_from_str(env: Optional[str]) -> Dict[str, str]:
+    """
+    Transforms env string to dict.
+    Returns empty dict if `env` is empty or None.
+    Raises ProcessException on errors.
+
+    Use this to reverse operation of `make_env_shell_str()`
+    """
+    if not env:
+        return {}
+
+    ret: Dict[str, str] = {}
+
+    try:
+        for part in shlex.split(env):
+            k, v = part.split("=", 1)
+            ret[k] = v
+    except ValueError as e:
+        raise ProcessException(f"invalid env string: {env}") from e
+    return ret
+
+
 def remove_prefix_env(cmdline: str) -> str:
     """
     Return `cmdline` without preceeding env variables.

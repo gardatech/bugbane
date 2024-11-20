@@ -24,6 +24,7 @@ import sys
 import shlex
 import tempfile
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataError, FuzzDataSuite
 from bugbane.modules.build_type import BuildType
@@ -46,6 +47,8 @@ def main(argv=None):
     argv = argv or sys.argv[1:]
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
+
+    log.info("[*] BugBane corpus tool v%s", __version__)
 
     minimizing_tool = None
 
@@ -84,9 +87,7 @@ def main(argv=None):
 
             prog_timeout = bane_vars.get("timeout")
 
-            storage = os.path.join(
-                args.storage, "samples"
-            )  # TODO: use correct directory structure
+            storage = os.path.join(args.storage, "samples")
             tmpdir_prefix = args.suite
 
             fuzzer_info: FuzzerInfo = FuzzerInfoFactory.create(fuzzer_type)
@@ -139,7 +140,7 @@ def main(argv=None):
             )
 
     log.info(
-        "[*] BugBane corpus tool. Selected action: %s. Source: %s, destination: %s",
+        "[*] Selected action: %s. Source: %s, destination: %s",
         args.action,
         ", ".join(src_masks),
         dst,

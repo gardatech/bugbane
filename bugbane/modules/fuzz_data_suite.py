@@ -14,7 +14,7 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 from dataclasses import dataclass
 
 import os
@@ -30,6 +30,8 @@ from bugbane.modules.fuzzer_info.factory import FuzzerInfoFactory
 from bugbane.modules.fuzzer_info.fuzzer_info import FuzzerInfo
 
 from bugbane.modules.file_utils import (
+    FileUtilsException,
+    load_dict_from_json_file,
     none_on_bad_nonempty_dir,
     none_on_bad_nonempty_file,
 )
@@ -74,7 +76,9 @@ class FuzzDataSuite:
         self.fuzz_stats = stats
 
     @classmethod
-    def unpack_from_fuzzing_suite_dir(cls, path: str):
+    def unpack_from_fuzzing_suite_dir(
+        cls, path: str
+    ) -> Tuple["FuzzDataSuite", Dict[str, Any]]:
         """
         Return tuple: (FuzzDataSuite, bane_vars_dict)
         """
@@ -144,7 +148,7 @@ class FuzzDataSuite:
             vars_json_path=vars_json_path,
         )
 
-    def to_data_dict(self) -> Dict:
+    def to_data_dict(self) -> Dict[str, Any]:
         data = self.load_vars()
         self._loaded_vars_should_present(data)
         data.update(self._load_data_from_files())
@@ -157,23 +161,22 @@ class FuzzDataSuite:
         )
         return data
 
-    def load_vars(self) -> Dict:
+    def load_vars(self) -> Dict[str, Any]:
         """Loads and returns variables from JSON file"""
         if self.vars_json_path is None:
             raise FuzzDataError("no json file in fuzzing data suite")
 
         try:
-            with open(self.vars_json_path, "rt") as json_file:
-                data = json.load(json_file)
-        except OSError as e:
+            data = load_dict_from_json_file(self.vars_json_path)
+        except FileUtilsException as e:
             raise FuzzDataError(
-                f"while trying to load json file '{self.vars_json_path}': {e}"
+                f"while trying to load json file {self.vars_json_path}: {e}"
             ) from e
         try:
             vars_dict = data["fuzzing"]
         except KeyError as e:
             raise FuzzDataError(
-                f"while trying to load json file '{self.vars_json_path}': no 'fuzzing' dictionary in file"
+                f"while trying to load json file {self.vars_json_path}: no 'fuzzing' dictionary in file"
             ) from e
         return vars_dict
 
@@ -199,7 +202,7 @@ class FuzzDataSuite:
                 f"while trying to save json file '{save_path}': {e}"
             ) from e
 
-    def _loaded_vars_should_present(self, d: Dict):
+    def _loaded_vars_should_present(self, d: Dict[str, Any]):
         """
         Raise FuzzDataError if some necessary data is missing in input dict
         """
@@ -229,17 +232,17 @@ class FuzzDataSuite:
                 f"variables not defined in input fuzzing suite: {', '.join(not_found)}"
             )
 
-    def _load_data_from_files(self) -> Dict:
+    def _load_data_from_files(self) -> Dict[str, Any]:
         """
         Loads all the text data in fuzzing suite and returns it as dict
         """
-        result = {}
+        result: Dict[str, Any] = {}
         self._add_loadables_to_dict(result)
         self._add_fuzz_stats_to_dict(result)
         self._add_cov_stats_to_dict(result)
         return result
 
-    def _add_loadables_to_dict(self, result: Dict):
+    def _add_loadables_to_dict(self, result: Dict[str, Any]):
         """
         Adds text content read from files to input dict without any processing
         """
@@ -269,7 +272,7 @@ class FuzzDataSuite:
 
         return contents
 
-    def _add_fuzz_stats_to_dict(self, result: Dict):
+    def _add_fuzz_stats_to_dict(self, result: Dict[str, Any]) -> None:
         """
         Get fuzzer statistics from fuzzer_stats, etc
         """
@@ -307,7 +310,7 @@ class FuzzDataSuite:
             self.fuzz_stats.hangs, "hangs"
         )
 
-    def _add_cov_stats_to_dict(self, result: Dict):
+    def _add_cov_stats_to_dict(self, result: Dict[str, Any]) -> None:
         """
         Get coverage info from index.html, summary.txt, etc.
         """

@@ -19,6 +19,8 @@ import sys
 import argparse
 from argparse import Namespace
 
+from bugbane.version import name_version_description
+
 
 def parse_args(argv):
     parser = create_argument_parser()
@@ -34,7 +36,9 @@ def parse_args(argv):
 
 def create_argument_parser():
     parser = argparse.ArgumentParser(
-        description="%(prog)s - tool to perform FUZZ testing",
+        description=name_version_description(
+            "%(prog)s", "a tool to perform fuzz testing"
+        ),
     )
     parser.add_argument(
         "-v",

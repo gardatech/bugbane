@@ -14,19 +14,28 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 
 import os
 import sys
 import json
 from io import SEEK_END
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
 
-def dump_dict_as_json(filepath: Optional[str], result: Dict):
+class FileUtilsException(BugBaneException):
+    """Exception class for errors in file_utils module of BugBane."""
+
+
+def dump_dict_as_json(filepath: Optional[str], result: Dict[str, Any]) -> None:
+    """
+    Save dictionary `result` to json file at `filepath`.
+    In case of errors print the dictionary to stdout.
+    """
     need_print = True
 
     if filepath:
@@ -40,7 +49,7 @@ def dump_dict_as_json(filepath: Optional[str], result: Dict):
         print_dict_as_json(result)
 
 
-def save_dict_to_json_file(d: Dict, path: str) -> bool:
+def save_dict_to_json_file(d: Dict[str, Any], path: str) -> bool:
     """Save dict to file in JSON format. Return True on success"""
     try:
         with open(path, "w", encoding="utf-8") as file:
@@ -50,12 +59,28 @@ def save_dict_to_json_file(d: Dict, path: str) -> bool:
         return False
 
 
-def print_dict_as_json(d: Dict):
+def load_dict_from_json_file(path: str, encoding: str = "utf-8") -> Dict[str, Any]:
+    """
+    Try to read json file, return the results as a dictionary.
+    Raise FileUtilsException on errors
+    """
+    try:
+        with open(path, "rt", encoding=encoding) as f:
+            data: Dict[str, Any] = json.load(f)
+    except OSError as e:
+        raise FileUtilsException(
+            f"while trying to load contents from file '{path}': {e}"
+        ) from e
+
+    return data
+
+
+def print_dict_as_json(d: Dict[str, Any]) -> None:
     """Dump dictionary to stdout in JSON format"""
     json.dump(d, sys.stdout, ensure_ascii=False, indent=4)
 
 
-def make_relative_path(path: str, num_components: int):
+def make_relative_path(path: str, num_components: int) -> str:
     """
     Returns last num_components path parts joined via os.path.join
     """
@@ -91,7 +116,7 @@ def none_on_bad_file(*path_components: str) -> Optional[str]:
 
 def none_on_bad_nonempty_file(*path_components: str) -> Optional[str]:
     """
-    If file exists, read accessible and is not empty,
+    If file exists, read accessible, and is not empty,
     return path joined from path_components.
 
     Return None otherwise
@@ -110,7 +135,7 @@ def none_on_bad_nonempty_file(*path_components: str) -> Optional[str]:
 
 def none_on_bad_empty_file(*path_components: str) -> Optional[str]:
     """
-    If file exists, read accessible and is empty,
+    If file exists, read accessible, and is empty,
     return path joined from path_components.
 
     Return None otherwise
@@ -151,7 +176,7 @@ def none_on_bad_dir(*path_components: str) -> Optional[str]:
 
 def none_on_bad_empty_dir(*path_components: str) -> Optional[str]:
     """
-    If directory exists, read accessible and is empty,
+    If directory exists, read accessible, and is empty,
     return path joined from path_components.
 
     Return None otherwise
@@ -170,7 +195,7 @@ def none_on_bad_empty_dir(*path_components: str) -> Optional[str]:
 
 def none_on_bad_nonempty_dir(*path_components: str) -> Optional[str]:
     """
-    If directory exists, read accessible and is not empty,
+    If directory exists, read accessible, and is not empty,
     return path joined from path_components.
 
     Return None otherwise
@@ -199,7 +224,7 @@ def none_on_bad_path(*path_components: str) -> Optional[str]:
     Return path otherwise
     """
 
-    if not path_components:
+    if len(path_components) < 1:
         return None
 
     if len(path_components) < 2:

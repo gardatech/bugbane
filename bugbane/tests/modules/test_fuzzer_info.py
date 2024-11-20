@@ -38,7 +38,8 @@ def test_factory():
 
 def test_afl():
     info = AFLplusplusInfo()
-    assert info.initial_samples_required()
+    assert info.fuzzer_type_name() == "AFL++"
+    assert info.initial_samples_required() is True
     assert info.input_dir("./out") == "in"
 
     assert info.sample_mask("./out", "*") == "./out/*/queue/id*"
@@ -66,7 +67,8 @@ def test_libfuzzer():
     """
 
     info = LibFuzzerInfo()
-    assert not info.initial_samples_required()
+    assert info.fuzzer_type_name() == "libFuzzer"
+    assert info.initial_samples_required() is False
     assert info.input_dir("./out") == "./out"
 
     assert info.sample_mask("./out", "*") == "./out/*"
@@ -90,7 +92,8 @@ def test_libfuzzer():
 
 def test_gofuzz():
     info = GoFuzzInfo()
-    assert not info.initial_samples_required()
+    assert info.fuzzer_type_name() == "go-fuzz"
+    assert info.initial_samples_required() is False
     assert info.input_dir("./out") == "./out/corpus"
 
     assert info.sample_mask("./out", "*") == "./out/corpus/*"
@@ -114,7 +117,8 @@ def test_gofuzz():
 
 def test_gotest():
     info = GoTestInfo()
-    assert not info.initial_samples_required()
+    assert info.fuzzer_type_name() == "go-test"
+    assert info.initial_samples_required() is False
     assert info.input_dir("./out") == "./out/corpus"
 
     assert info.sample_mask("./out", "*") == "./out/*/*"

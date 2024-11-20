@@ -19,6 +19,7 @@ import sys
 import pprint
 from argparse import Namespace
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger, Logger
 from bugbane.modules.credentials import (
     Credentials,
@@ -38,7 +39,7 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
 
-    log.info("[*] BugBane send tool")
+    log.info("[*] BugBane send tool v%s", __version__)
 
     try:
         dd_api = create_dd_api_from_args(args, log)

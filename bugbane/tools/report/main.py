@@ -18,6 +18,7 @@ import os
 import sys
 import shutil
 
+from bugbane.version import __version__
 from bugbane.modules.log import get_verbose_logger
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 from bugbane.modules.stats.fuzz.factory import FuzzStatsFactory
@@ -43,7 +44,7 @@ def main(argv=None):
     args = parse_args(argv)
     log = get_verbose_logger(__name__, args.verbose)
 
-    log.info("[*] BugBane report tool")
+    log.info("[*] BugBane report tool v%s", __version__)
 
     if args.dump_screener == "pango":
         if shutil.which("pango-view") is None:

@@ -21,6 +21,7 @@ from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
+from bugbane.version import __version__
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite, FuzzDataError
 
 from .args import parse_args
@@ -42,7 +43,7 @@ def main(argv=None):
     args = parse_args(argv)
     log.set_verbosity_level(args.verbose)
 
-    log.info("[*] BugBane fuzz tool")
+    log.info("[*] BugBane fuzz tool v%s", __version__)
 
     if shutil.which("tmux") is None:
         log.error("tmux not found in PATH")

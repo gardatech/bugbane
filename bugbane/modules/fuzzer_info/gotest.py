@@ -21,12 +21,17 @@ import os
 from .gofuzz import GoFuzzInfo
 from .factory import FuzzerInfoFactory
 
+fuzzer_type_name = "go-test"
 
-@FuzzerInfoFactory.register("go-test")
+
+@FuzzerInfoFactory.register(fuzzer_type_name)
 class GoTestInfo(GoFuzzInfo):
     REPRODUCE_REQUIRED = True
 
     COVERAGE_REQUIRED = False  # go test should be started with -test.coverprofile
+
+    def fuzzer_type_name(self) -> str:
+        return fuzzer_type_name
 
     def initial_samples_required(self) -> bool:
         return False

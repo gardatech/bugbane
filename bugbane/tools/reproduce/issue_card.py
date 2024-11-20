@@ -45,6 +45,9 @@ class IssueCard:
     verdict: Optional[Verdict] = None
     title: Optional[str] = None
 
+    is_old: Optional[bool] = None
+    is_extra: Optional[bool] = None
+
     def load_location_and_set_title(self, src_path: Optional[str] = None) -> None:
         if self.verdict == Verdict.HANG:
             location = get_hang_location(self.output, src_path)
@@ -54,7 +57,7 @@ class IssueCard:
         title = self.verdict.description
 
         if location is None:
-            log.warning(
+            log.info(
                 "wasn't able to extract crash or hang location (binary: %s, sample: %s)",
                 self.binary,
                 self.sample,

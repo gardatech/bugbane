@@ -21,9 +21,15 @@ import os
 from .fuzzer_info import FuzzerInfo
 from .factory import FuzzerInfoFactory
 
+fuzzer_type_name = "AFL++"
 
-@FuzzerInfoFactory.register("AFL++")
+
+@FuzzerInfoFactory.register(fuzzer_type_name)
 class AFLplusplusInfo(FuzzerInfo):
+
+    def fuzzer_type_name(self) -> str:
+        return fuzzer_type_name
+
     def initial_samples_required(self) -> bool:
         return True
 

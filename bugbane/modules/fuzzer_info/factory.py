@@ -14,12 +14,12 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Dict
+from typing import Dict, Type
 from bugbane.modules.factory import Factory
 from .fuzzer_info import FuzzerInfo
 
 
-class FuzzerInfoFactory(Factory):
+class FuzzerInfoFactory(Factory[FuzzerInfo]):
     """Factory for FuzzerInfo classes"""
 
-    registry: Dict[str, FuzzerInfo] = {}
+    registry: Dict[str, Type[FuzzerInfo]] = {}
