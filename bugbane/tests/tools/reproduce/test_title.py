@@ -20,7 +20,6 @@ This module tests generating titles from various output strings
 
 from typing import Optional
 from bugbane.tools.reproduce.issue_card import IssueCard
-from bugbane.tools.reproduce.trace_utils import get_crash_location, get_hang_location
 from bugbane.tools.reproduce.verdict import Verdict
 
 from bugbane.modules.log import get_verbose_logger
@@ -64,6 +63,30 @@ SUMMARY: AddressSanitizer: 123 byte(s) leaked in 1 allocation(s).
         card.title
         == "Memory leak in is_data_valid__leak at /src/cpp/include/funcs.hpp:46"
     )
+
+
+def test_asan_lsan_leak_no_src():
+    output = """Irrelevant prog's output
+Error parsing the data!
+=================================================================
+==78987==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 123 byte(s) in 2 object(s) allocated from:
+    #0 0x7ffffffffff1 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:123
+    #1 0x7ffffffffff2  (/lib/x86_64-linux-gnu/libone.so.2+0x13579b)
+
+Indirect leak of 456 byte(s) in 2 object(s) allocated from:
+    #0 0x7ffffffffff3 in __interceptor_calloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:234
+    #1 0x7ffffffffff4  (/lib/x86_64-linux-gnu/libtwo.so.0+0x45678)
+
+Indirect leak of 789 byte(s) in 2 object(s) allocated from:
+    #0 0x7ffffffffff5 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:345
+    #1 0x7ffffffffff6  (/lib/x86_64-linux-gnu/libthree-1.so.0+0x12345)
+
+SUMMARY: AddressSanitizer: 12345 byte(s) leaked in 6 allocation(s).
+"""
+    card = helper_make_card(output, exit_code=1, is_hang=False, src_path="/src")
+    assert card.title == "Memory leak in libone.so.2 at 0x13579b"
 
 
 def test_ubsan():

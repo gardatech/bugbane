@@ -454,7 +454,27 @@ def get_sanitizer_crash_location(
             if location:
                 func_name = location.group(1)
                 src_location = location.group(2)
-                return "in " + func_name + " at " + src_location
+                res = "in " + func_name + " at " + src_location
+
+                # check if source location was actually detected:
+                if not res.endswith(" at byte leaked"):
+                    return res
+
+            # try to find "binary" location
+            re_lsan_location_binary = re.compile(
+                r"^\s*#\S+\s+0[xX]\S+\s+.*?\(.*/(.*)\)\s*$", re.MULTILINE
+            )
+            location = re.search(re_lsan_location_binary, t)
+            if location:
+                offset = ""
+                lib_name = location.group(1)
+                if "+" in lib_name:
+                    lib_name, offset = lib_name.split("+", 1)
+
+                if offset:
+                    return "in " + lib_name + " at " + offset
+                else:
+                    return "in " + lib_name
 
         # 0 alloc locations? location not matched by regex?
         # try to parse other sanitizers' messages

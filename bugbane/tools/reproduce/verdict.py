@@ -91,7 +91,7 @@ class Verdict(Enum):
         if exit_code in (1, 77, 134) and "(most recent call " in output:
             return cls.CRASH_UNHANDLED_EXCEPTION
 
-        if exit_code == 77 and "Sanitizer: detected memory leaks" in output:
+        if exit_code in (1, 77) and "LeakSanitizer: detected memory leaks" in output:
             return cls.CRASH_LSAN
 
         if "AddressSanitizer:" in output:

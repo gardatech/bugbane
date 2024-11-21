@@ -67,7 +67,11 @@ class IssueCard:
             if location:
                 title += " " + location
 
-        title = anonymize_run_string(title)
+        # leak has no source location, don't remove hex address
+        is_binary_leak = title.startswith("Memory leak in ") and " at 0x" in title
+        if not is_binary_leak:
+            title = anonymize_run_string(title)
+
         self.title = title
 
         file, line = location_to_file_line(location)
