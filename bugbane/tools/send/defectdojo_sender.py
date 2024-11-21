@@ -124,7 +124,7 @@ class DefectDojoSender:
             description=description,
             severity="Critical",
             numerical_severity="S0",
-            impact="Confidentiality, Integrity, Accessibility",
+            impact="Confidentiality, Integrity, Availability",
             cwe=20,
             file_path=f.get("file"),
             line=f.get("line"),
