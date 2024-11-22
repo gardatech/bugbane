@@ -21,12 +21,13 @@ import os
 import shutil
 from enum import Enum, auto
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
 
-class MinimizerError(Exception):
+class MinimizerError(BugBaneException):
     """Exception class for errors that occur in Minimizer class"""
 
 

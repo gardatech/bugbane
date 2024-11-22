@@ -18,6 +18,7 @@ from typing import List, Dict, Optional
 from abc import ABC, abstractmethod
 
 import glob
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -25,7 +26,7 @@ log = getLogger(__name__)
 from bugbane.modules.process import prepare_run_args_for_shell, run_shell_cmd
 
 
-class CoverageCollectorError(Exception):
+class CoverageCollectorError(BugBaneException):
     """Exception class for errors that happen during coverage collection"""
 
 

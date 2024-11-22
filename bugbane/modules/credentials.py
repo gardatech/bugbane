@@ -24,8 +24,10 @@ from dataclasses import dataclass
 import os
 import re
 
+from bugbane.errors import BugBaneException
 
-class CredentialsException(Exception):
+
+class CredentialsException(BugBaneException):
     """Exception class for Credentials class."""
 
 

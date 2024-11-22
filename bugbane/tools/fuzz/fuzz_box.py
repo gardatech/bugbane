@@ -26,6 +26,7 @@ from time import sleep, time
 # TODO: check if disk space is OK
 # TODO: calculate progress towards stop condition goal
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -71,7 +72,7 @@ def limit_cpu_cores(from_config: Optional[int], max_from_args: int) -> int:
     return min(fuzz_cores, max_cpus)
 
 
-class FuzzBoxError(Exception):
+class FuzzBoxError(BugBaneException):
     """Exception class for errors in the `FuzzBox` class."""
 
 

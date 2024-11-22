@@ -18,8 +18,7 @@
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
-import os
-
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -28,7 +27,7 @@ from bugbane.modules.builds import BuildDetectionError, get_builds, BuildType
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
 
 
-class ConfigError(Exception):
+class ConfigError(BugBaneException):
     """Exception class for errors in configuration reader classes."""
 
 

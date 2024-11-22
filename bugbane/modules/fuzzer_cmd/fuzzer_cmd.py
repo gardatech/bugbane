@@ -17,12 +17,12 @@
 from typing import List, Dict, Tuple, Optional
 from abc import ABC, abstractmethod
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.build_type import BuildType
-
 from bugbane.modules.string_utils import replace_part_in_str_list
 
 
-class FuzzerCmdError(Exception):
+class FuzzerCmdError(BugBaneException):
     """Exception for errors in FuzzerCmd class."""
 
 

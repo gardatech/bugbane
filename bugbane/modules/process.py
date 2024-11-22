@@ -22,12 +22,13 @@ import shlex
 
 import psutil
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
 
 
-class ProcessException(Exception):
+class ProcessException(BugBaneException):
     """Exception class for errors in the process module."""
 
 

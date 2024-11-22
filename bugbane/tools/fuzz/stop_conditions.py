@@ -14,10 +14,11 @@
 #
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
-from typing import Callable, Dict, Optional, Tuple, Any
+from typing import Callable, Dict, Optional, Tuple
 from time import time
 
 import os
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -25,7 +26,7 @@ log = getLogger(__name__)
 from bugbane.modules.stats.fuzz.fuzz_stats import FuzzStats
 
 
-class StopConditionError(Exception):
+class StopConditionError(BugBaneException):
     """Exception class for errors that happen in stop condition related routines"""
 
 

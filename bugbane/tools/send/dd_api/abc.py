@@ -22,10 +22,12 @@ and base exception type DefectDojoAPIError.
 from typing import Optional, Tuple
 from abc import ABC, abstractmethod
 
+from bugbane.errors import BugBaneException
+
 from defectdojo_api.defectdojo_apiv2 import DefectDojoResponse
 
 
-class DefectDojoAPIError(Exception):
+class DefectDojoAPIError(BugBaneException):
     """
     Exception type for generic errors in DefectDojoAPI
     """

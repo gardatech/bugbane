@@ -15,10 +15,12 @@
 # Originally written by Valery Korolyov <fuzzah@tuta.io>
 
 from typing import List, Optional, Dict
+
+from bugbane.errors import BugBaneException
 from bugbane.modules.process import run_interactive_shell_cmd
 
 
-class CmdUtilsException(Exception):
+class CmdUtilsException(BugBaneException):
     """Exception class for errors in command utils module."""
 
 

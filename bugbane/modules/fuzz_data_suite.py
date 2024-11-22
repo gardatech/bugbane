@@ -38,8 +38,10 @@ from bugbane.modules.file_utils import (
 
 import bugbane.modules.format_utils as fu
 
+from bugbane.errors import BugBaneException
 
-class FuzzDataError(Exception):
+
+class FuzzDataError(BugBaneException):
     """Custom exception type for errors in FuzzDataSuite class"""
 
 

@@ -19,6 +19,7 @@ from typing import List, Set
 import os
 import glob
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -26,7 +27,7 @@ log = getLogger(__name__)
 from bugbane.modules import file_utils
 
 
-class DictProcessorException(Exception):
+class DictProcessorException(BugBaneException):
     """Class representing errors in DictProcessor."""
 
 

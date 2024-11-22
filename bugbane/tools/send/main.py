@@ -20,6 +20,7 @@ import pprint
 from argparse import Namespace
 
 from bugbane.version import __version__
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import get_verbose_logger, Logger
 from bugbane.modules.credentials import (
     Credentials,
@@ -73,7 +74,7 @@ def main(argv=None):
     return 0
 
 
-class CreateAPIException(Exception):
+class CreateAPIException(BugBaneException):
     """Exception: wasn't able to create DD API instance."""
 
 

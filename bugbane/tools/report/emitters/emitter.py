@@ -18,9 +18,10 @@ from abc import ABC, abstractmethod
 from typing import Optional, Union
 
 from bugbane.modules.fuzz_data_suite import FuzzDataSuite
+from bugbane.errors import BugBaneException
 
 
-class EmitterError(Exception):
+class EmitterError(BugBaneException):
     """Exception class for errors in Emitter class"""
 
 

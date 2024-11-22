@@ -17,10 +17,12 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Iterable, Sequence
 
+from bugbane.errors import BugBaneException
+
 from ..issue_card import IssueCard
 
 
-class ReproducerError(Exception):
+class ReproducerError(BugBaneException):
     """Exception representing errors in Reproducer subclasses"""
 
 

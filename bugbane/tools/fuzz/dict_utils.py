@@ -16,13 +16,14 @@
 
 from typing import Optional
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.fuzz_dict.dict_processor import (
     DictProcessor,
     DictProcessorException,
 )
 
 
-class DictMergeError(Exception):
+class DictMergeError(BugBaneException):
     """Exception class for errors during merging of dictionaries."""
 
 

@@ -21,9 +21,10 @@ import re
 import shutil
 
 from bugbane.modules import string_utils
+from bugbane.errors import BugBaneException
 
 
-class BugSampleSaverError(Exception):
+class BugSampleSaverError(BugBaneException):
     """Exception class for errors that happen in BugSampleSaver class."""
 
 

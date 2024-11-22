@@ -26,6 +26,7 @@ from abc import ABC, abstractmethod
 import os
 import shutil
 
+from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
 log = getLogger(__name__)
@@ -34,7 +35,7 @@ from bugbane.modules.process import run_shell_cmd, make_env_shell_str
 from bugbane.modules.build_type import BuildType
 
 
-class BuildError(Exception):
+class BuildError(BugBaneException):
     """Exception class for errors that happen in Builder class"""
 
 
