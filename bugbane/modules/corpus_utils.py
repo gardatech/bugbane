@@ -32,10 +32,11 @@ def ensure_initial_corpus_exists(path: str):
             raise OSError(f"{path} can't be used as corpus directory")
 
         for p in os.listdir(path):
-            if os.path.isfile(p) and os.path.getsize(p) > 0:
+            entity_path = os.path.join(path, p)
+            if os.path.isfile(entity_path) and os.path.getsize(entity_path) > 0:
                 return  # have directory with some nonempty files
     else:
-        log.verbose1("Creating initial corpus directory %s", path)
+        log.verbose1("Creating initial corpus directory: %s", path)
         os.makedirs(path)
 
     sample_path = os.path.join(path, "1")
