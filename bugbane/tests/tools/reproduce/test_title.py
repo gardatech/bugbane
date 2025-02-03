@@ -171,7 +171,7 @@ Using host libthread_db library "/lib64/libthread_db.so.1".
 Program received signal SIGSEGV, Segmentation fault.
 0x0000000000d54da5 in __afl_fuzz_alt ()
 #0  0x0000000000d54da5 in __afl_fuzz_alt ()
-#1  0x000000000023d3da in fuzz(char*, long) (buf=0xd54da0 <__afl_fuzz_alt> "F2\315\353!!\315\353\002A3434", len=<optimized out>) at /src/src/fuzzable_app.cpp:47
+#1  0x000000000023d3da in fuzz(char*, long) (buf=0xd54da0 <__afl_fuzz_alt> "F2\315\353!!(\315\353\002A3434)", len=<optimized out>) at /src/src/fuzzable_app.cpp:47
 #2  0x000000000023d8ba in main (argc=1, argv=0x7fffffffebd8) at /src/src/fuzzable_app.cpp:76
 A debugging session is active.
 

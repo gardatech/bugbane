@@ -66,7 +66,7 @@ def anonymize_run_string(t: Optional[str]) -> Optional[str]:
     re_sh_segfault = re.compile(
         r"^sh: line \d+:\s*\d+\s*(?:Segmentation fault|Aborted).*$", re.MULTILINE
     )
-    re_bracketed_values = re.compile(r"(\(.*?\))", re.MULTILINE)
+    re_bracketed_values = re.compile(r"(\(.*\))", re.MULTILINE)
     re_multiple_spaces = re.compile(r"( {2,})")
 
     t = re.sub(re_hex_addr, "0xADDRESS", t)
