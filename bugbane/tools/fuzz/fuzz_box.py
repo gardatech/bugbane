@@ -22,10 +22,6 @@ import psutil
 from copy import deepcopy
 from time import sleep, time
 
-# TODO: refactor methods of FuzzBox
-# TODO: check if disk space is OK
-# TODO: calculate progress towards stop condition goal
-
 from bugbane.errors import BugBaneException
 from bugbane.modules.log import getLogger
 
@@ -49,9 +45,10 @@ from bugbane.modules.fuzzer_cmd.fuzzer_cmd import FuzzerCmd, FuzzerCmdError
 from bugbane.modules.fuzzer_cmd.factory import FuzzerCmdFactory
 
 from .stop_conditions import (
-    StopConditions,
     StopConditionError,
     detect_required_stop_condition,
+    check_if_stop_conditions_are_met,
+    explain_stop_conditions,
 )
 
 from .dict_utils import merge_dictionaries_to_file, DictMergeError
@@ -328,30 +325,43 @@ class FuzzBox:
 
     def _init_stop_condition(self) -> None:
         try:
-            stop_cond_name, required_duration = detect_required_stop_condition(
+            fuzz_duration_triplet = detect_required_stop_condition(
                 environ=os.environ.copy()
             )
         except StopConditionError as e:
             raise FuzzBoxError(f"failed to detect required stop condition: {e}") from e
 
-        if stop_cond_name == "time_without_finds":
-            stop_conditions = {"minutes_without_paths": required_duration // 60}
-        else:  # real_run_time
-            stop_conditions = {"minutes_run_time": required_duration // 60}
+        fdt = fuzz_duration_triplet
+        stop_conditions: Dict[str, int] = {}
 
-        log.info(
-            "[*] STOP CONDITION: %s = %d seconds", stop_cond_name, required_duration
-        )
+        if fdt[0] > 0:
+            stop_conditions["min_fuzzing_time"] = fdt[0]
 
-        self.stop_cond_name = stop_cond_name
-        self.required_duration = required_duration
-        self.stop_conditions = stop_conditions
+        if fdt[1] > 0:
+            stop_conditions["minutes_without_paths"] = (
+                fdt[1] // 60
+            )  # legacy value for compatibility
+            stop_conditions["time_without_finds"] = fdt[1]
 
-    def wait_until_stop_condition(self) -> None:
+        if fdt[2] > 0:
+            stop_conditions["minutes_run_time"] = (
+                fdt[2] // 60
+            )  # legacy value for compatibility
+            stop_conditions["max_fuzzing_time"] = fdt[2]
+
+        log.info("[*] STOP CONDITION: %s", explain_stop_conditions(fdt))
+
+        self.fuzzing_duration_triplet = fdt
+        self.wanted_stop_conditions = stop_conditions
+
+    def wait_until_stop_condition(self) -> Dict[str, int]:
         """
-        Fuzzing loop:
+        The fuzzing loop method:
             1. Print current fuzz stats
             2. Check for stop condition
+
+        Return a dictionary with currently detected stop condition.
+        If no stop condition detected, return empty dictionary.
         """
         sleep(5.0)
 
@@ -360,16 +370,18 @@ class FuzzBox:
         stats_print_counter = 0
         self.real_duration = 0
 
-        stop_cond_met = False
-        while not stop_cond_met:
-            stop_cond_met = self._wait_loop_iteration(stats_counter=stats_print_counter)
+        stop_condition_met = {}
+        while not stop_condition_met:
+            stop_condition_met = self._wait_loop_iteration(
+                stats_counter=stats_print_counter
+            )
             stats_print_counter = (stats_print_counter + 1) % 6
 
         log.info(
-            "Stop condition '%s = %d seconds' met!",
-            self.stop_cond_name,
-            self.required_duration,
+            "STOP CONDITION MET: %s",
+            explain_stop_conditions(self.fuzzing_duration_triplet),
         )
+        return stop_condition_met
 
     def _display_process_tree(self):
         """
@@ -379,10 +391,11 @@ class FuzzBox:
         if exit_code == 0 and output:
             log.info("Fuzz process tree:\n%s", output.decode(errors="replace"))
 
-    def _wait_loop_iteration(self, stats_counter: int) -> bool:
+    def _wait_loop_iteration(self, stats_counter: int) -> Dict[str, int]:
         """
         One iteration of fuzzing loop.
-        Return True if stop condition was met.
+        Return a dictionary indicating stop condition met.
+        Empty dictionary means no condition is met yet.
         """
 
         sleep(10.0)
@@ -405,14 +418,17 @@ class FuzzBox:
                 )
         except FileNotFoundError:
             log.debug("FileNotFoundError when trying to load stats")
-            return False
+            return {}
 
-        return StopConditions.met(
-            self.stop_cond_name, self.stats, self.required_duration
+        return check_if_stop_conditions_are_met(
+            self.stats, self.fuzzing_duration_triplet
         )
 
     def stop_and_update_vars(
-        self, bane_vars: Dict[str, Any], interrupted: bool
+        self,
+        bane_vars: Dict[str, Any],
+        interrupted: bool,
+        actual_stop_conditions: Dict[str, int],
     ) -> None:
         real_duration = int(time()) - self.start_timestamp
         last_fuzz_stats = deepcopy(self.stats)
@@ -428,12 +444,13 @@ class FuzzBox:
 
         fuzz_time_real_seconds = real_duration
 
-        stop_conditions = {} if interrupted else self.stop_conditions
+        stop_conditions = {} if interrupted else actual_stop_conditions
 
         self.fuzz_config.update_config_vars(
             config_vars=bane_vars,
             fuzz_sync_dir=self.fuzz_sync_dir,
             stop_conditions=stop_conditions,
+            wanted_stop_conditions=self.wanted_stop_conditions,
             fuzz_time_real_seconds=fuzz_time_real_seconds,
             reproduce_specs=self.reproduce_specs,
         )
@@ -462,7 +479,7 @@ class FuzzBox:
         except ProcessException:
             return
 
-        fuzzer_procs = []
+        fuzzer_procs: List[psutil.Process] = []
 
         for p in procs:
             if not p.is_running():

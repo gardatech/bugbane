@@ -119,6 +119,7 @@ class FuzzConfig:
         config_vars: Dict[str, Any],
         fuzz_sync_dir: str,
         stop_conditions: Dict[str, Any],
+        wanted_stop_conditions: Dict[str, Any],
         fuzz_time_real_seconds: int,
         reproduce_specs: Dict[str, Any],
     ) -> None:
@@ -137,5 +138,6 @@ class FuzzConfig:
         cfg["fuzz_cores"] = self.fuzz_cores
         cfg["fuzz_sync_dir"] = fuzz_sync_dir
         cfg["stop_conditions"] = stop_conditions
+        cfg["wanted_stop_conditions"] = wanted_stop_conditions
         cfg["fuzz_time_real_seconds"] = fuzz_time_real_seconds
         cfg["reproduce_specs"] = reproduce_specs

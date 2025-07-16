@@ -307,7 +307,7 @@ Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/scre
 The tool detects builds of a tested app on disk and distributes them across different processor cores.<br>
 The distribution algorithm for C/C++ builds relies on the following rules:
 * builds with sanitizers are allocated one core each;
-* auxiliary builds (AFL_LLVM_LAF_ALL, AFL_USE_CMPLOG) are assigned to a certain proportion of the available cores;
+* auxiliary builds (AFL\_LLVM\_LAF\_ALL, AFL\_USE\_CMPLOG) are assigned to a certain proportion of the available cores;
 * the basic build (without sanitizers) occupies the remaining cores;
 * builds for source code coverage collection do not participate in fuzz testing (see bb-coverage).
 
@@ -323,7 +323,7 @@ The variable `tested_binary_path` holds the path to the tested app's binary rela
 The variable `src_root` is not used directly, but other BugBane tools running after bb-fuzz fail if the variable is missing.<br>
 The `run_args` variable holds a string containing run arguments for the tested app. The variable may include the "@@" sequence, through which the fuzzer may provide input samples for the app.<br>
 For the built-in Go fuzzer the variable `run_args` must contain the `-test.fuzz` launch option with a specific fuzz test, for instance, `-test.fuzz=FuzzHttp`.<br>
-The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD_PRELOAD is automatically converted to a corresponding fuzzer variable (such as AFL_PRELOAD for AFL++).<br>
+The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD\_PRELOAD is automatically converted to a corresponding fuzzer variable (such as AFL\_PRELOAD for AFL++).<br>
 Example of the `run_env` variable in the configuration file:
 ```json
 "run_env": {
@@ -333,15 +333,20 @@ Example of the `run_env` variable in the configuration file:
 ```
 The following stop conditions are available:
 * actual fuzzing duration has reached X seconds (time spent regardless of the number of cores / fuzzer instances);
-* no new code execution paths have been detected for the last X seconds among all instances of a fuzzer.
+* no new code execution paths have been detected for the last X seconds among all instances of a fuzzer (with the support for minimum required fuzzing duration).
 
-The stop condition is defined using the following environment variables:
-* CERT_FUZZ_DURATION=X - X specifies the number of seconds without no new execution paths detected; this variable has the highest priority if other stop condition variables are set;
-* CERT_FUZZ_LEVEL=X - X specifies so called "control level", which in turn defines the number of seconds without no new execution paths, available values of X are: 2, 3, 4; this variable has medium priority;
-* FUZZ_DURATION=X - X specifies fuzzing duration (number of seconds); this variable has the lowest priority.
+Stop conditions are set via the FUZZ\_DURATION environment variable:
+* FUZZ\_DURATION=X:Y:Z - X specifies the minimum required fuzzing duration, Y - the required time without finds, Z - the maximum allowed testing duration.
 
-The CERT_FUZZ_\* variables are fit for software certification trials, and the FUZZ_\* variables are intended to be used in CI/CD.<br>
-If none of the above variables are defined, then FUZZ_DURATION=600 is used implicitly.<br>
+For example, `FUZZ_DURATION=300:60:600` means to fuzz for at least 300 seconds until time without finds reaches 60 seconds, but for no longer than 600 seconds.
+
+For backwards compatibility the stop condition can also be defined using the old method with these environment variables, but there's no way to combine conditions, nor an option to set a minimum required fuzzing duration:
+* CERT\_FUZZ\_DURATION=X - X specifies the number of seconds without no new execution paths detected; this variable has the highest priority if other stop condition variables are set;
+* CERT\_FUZZ\_LEVEL=X - X specifies so called "control level", which in turn defines the number of seconds without no new execution paths, available values of X are: 2, 3, 4; this variable has medium priority;
+* FUZZ\_DURATION=X - X specifies fuzzing duration (number of seconds); this variable has the lowest priority.
+
+The CERT\_FUZZ_\* variables are fit for software certification trials, and the FUZZ_\* variables are intended to be used in CI/CD.<br>
+If none of the above variables are defined, then FUZZ\_DURATION=600 is used implicitly.<br>
 
 The number of processor cores to use in fuzzing is determined by the minimal value of the following:
 1. The number of CPU cores available in the OS.

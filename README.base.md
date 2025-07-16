@@ -592,7 +592,7 @@ Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/scre
 Инструмент обнаруживает сборки приложения на диске и распределяет их по разным ядрам процессора.<br>
 Алгоритм распределения сборок C/C++:
 * сборкам с санитайзерами выделяется по одному ядру;
-* вспомогательные сборки (AFL_LLVM_LAF_ALL, AFL_USE_CMPLOG) назначаются на определённую долю от доступных ядер;
+* вспомогательные сборки (AFL\_LLVM\_LAF\_ALL, AFL\_USE\_CMPLOG) назначаются на определённую долю от доступных ядер;
 * сборка basic (без санитайзеров) занимает остальные ядра;
 * сборки для определения покрытия исходного кода в фаззинг-тестировании участие не принимают (см. bb-coverage).
 
@@ -600,7 +600,7 @@ Then the tool saves fuzzer screen dumps (text representations) to the /fuzz/scre
 The tool detects builds of a tested app on disk and distributes them across different processor cores.<br>
 The distribution algorithm for C/C++ builds relies on the following rules:
 * builds with sanitizers are allocated one core each;
-* auxiliary builds (AFL_LLVM_LAF_ALL, AFL_USE_CMPLOG) are assigned to a certain proportion of the available cores;
+* auxiliary builds (AFL\_LLVM\_LAF\_ALL, AFL\_USE\_CMPLOG) are assigned to a certain proportion of the available cores;
 * the basic build (without sanitizers) occupies the remaining cores;
 * builds for source code coverage collection do not participate in fuzz testing (see bb-coverage).
 
@@ -628,7 +628,7 @@ There may also be dictionary files with the ".dict" extension in the "dictionari
 Переменная `src_root` не используется напрямую, но без её указания потерпят неудачу утилиты, подлежащие запуску после bb-fuzz.<br>
 `run_args` - строка с аргументами запуска тестируемого приложения. Переменная может включать последовательность "@@", вместо которой фаззер может подставлять тестовые примеры на вход тестируемой программе.<br>
 Для встроенного фаззера Go переменная `run_args` обязана содержать опцию запуска `-test.fuzz` с указанием конкретного фаззинг-теста, например, `-test.fuzz=FuzzHttp`.<br>
-`run_env` - переменные окружения, которые необходимо установить для запуска тестируемого приложения. Переменная LD_PRELOAD будет автоматически заменена на соответствующую переменную фаззера (например, AFL_PRELOAD для AFL++).<br>
+`run_env` - переменные окружения, которые необходимо установить для запуска тестируемого приложения. Переменная LD\_PRELOAD будет автоматически заменена на соответствующую переменную фаззера (например, AFL\_PRELOAD для AFL++).<br>
 Пример переменной `run_env` в конфигурационном файле:
 <!-- [en] -->
 The values available for the variable `fuzzer_type`: AFL++, libFuzzer, go-fuzz, go-test. For fuzzing with SharpFuzz you should specify AFL++, for Atheris you should specify libFuzzer.<br>
@@ -636,7 +636,7 @@ The variable `tested_binary_path` holds the path to the tested app's binary rela
 The variable `src_root` is not used directly, but other BugBane tools running after bb-fuzz fail if the variable is missing.<br>
 The `run_args` variable holds a string containing run arguments for the tested app. The variable may include the "@@" sequence, through which the fuzzer may provide input samples for the app.<br>
 For the built-in Go fuzzer the variable `run_args` must contain the `-test.fuzz` launch option with a specific fuzz test, for instance, `-test.fuzz=FuzzHttp`.<br>
-The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD_PRELOAD is automatically converted to a corresponding fuzzer variable (such as AFL_PRELOAD for AFL++).<br>
+The `run_env` contains a dictionary of environment variables, required to fuzz the tested app. The env variable LD\_PRELOAD is automatically converted to a corresponding fuzzer variable (such as AFL\_PRELOAD for AFL++).<br>
 Example of the `run_env` variable in the configuration file:
 <!-- [common] -->
 ```json
@@ -648,30 +648,40 @@ Example of the `run_env` variable in the configuration file:
 <!-- [ru] -->
 Доступные условия остановки фаззинг-тестирования:
 * реальная продолжительность фаззинга достигла X секунд (затраченное время независимо от количества ядер / экземпляров фаззера);
-* новые пути выполнения кода не обнаруживались в течение последних X секунд среди всех экземпляров фаззера.
+* новые пути выполнения кода не обнаруживались в течение последних X секунд среди всех экземпляров фаззера (с поддержкой минимально необходимого времени фаззинга).
 
 <!-- [en] -->
 The following stop conditions are available:
 * actual fuzzing duration has reached X seconds (time spent regardless of the number of cores / fuzzer instances);
-* no new code execution paths have been detected for the last X seconds among all instances of a fuzzer.
+* no new code execution paths have been detected for the last X seconds among all instances of a fuzzer (with the support for minimum required fuzzing duration).
 
 <!-- [ru] -->
-Условие остановки задаётся с помощью переменных окружения:
-* CERT_FUZZ_DURATION=X - X определяет количество секунд, в течение которых не должны обнаруживаться новые пути выполнения; переменная имеет наивысший приоритет, если установлены другие переменные;
-* CERT_FUZZ_LEVEL=X - X определяет уровень контроля, что в свою очередь определяет время, в течение которого не должны обнаруживаться новые пути выполнения; допустимые значения X: 2, 3, 4; средний приоритет;
-* FUZZ_DURATION=X - X определяет реальную продолжительность тестирования; низший приоритет.
+Условия остановки задаются с помощью переменной окружения FUZZ\_DURATION:
+* FUZZ\_DURATION=X:Y:Z - X определяет минимально необходимое время тестирования, Y - время без обнаружения новых путей выполнения, Z - максимально допустимое время тестирования.
 
-Переменные CERT_FUZZ_\* подходят для сертификационных испытаний, FUZZ_\* - для использования в CI/CD.<br>
-Если не объявлена ни одна из указанных переменных, используется FUZZ_DURATION=600.<br>
+Например, `FUZZ_DURATION=300:60:600` означает что фаззинг-тестирование необходимо выполнять не менее 300 секунд, пока время без обнаружения новых путей выполнения не достигнет 60 секунд, но не более 600 секунд.
+
+Для обратной совместимости поддерживается старый способ указания условий остановки через указанные здесь переменные окружения, но при его использовании нельзя объединять условия, а также нельзя указать требование к минимальной продолжительности тестирования:
+* CERT\_FUZZ\_DURATION=X - X определяет количество секунд, в течение которых не должны обнаруживаться новые пути выполнения; переменная имеет наивысший приоритет, если установлены другие переменные;
+* CERT\_FUZZ\_LEVEL=X - X определяет уровень контроля, что в свою очередь определяет время, в течение которого не должны обнаруживаться новые пути выполнения; допустимые значения X: 2, 3, 4; средний приоритет;
+* FUZZ\_DURATION=X - X определяет реальную продолжительность тестирования; низший приоритет.
+
+Переменные CERT\_FUZZ\_\* подходят для сертификационных испытаний, FUZZ\_\* - для использования в CI/CD.<br>
+Если не объявлена ни одна из указанных переменных, используется FUZZ\_DURATION=600.<br>
 
 <!-- [en] -->
-The stop condition is defined using the following environment variables:
-* CERT_FUZZ_DURATION=X - X specifies the number of seconds without no new execution paths detected; this variable has the highest priority if other stop condition variables are set;
-* CERT_FUZZ_LEVEL=X - X specifies so called "control level", which in turn defines the number of seconds without no new execution paths, available values of X are: 2, 3, 4; this variable has medium priority;
-* FUZZ_DURATION=X - X specifies fuzzing duration (number of seconds); this variable has the lowest priority.
+Stop conditions are set via the FUZZ\_DURATION environment variable:
+* FUZZ\_DURATION=X:Y:Z - X specifies the minimum required fuzzing duration, Y - the required time without finds, Z - the maximum allowed testing duration.
 
-The CERT_FUZZ_\* variables are fit for software certification trials, and the FUZZ_\* variables are intended to be used in CI/CD.<br>
-If none of the above variables are defined, then FUZZ_DURATION=600 is used implicitly.<br>
+For example, `FUZZ_DURATION=300:60:600` means to fuzz for at least 300 seconds until time without finds reaches 60 seconds, but for no longer than 600 seconds.
+
+For backwards compatibility the stop condition can also be defined using the old method with these environment variables, but there's no way to combine conditions, nor an option to set a minimum required fuzzing duration:
+* CERT\_FUZZ\_DURATION=X - X specifies the number of seconds without no new execution paths detected; this variable has the highest priority if other stop condition variables are set;
+* CERT\_FUZZ\_LEVEL=X - X specifies so called "control level", which in turn defines the number of seconds without no new execution paths, available values of X are: 2, 3, 4; this variable has medium priority;
+* FUZZ\_DURATION=X - X specifies fuzzing duration (number of seconds); this variable has the lowest priority.
+
+The CERT\_FUZZ_\* variables are fit for software certification trials, and the FUZZ_\* variables are intended to be used in CI/CD.<br>
+If none of the above variables are defined, then FUZZ\_DURATION=600 is used implicitly.<br>
 
 <!-- [ru] -->
 Количество используемых ядер процессора определяется минимальным значением среди перечисленных:
