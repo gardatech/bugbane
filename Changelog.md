@@ -4,6 +4,9 @@ List of significant changes in BugBane.
 ## Version 0.6.0
 - all tools:
     - each tool now prints bugbane version
+- fuzz tool:
+    - added support for combined stop conditions in the `FUZZ_DURATION` variable: `FUZZ_DURATION=300:60:600` means to fuzz for at least 300 seconds until time without finds reaches 60 seconds, but for no longer than 600 seconds.<br>
+        Previous syntax of `FUZZ_DURATION` and other env variables are also supported, but cannot be combined together.
 - reproduce tool:
     - added support for regression testing (`--old-bugs`, `--saved-results-file-path`)
     - added support for reproducing custom user provided samples (`--extra-bugs`)
