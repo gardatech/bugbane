@@ -338,15 +338,9 @@ class FuzzBox:
             stop_conditions["min_fuzzing_time"] = fdt[0]
 
         if fdt[1] > 0:
-            stop_conditions["minutes_without_paths"] = (
-                fdt[1] // 60
-            )  # legacy value for compatibility
             stop_conditions["time_without_finds"] = fdt[1]
 
         if fdt[2] > 0:
-            stop_conditions["minutes_run_time"] = (
-                fdt[2] // 60
-            )  # legacy value for compatibility
             stop_conditions["max_fuzzing_time"] = fdt[2]
 
         log.info("[*] STOP CONDITION: %s", explain_stop_conditions(fdt))
