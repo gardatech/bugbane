@@ -110,24 +110,31 @@ class DictProcessor:
 
     def _extract_token_from_one_line(self, line: str) -> str:
         """
-        If line is empty or starts with comment, return empty string.
-        Otherwise, remove optional token name and return extracted token.
+        Extract a quoted token from a single dictionary `line`.
+        The returned token is enclosed in double quotes.
+        If no token is found, return empty string.
+
+        Supported formats of `line`:
+            "value"
+            "value" # comment
+            key="value"
+            key="value" # comment
+
+        The `key` and `comment` parts are ignored, only the `value` part is extracted.
         """
 
-        t = line.strip()
-        if not t or t.startswith("#"):
-            return ""
+        open_quote_idx = -1
+        for i, c in enumerate(line):
+            if c == '"' and (i == 0 or i > 0 and line[i - 1] != "\\"):
+                if open_quote_idx < 0:
+                    open_quote_idx = i
+                else:
+                    return '"' + line[open_quote_idx + 1 : i] + '"'
 
-        # remove comment after token
-        # XXX: of course this means there is no support for tokens like "#" or "ABC#DEF"
-        if "#" in t:
-            t = t.split("#")[0].strip()
+            if c == "#" and open_quote_idx < 0:
+                break
 
-        if "=" not in t:
-            return t
-
-        t = t.rsplit("=", 1)[1]
-        return t.strip()
+        return ""
 
     def _is_token_valid(self, token: str) -> bool:
         """

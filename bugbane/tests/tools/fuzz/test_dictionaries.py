@@ -163,12 +163,29 @@ def test_save_to_file_write_error(mocker: MockerFixture):
 @pytest.mark.parametrize(
     "line, token",
     [
+        # fmt: off
         ('"1"', '"1"'),
         ('" "', '" "'),
+        (r'"\"" # comment', r'"\""'),
         ('"Some Token" # with comment!', '"Some Token"'),
         ('token1=" &"', '" &"'),
+        ('"test" # comment', '"test"'),
+
+        (r'"a\nb"', r'"a\nb"'),
+        (r'"a\x00\xfeb"', r'"a\x00\xfeb"'),
+
+        ('"="', '"="'),
+        ('"==="', '"==="'),
+        ('key="="', '"="'),
+        ('key="test1=test2"', '"test1=test2"'),
+
+        ('"test # test" # comment', '"test # test"'),
+        ('key="test" # comment', '"test"'),
+        ('key="test" # comment', '"test"'),
+        ('key="test # test2" # comment', '"test # test2"'),
+        # fmt: on
     ],
 )
-def test_extract_token_from_line(line: str, token: str):
+def test_extract_token_from_line(line: str, token: str) -> None:
     d = DictProcessor()
     assert d._extract_token_from_one_line(line) == token
