@@ -64,6 +64,13 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         default=3,
     )
     app_options.add_argument(
+        "--hang-confirm-tries",
+        help="confirm a hang by trying it N additional times after initial detection to reduce false positives (default: 1)",
+        type=int,
+        metavar="N",
+        default=1,
+    )
+    app_options.add_argument(
         "--num-reruns",
         help="make at most N runs on same sample if application doesn't crash/hang right away (default: 3)",
         type=int,
@@ -214,6 +221,13 @@ def exit_on_bad_args(args: argparse.Namespace) -> Union[None, NoReturn]:
             file=sys.stderr,
         )
         args.num_reruns = 1
+
+    if args.hang_confirm_tries < 0:
+        print(
+            f"NOTE in --hang-confirm-tries: corrected value from {args.hang_confirm_tries} to 0",
+            file=sys.stderr,
+        )
+        args.hang_confirm_tries = 0
 
     if args.hang_timeout <= 0:
         print(

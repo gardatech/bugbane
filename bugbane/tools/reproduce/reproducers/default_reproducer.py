@@ -45,10 +45,15 @@ class DefaultReproducer(Reproducer):
         crashes: Iterable[str],
         hangs: Iterable[str],
         hang_reproduce_limit: int,
+        hang_confirm_tries: int,
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
         cards.extend(self.run_binary_on_crashes(binary_path, crashes))
-        cards.extend(self.run_binary_on_hangs(binary_path, hangs, hang_reproduce_limit))
+        cards.extend(
+            self.run_binary_on_hangs(
+                binary_path, hangs, hang_reproduce_limit, hang_confirm_tries
+            )
+        )
         return cards
 
     def run_binary_on_crashes(
@@ -66,19 +71,50 @@ class DefaultReproducer(Reproducer):
         return cards
 
     def run_binary_on_hangs(
-        self, binary_path: str, samples: Iterable[str], hang_reproduce_limit: int
+        self,
+        binary_path: str,
+        samples: Iterable[str],
+        hang_reproduce_limit: int,
+        hang_confirm_tries: int,
     ) -> List[IssueCard]:
         cards: List[IssueCard] = []
         for num, sample in enumerate(samples, start=1):
             if num > hang_reproduce_limit:
                 break
-            cmd = self.make_gdb_run_cmd_for_hang(binary_path, sample)
-            card = self.run(cmd, binary_path, sample, self.one_run_try_hang)
-            if (
-                card.verdict is not None
-                and card.verdict.value[0] >= Verdict.HANG.value[0]
-            ):
-                cards.append(card)
+
+            card = None
+            one_hang_attempt_limit = hang_confirm_tries + 1
+
+            for try_num in range(one_hang_attempt_limit):
+                cmd = self.make_gdb_run_cmd_for_hang(binary_path, sample)
+                card = self.run(cmd, binary_path, sample, self.one_run_try_hang, num_tries=1)
+                if (
+                    card.verdict is not None
+                    and card.verdict.value[0] >= Verdict.HANG.value[0]
+                ):
+                    if try_num < one_hang_attempt_limit - 1:
+                        extra_message = ", retrying..."
+                    else:
+                        extra_message = ". Hang confirmed"
+                    log.verbose2(
+                        "Hang detected for sample '%s' on attempt %d/%d%s",
+                        sample,
+                        try_num + 1,
+                        one_hang_attempt_limit,
+                        extra_message,
+                    )
+                    continue  # retry the iteration to confirm it wasn't a fluke
+
+                log.verbose2(
+                    "Hang not detected on attempt %d/%d. Discarding hang sample '%s' as non-reproducible...",
+                    try_num + 1,
+                    one_hang_attempt_limit,
+                    sample,
+                )
+                break
+            else:  # didn't break: each iteration caused a hang -> confirmed
+                if card is not None:
+                    cards.append(card)
         return cards
 
     def run(
@@ -87,14 +123,17 @@ class DefaultReproducer(Reproducer):
         binary_path: str,
         sample_path: str,
         run_method: Callable[[str, Dict[str, str]], Tuple[Verdict, str]],
+        num_tries: Optional[int] = None,
     ) -> IssueCard:
         """
-        Reproduce one binary on one sample up to self.num_tries times
-        or until a bug is detected.
+        Reproduce one binary on one sample up to num_tries times (or
+        self.num_tries if not passed) until a bug is detected.
         Return partially filled IssueCard (without title and bug location)
         """
-        num_tries = max(1, self.num_tries)
-        for try_num in range(1, num_tries + 1):
+        if num_tries is None:
+            num_tries = self.num_tries
+        tries = max(1, num_tries)
+        for try_num in range(1, tries + 1):
             log.verbose3("%s run: %s (try #%d)", self.__class__.__name__, cmd, try_num)
             verdict, output = run_method(cmd, self.run_env)
 

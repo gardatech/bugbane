@@ -65,6 +65,7 @@ class ReproduceSettings:
     """
 
     hang_reproduce_limit: int = 3
+    hang_confirm_tries: int = 1
     num_reruns: int = 3
     use_abspath: bool = False
     src_path_base: Optional[str] = None
@@ -231,6 +232,7 @@ class Harvester:
                 glob.iglob(crashes_mask),
                 glob.iglob(hangs_mask),
                 self.reproduce_settings.hang_reproduce_limit,
+                self.reproduce_settings.hang_confirm_tries,
             )
             self.add_reproduce_issue_cards(cards)
 
@@ -526,6 +528,7 @@ class Harvester:
                         crashes,
                         hangs,
                         self.reproduce_settings.hang_reproduce_limit,
+                        self.reproduce_settings.hang_confirm_tries,
                     )
                     for card in issue_cards:
                         log.warning(
@@ -612,6 +615,7 @@ class Harvester:
                             crashes,
                             hangs,
                             self.reproduce_settings.hang_reproduce_limit,
+                            self.reproduce_settings.hang_confirm_tries,
                         )
                         for card in issue_cards:
                             card.is_extra = True

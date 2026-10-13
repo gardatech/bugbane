@@ -57,6 +57,7 @@ class Reproducer(ABC):
         crashes: Iterable[str],
         hangs: Iterable[str],
         hang_reproduce_limit: int,
+        hang_confirm_tries: int,
     ) -> List[IssueCard]:
         """
         Run binary specified by `binary_path` on each sample matching crashes_mask or hangs_mask.

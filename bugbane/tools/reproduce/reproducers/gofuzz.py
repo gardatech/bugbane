@@ -19,7 +19,6 @@ from typing import Optional, List, Tuple, Iterable, Sequence
 import re
 from bugbane.modules.log import getLogger
 
-
 log = getLogger(__name__)
 
 from bugbane.modules.process import make_env_shell_str
@@ -43,6 +42,7 @@ class GoFuzzReproducer(Reproducer):
         crashes: Iterable[str],
         hangs: Iterable[str],
         hang_reproduce_limit: int,
+        hang_confirm_tries: int,
     ) -> List[IssueCard]:
         # no need to limit hangs: reproducing already happened by go-fuzz
         cards: List[IssueCard] = []

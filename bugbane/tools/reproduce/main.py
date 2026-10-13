@@ -197,6 +197,7 @@ def main(argv: Optional[Sequence[str]] = None):
     )
     reproduce_settings = ReproduceSettings(
         hang_reproduce_limit=args.hang_reproduce_limit,
+        hang_confirm_tries=args.hang_confirm_tries,
         num_reruns=args.num_reruns,
         use_abspath=args.abspath,
         src_path_base=src_path,
