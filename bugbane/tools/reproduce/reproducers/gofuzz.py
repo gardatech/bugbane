@@ -43,6 +43,7 @@ class GoFuzzReproducer(Reproducer):
         hangs: Iterable[str],
         hang_reproduce_limit: int,
         hang_confirm_tries: int,
+        hang_gdb_cleanup_tries: int,
     ) -> List[IssueCard]:
         # no need to limit hangs: reproducing already happened by go-fuzz
         cards: List[IssueCard] = []

@@ -71,6 +71,13 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         default=1,
     )
     app_options.add_argument(
+        "--hang-gdb-cleanup-tries",
+        help="if hang detection output contains gdb's own python traceback, retry hang detection up to N times (default: 2)",
+        type=int,
+        metavar="N",
+        default=2,
+    )
+    app_options.add_argument(
         "--num-reruns",
         help="make at most N runs on same sample if application doesn't crash/hang right away (default: 3)",
         type=int,
@@ -228,6 +235,13 @@ def exit_on_bad_args(args: argparse.Namespace) -> Union[None, NoReturn]:
             file=sys.stderr,
         )
         args.hang_confirm_tries = 0
+
+    if args.hang_gdb_cleanup_tries < 0:
+        print(
+            f"NOTE in --hang-gdb-cleanup-tries: corrected value from {args.hang_gdb_cleanup_tries} to 0",
+            file=sys.stderr,
+        )
+        args.hang_gdb_cleanup_tries = 0
 
     if args.hang_timeout <= 0:
         print(
